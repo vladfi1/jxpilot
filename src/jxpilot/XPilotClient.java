@@ -1,4 +1,4 @@
-package XPilot;
+package jxpilot;
 
 import javax.swing.*;
 import java.awt.*;

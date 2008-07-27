@@ -1,6 +1,6 @@
-package XPilot;
+package jxpilot;
 
-import static XPilot.MathFunctions.*;
+import static jxpilot.MathFunctions.*;
 
 import java.awt.geom.*;
 

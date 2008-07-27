@@ -1,10 +1,10 @@
-package XPilot;
+package jxpilot;
 
 import java.awt.geom.*;
 import javax.swing.Timer;
 import java.awt.event.*;
 import java.util.ArrayList;
-import static XPilot.MathFunctions.*;
+import static jxpilot.MathFunctions.*;
 
 /*
 abstract class XPServer

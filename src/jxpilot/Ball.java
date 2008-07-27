@@ -2,7 +2,7 @@ package jxpilot;
 
 import java.awt.geom.*;
 
-import static XPilot.MathFunctions.*;
+import static jxpilot.MathFunctions.*;
 
 public class Ball extends BaseEntity implements java.io.Serializable
 {

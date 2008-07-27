@@ -1,4 +1,4 @@
-package XPilot;
+package jxpilot;
 
 import java.io.Serializable;
 import java.awt.*;

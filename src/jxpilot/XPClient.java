@@ -1,4 +1,4 @@
-package XPilot;
+package jxpilot;
 
 public interface XPClient
 {
