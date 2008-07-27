@@ -435,7 +435,7 @@ public class XPilotClient implements XPClient
 				ClientFrame()
 				{
 					this.setExtendedState(this.MAXIMIZED_BOTH);
-					this.setSize(0, 0);
+					//this.setSize(0, 0);
 					this.setTitle("XPilot");
 					
 					Width = this.getWidth();
