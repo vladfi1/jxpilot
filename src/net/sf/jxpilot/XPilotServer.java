@@ -1,10 +1,11 @@
-package jxpilot;
+package net.sf.jxpilot;
 
 import java.awt.geom.*;
 import javax.swing.Timer;
 import java.awt.event.*;
 import java.util.ArrayList;
-import static jxpilot.MathFunctions.*;
+
+import static net.sf.jxpilot.MathFunctions.*;
 
 /*
 abstract class XPServer

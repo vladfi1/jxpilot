@@ -1,4 +1,4 @@
-package jxpilot;
+package net.sf.jxpilot;
 
 public class ClientInput implements XPClient, java.io.Serializable
 {

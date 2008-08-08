@@ -1,8 +1,8 @@
-package jxpilot;
+package net.sf.jxpilot;
 
 import java.awt.geom.*;
 
-import static jxpilot.MathFunctions.*;
+import static net.sf.jxpilot.MathFunctions.*;
 
 public class Bullet extends BaseEntity implements java.io.Serializable
 {

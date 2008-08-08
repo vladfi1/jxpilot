@@ -1,6 +1,7 @@
-package jxpilot;
+package net.sf.jxpilot;
 
-import static jxpilot.MathFunctions.*;
+import static net.sf.jxpilot.MathFunctions.*;
+
 import java.awt.geom.*;
 
 public class BaseEntity implements java.io.Serializable
