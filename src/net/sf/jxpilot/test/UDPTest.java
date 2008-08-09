@@ -1,4 +1,4 @@
-package net.sf.jxpilot;
+package net.sf.jxpilot.test;
 
 import java.net.*;
 import java.io.*;
