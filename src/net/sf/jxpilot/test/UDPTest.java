@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 import static net.sf.jxpilot.test.ReliableData.*;
 import java.net.*;
@@ -12,11 +13,12 @@ public class UDPTest {
 	public static final int MAX_PACKET_SIZE = 65507;
 	public static final int MAGIC =0x4501F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
-	public static final short CLIENT_PORT = 15345;
+	//public static final short CLIENT_PORT = 15345;
 	
 	public static final String LKRAUSS_ADDRESS = "213.239.204.35";
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
+	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
 	public static final String SERVER_IP_ADDRESS = LKRAUSS_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
@@ -45,14 +47,12 @@ public class UDPTest {
 	{	
 		try
 		{
-			
 			try{
 				server_address = new InetSocketAddress(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
 				
 				channel = DatagramChannel.open();
 				socket = channel.socket();
-				socket.bind(new InetSocketAddress(CLIENT_PORT));
-				
+				//socket.bind();
 				
 				//System.out.println(socket.getLocalPort());
 			}
@@ -89,7 +89,7 @@ public class UDPTest {
 			
 			receivePacket(in);
 			
-			sendJoinRequest(out, REAL_NAME, CLIENT_PORT, NICK, HOST, TEAM);
+			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 			
 			getReplyData(reply, in);
 			System.out.println(reply);
@@ -109,7 +109,7 @@ public class UDPTest {
 			sendVerify(out, REAL_NAME, NICK);
 			
 			ReliableDataError result=null;
-			while (result!=NO_ERROR)
+			while (result!=ReliableDataError.NO_ERROR)
 			{
 				result = getReliableData(reliable, in, out);
 				//System.out.println(result);
@@ -124,18 +124,21 @@ public class UDPTest {
 			while(todo>0)
 			{
 				ReliableDataError error = getMapPacket(in, map, reliable);
-				if (error==NO_ERROR)
+				if (error==ReliableDataError.NO_ERROR)
 					todo -= reliable.getLen();
 			}
 			
 			
-			/*
-			map.flip();
-			for (int i = 0;i<map.remaining();i++)
+			if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
 			{
-				System.out.printf("%x\n", map.get());
+				uncompressMap(map, setup);
 			}
-			*/
+			
+			map.flip();
+			System.out.println(map.remaining()+"\n\nMap:\n");
+			
+			setup.printMapData();
+			
 			
 			
 			/*
@@ -174,7 +177,6 @@ public class UDPTest {
 	{
 		try
 		{
-			Charset c = null;
 			buffer.put(str.getBytes("US-ASCII"));
 			buffer.put(END_OF_STRING);
 		}
@@ -196,16 +198,25 @@ public class UDPTest {
 			b.append((char)ch);
 		} while(ch != END_OF_STRING);
 		return b.toString();
+	
+	}
+	public static int getUnsignedShort(short val)
+	{
+		return (int)((char)val);
 	}
 	
-	public static void putJoinRequest(ByteBuffer buf, String real_name, short port, String nick, String host, int team)
+	public static short getUnsignedByte(byte val)
+	{
+		return (short)(0xFF & (int)val);
+	}
+	
+	public static void putJoinRequest(ByteBuffer buf, String real_name, int port, String nick, String host, int team)
 	{
 		buf.clear();
 		
 		buf.putInt(MAGIC);
 		putString(buf, real_name);
-		buf.putShort(port);
-		
+		buf.putShort((short)port);
 		
 		buf.put(ENTER_QUEUE_pack);
 		putString(buf, nick);
@@ -214,7 +225,7 @@ public class UDPTest {
 		buf.putInt(team);
 	}
 	
-	public static void sendJoinRequest(ByteBuffer buf, String real_name, short port, String nick, String host, int team)
+	public static void sendJoinRequest(ByteBuffer buf, String real_name, int port, String nick, String host, int team)
 	{
 		buf.clear();
 		putJoinRequest(buf, real_name, port, nick, host, team);
@@ -319,7 +330,7 @@ public class UDPTest {
 	{
 		ReliableDataError error = getReliableData(reliable, in, out);
 		
-		if (error == NO_ERROR)
+		if (error == ReliableDataError.NO_ERROR)
 			readMapPacket(in, map, reliable);
 		
 		return error;
@@ -344,14 +355,92 @@ public class UDPTest {
 	{
 		ReliableDataError error = getReliableData(reliable, in, out);
 		
-		if (error == NO_ERROR)
+		if (error == ReliableDataError.NO_ERROR)
 		{
 			readFirstMapPacket(in, map, setup);		
 			//System.out.println(reliable);
 		}
 	}
 	
-	
+	public static MapError uncompressMap(ByteBuffer map, MapSetup setup)
+	{
+		map.rewind();
+		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
+		
+		map.get(map_bytes);
+		
+		int	cmp,		/* compressed map pointer */
+		ump,		/* uncompressed map pointer */
+		p;		/* temporary search pointer */
+		int		i,
+		count;
+
+		if(setup.getMapOrder() != MapSetup.SETUP_MAP_ORDER_XY)
+		{
+			return UNKNOWN_MAP_ORDER;
+		}
+		
+		/* Point to last compressed map byte */
+		//cmp = Setup->map_data + Setup->map_data_len - 1;
+		cmp = setup.getMapDataLen()-1;
+			
+		/* Point to last uncompressed map byte */
+		//ump = Setup->map_data + Setup->x * Setup->y - 1;
+		ump = setup.getX() * setup.getY()-1;
+		
+		while (cmp >= 0) {
+			for (p = cmp; p > 0; p--) {
+				if ((map_bytes[p-1] & MapSetup.SETUP_COMPRESSED) == 0) {
+					break;
+				}
+				//System.out.println("Found compressed byte");
+			}
+			if (p == cmp) {
+				map_bytes[ump] = map_bytes[cmp];
+				ump--;
+				cmp--;
+				continue;
+			}
+			if ((cmp - p) % 2 == 0) {
+				map_bytes[ump] = map_bytes[cmp];
+				ump--;
+				cmp--;
+			}
+			while (p < cmp) {
+				count = getUnsignedByte(map_bytes[cmp]);
+				cmp--;
+				if (count < 2) {
+					System.out.println("Map compress count error " + count);
+					return MAP_COMPRESS_ERROR;
+				}
+				map_bytes[cmp] &= ~MapSetup.SETUP_COMPRESSED;
+				for (i = 0; i < count; i++) {
+					map_bytes[ump] = map_bytes[cmp];
+					ump--;
+				}
+				cmp--;
+				if (ump < cmp) {
+					System.out.printf("Map uncompression error (%d,%d)\n",
+							cmp, ump);
+					return MAP_COMPRESS_ERROR;
+				}
+			}
+		}
+		
+		if (ump != cmp) {
+			System.out.printf("map uncompress error (%d,%d)\n",
+					cmp, ump);
+			return MAP_COMPRESS_ERROR;
+		}
+		
+		setup.setMapOrder(MapSetup.SETUP_MAP_UNCOMPRESSED);
+		map.clear();
+		map.put(map_bytes);
+		
+		setup.setMapData(map_bytes);
+		return MapError.NO_ERROR;
+	}
+		
 }
 
 class ReplyData
@@ -421,62 +510,4 @@ class Ack
 				+ "\nreliable offset = " + reliable_offset
 				+ "\nreliable loops = " + reliable_loops;
 	}
-}
-
-class MapSetup
-{
-	/*
-	n = Packet_scanf(&cbuf,
-			"%ld" "%ld%hd" "%hd%hd" "%hd%hd" "%s%s",
-			&Setup->map_data_len,
-			&Setup->mode, &Setup->lives,
-			&Setup->x, &Setup->y,
-			&Setup->frames_per_second, &Setup->map_order,
-			Setup->name, Setup->author);
-	*/
-	
-	//ints
-	private int map_data_len, mode;
-	private short lives, x, y, frames_per_second, map_order;
-	private String name, author;
-	
-	public MapSetup setMapSetup(int map_data_len, int mode, short lives, short x, short y, 
-								short frames_per_second, short map_order, String name, String author)
-	{
-		this.map_data_len = map_data_len;
-		this.mode = mode;
-		this.lives = lives;
-		this.x=x;
-		this.y=y;
-		this.frames_per_second = frames_per_second;
-		this.map_order = map_order;
-		this.name = name;
-		this.author = author;
-		return this;
-	}
-	
-	public int getMapDataLen(){return map_data_len;}
-	public int getMode(){return mode;}
-	public short getLives(){return lives;}
-	public short getX(){return x;}
-	public short getY(){return y;}
-	public short getFramesPerSecond(){return frames_per_second;}
-	public short getMapOrder(){return map_order;}
-	public String getName(){return name;}
-	public String getAuthor(){return author;}
-	
-	public String toString()
-	{
-		return "Map Setup"
-				+ "\nmap Data length = " + map_data_len
-				+ "\nmode = " + mode
-				+ "\nlives = " + lives
-				+ "\nx = " + x
-				+ "\ny = " + y
-				+ "\nframes per second = " + frames_per_second
-				+ "\nmap order = " + map_order
-				+ "\nname = " + name
-				+ "\nauthor = " + author;
-	}
-	
 }
