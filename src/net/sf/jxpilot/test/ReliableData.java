@@ -1,0 +1,102 @@
+package net.sf.jxpilot.test;
+
+import java.nio.ByteBuffer;
+import static net.sf.jxpilot.test.UDPTest.*;
+import static net.sf.jxpilot.test.ReliableDataError.*;
+
+class ReliableData
+{
+
+	public static ReliableDataError readReliableData(ReliableData data, ByteBuffer buf)
+	{
+		//buf.rewind();
+		
+		if (buf.remaining()<ReliableData.length) return BAD_PACKET;
+		
+		data.setData(buf.get(), buf.getShort(),buf.getInt() , buf.getInt());
+		
+		return NO_ERROR;
+	
+	}
+	
+	public static ReliableDataError getReliableData(ReliableData data, ByteBuffer in, ByteBuffer out)
+	{
+		receivePacket(in);
+		in.flip();
+		
+		ReliableDataError error = readReliableData(data, in);
+		if (error != NO_ERROR) return error;
+		
+		if (data.getRel() > data.getOffset()) {
+			/*
+			 * We miss one or more packets.
+			 * For now we drop this packet.
+			 * We could have kept it until the missing packet(s) arrived.
+			 */
+			
+			in.clear();
+			System.out.println("Packet out of order");
+			return OUT_OF_ORDER;
+		}
+		if (data.getRel() + data.getLen() <= data.getOffset()) {
+			/*
+			 * Duplicate data.  Probably an ack got lost.
+			 * Send an ack for our current stream position.
+			 */
+			
+			in.clear();
+			sendAck(out, Ack.ack.setAck(data));
+			System.out.println("Duplicate Data");
+			return DUPLICATE_DATA;
+		}
+		
+		System.out.println(data);
+		
+		data.incrementOffset();
+		sendAck(out, Ack.ack.setAck(data));
+		
+		return error;
+	}
+	
+	
+	public static final int length = 11;
+	private static int offset=0;
+
+	private byte pkt_type;
+	private short len;
+	private int rel;
+	private int rel_loops;
+
+	public ReliableData setData(byte pkt_type, short len, int rel, int rel_loops)
+	{
+		this.pkt_type = pkt_type;
+		this.len = len;
+		this.rel = rel;
+		this.rel_loops = rel_loops;
+		return this;
+	}
+
+	public byte getPkt_Type(){return pkt_type;}
+	public short getLen(){return len;}
+	public int getRel(){return rel;}
+	public int getRelLoops(){return rel_loops;}
+
+	public void incrementOffset()
+	{
+		offset += len;
+	}
+
+	public static int getOffset()
+	{
+		return offset;
+	}
+
+	public String toString()
+	{
+		return "Reliable Data:\n"
+		+"pkt_type = " + String.format("%x", pkt_type)
+		+"\nlen = " + len
+		+"\nrel = " + rel
+		+"\nrel_loops = " + rel_loops;
+	}
+}

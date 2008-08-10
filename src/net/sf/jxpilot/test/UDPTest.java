@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.ReliableDataError.*;
+import static net.sf.jxpilot.test.ReliableData.*;
 import java.net.*;
 import java.io.*;
 import java.nio.channels.*;
@@ -11,10 +13,13 @@ public class UDPTest {
 	public static final int MAGIC =0x4501F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
 	public static final short CLIENT_PORT = 15345;
-
+	
+	public static final String LKRAUSS_ADDRESS = "213.239.204.35";
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
-	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = LKRAUSS_ADDRESS;
+	
+	public static final byte END_OF_STRING = 0x00;
 	
 	public static final byte ENTER_QUEUE_pack = 0x01;
 	public static final byte ENTER_GAME_pack = 0x00;
@@ -31,8 +36,10 @@ public class UDPTest {
 	static InetSocketAddress server_address;
 	static DatagramSocket socket;
 	static DatagramChannel channel;
-	
-	static int offset=0;
+	static ByteBuffer out = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	static ByteBuffer in = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	static ByteBuffer map = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	static MapSetup setup = new MapSetup();
 	
 	public static void main(String[] args)
 	{	
@@ -54,8 +61,6 @@ public class UDPTest {
 				e.printStackTrace();
 			}
 			
-			ByteBuffer out = ByteBuffer.allocate(MAX_PACKET_SIZE);
-			ByteBuffer in = ByteBuffer.allocate(MAX_PACKET_SIZE);
 			
 			
 			//creates first message
@@ -75,7 +80,6 @@ public class UDPTest {
 				System.out.printf("Buffer : %x Actual %x\n", out.get(), bytes[i]);
 			}
 			*/
-			
 			
 			
 			ReplyData reply = new ReplyData();
@@ -104,28 +108,35 @@ public class UDPTest {
 			System.out.println("Sending Verify");
 			sendVerify(out, REAL_NAME, NICK);
 			
-			ReliableData result=null;
-			while (result==null)
+			ReliableDataError result=null;
+			while (result!=NO_ERROR)
 			{
-				result = getReliableData(reliable, in);
-				System.out.println(result);
+				result = getReliableData(reliable, in, out);
+				//System.out.println(result);
 			}
 			
 			
-			offset+=result.getLen();
+			getFirstMapPacket(in, map, setup, reliable);
+			System.out.println(setup);
 			
-			Ack ack = new Ack();
-			sendAck(out, ack.setAck(offset, reliable.getRelLoops()));
+			int todo = setup.getMapDataLen()-reliable.getLen();
 			
-			
-			getReliableData(reliable, in);
-			
-			
-			
-			for (int i = 0;i<in.remaining();i++)
+			while(todo>0)
 			{
-				System.out.printf("%x\n", in.get());
+				ReliableDataError error = getMapPacket(in, map, reliable);
+				if (error==NO_ERROR)
+					todo -= reliable.getLen();
 			}
+			
+			
+			/*
+			map.flip();
+			for (int i = 0;i<map.remaining();i++)
+			{
+				System.out.printf("%x\n", map.get());
+			}
+			*/
+			
 			
 			/*
 			
@@ -158,18 +169,33 @@ public class UDPTest {
 		}
 	}
 	
+	//uses 1 byte chars
 	public static void putString(ByteBuffer buffer, String str)
 	{
 		try
 		{
 			Charset c = null;
 			buffer.put(str.getBytes("US-ASCII"));
-			buffer.put((byte)0x00);
+			buffer.put(END_OF_STRING);
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	//uses 1 byte chars
+	public static String getString(ByteBuffer buffer)
+	{
+		StringBuffer b = new StringBuffer();
+		byte ch;
+		
+		do
+		{
+			ch = buffer.get();
+			b.append((char)ch);
+		} while(ch != END_OF_STRING);
+		return b.toString();
 	}
 	
 	public static void putJoinRequest(ByteBuffer buf, String real_name, short port, String nick, String host, int team)
@@ -209,7 +235,7 @@ public class UDPTest {
 		try
 		{
 			channel.receive(buf);
-			System.out.println("Buf received " + buf.position());
+			System.out.println("\nBuf received " + buf.position());
 		}
 		catch (IOException e)
 		{
@@ -231,24 +257,6 @@ public class UDPTest {
 		receivePacket(buf);
 		buf.flip();
 		return readReplyData(data, buf);
-	}
-	
-	public static ReliableData readReliableData(ReliableData data, ByteBuffer buf)
-	{
-		//buf.rewind();
-		
-		if (buf.remaining()<ReliableData.length) return null;
-		
-		data.setData(buf.get(), buf.getShort(),buf.getInt() , buf.getInt());
-		return data;
-	
-	}
-	
-	public static ReliableData getReliableData(ReliableData data, ByteBuffer buf)
-	{
-		receivePacket(buf);
-		buf.flip();
-		return readReliableData(data, buf);
 	}
 	
 	public static void putVerify(ByteBuffer buf, String real_name, String nick)
@@ -291,18 +299,59 @@ public class UDPTest {
 		{
 			buf.flip();
 			channel.send(buf, server_address);
+			System.out.println("\n"+ack);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
 	}
-	/*
-	private static void getMapPack(ByteBuffer in, ByteBuffer map, ReliableData reliable)
+	
+	
+	
+	private static void readMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
 	{
-		getReliableData();
+		//readReliableData(reliable, in);
+		map.put(in);
 	}
-	*/
+	
+	private static ReliableDataError getMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
+	{
+		ReliableDataError error = getReliableData(reliable, in, out);
+		
+		if (error == NO_ERROR)
+			readMapPacket(in, map, reliable);
+		
+		return error;
+		
+		//sendAck(out, Ack.ack.setAck(reliable));
+		//System.out.println(reliable);
+	}
+	
+	private static MapSetup readMapSetup(ByteBuffer in, MapSetup setup)
+	{	
+		return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
+				in.getShort(), in.getShort(), getString(in), getString(in));
+	}
+	
+	private static void readFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup)
+	{
+		readMapSetup(in, setup);
+		map.put(in);
+	}
+	
+	private static void getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
+	{
+		ReliableDataError error = getReliableData(reliable, in, out);
+		
+		if (error == NO_ERROR)
+		{
+			readFirstMapPacket(in, map, setup);		
+			//System.out.println(reliable);
+		}
+	}
+	
+	
 }
 
 class ReplyData
@@ -341,46 +390,13 @@ class ReplyData
 	}
 }
 
-class ReliableData
-{
-	public static int length = 11;
-	
-	byte pkt_type;
-	short len;
-	int rel;
-	int rel_loops;
-	
-	public ReliableData setData(byte pkt_type, short len, int rel, int rel_loops)
-	{
-		this.pkt_type = pkt_type;
-		this.len = len;
-		this.rel = rel;
-		this.rel_loops = rel_loops;
-		return this;
-	}
-	
-	public byte getPkt_Type(){return pkt_type;}
-	public short getLen(){return len;}
-	public int getRel(){return rel;}
-	public int getRelLoops(){return rel_loops;}
-	
-	public String toString()
-	{
-		return "Reliable Data:\n"
-				+"pkt_type = " + String.format("%x", pkt_type)
-				+"\nlen = " + len
-				+"\nrel = " + rel
-				+"\nrel_loops = " + rel_loops;
-	}
-}
-
 class Ack
 {
 	public static Ack ack = new Ack();
 	
-	byte type = UDPTest.PKT_ACK;
-	int reliable_offset;
-	int reliable_loops;
+	private byte type = UDPTest.PKT_ACK;
+	private int reliable_offset;
+	private int reliable_loops;
 	
 	public Ack setAck(int offset, int loops)
 	{
@@ -389,15 +405,78 @@ class Ack
 		return this;
 	}
 	
+	public Ack setAck(ReliableData data)
+	{
+		return setAck(data.getOffset(), data.getRelLoops());
+	}
+	
 	public byte getType(){return type;}
 	public int getOffset(){return reliable_offset;}
 	public int getLoops(){return reliable_loops;}
 	
 	public String toString()
 	{
-		return "type = " + String.format("%x", type)
+		return  "Acknowledgement"
+				+ "\ntype = " + String.format("%x", type)
 				+ "\nreliable offset = " + reliable_offset
 				+ "\nreliable loops = " + reliable_loops;
+	}
+}
+
+class MapSetup
+{
+	/*
+	n = Packet_scanf(&cbuf,
+			"%ld" "%ld%hd" "%hd%hd" "%hd%hd" "%s%s",
+			&Setup->map_data_len,
+			&Setup->mode, &Setup->lives,
+			&Setup->x, &Setup->y,
+			&Setup->frames_per_second, &Setup->map_order,
+			Setup->name, Setup->author);
+	*/
+	
+	//ints
+	private int map_data_len, mode;
+	private short lives, x, y, frames_per_second, map_order;
+	private String name, author;
+	
+	public MapSetup setMapSetup(int map_data_len, int mode, short lives, short x, short y, 
+								short frames_per_second, short map_order, String name, String author)
+	{
+		this.map_data_len = map_data_len;
+		this.mode = mode;
+		this.lives = lives;
+		this.x=x;
+		this.y=y;
+		this.frames_per_second = frames_per_second;
+		this.map_order = map_order;
+		this.name = name;
+		this.author = author;
+		return this;
+	}
+	
+	public int getMapDataLen(){return map_data_len;}
+	public int getMode(){return mode;}
+	public short getLives(){return lives;}
+	public short getX(){return x;}
+	public short getY(){return y;}
+	public short getFramesPerSecond(){return frames_per_second;}
+	public short getMapOrder(){return map_order;}
+	public String getName(){return name;}
+	public String getAuthor(){return author;}
+	
+	public String toString()
+	{
+		return "Map Setup"
+				+ "\nmap Data length = " + map_data_len
+				+ "\nmode = " + mode
+				+ "\nlives = " + lives
+				+ "\nx = " + x
+				+ "\ny = " + y
+				+ "\nframes per second = " + frames_per_second
+				+ "\nmap order = " + map_order
+				+ "\nname = " + name
+				+ "\nauthor = " + author;
 	}
 	
 }
