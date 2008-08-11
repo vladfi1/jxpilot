@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import javax.swing.*;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 import static net.sf.jxpilot.test.ReliableData.*;
@@ -131,15 +132,23 @@ public class UDPTest {
 			
 			if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
 			{
-				uncompressMap(map, setup);
+				setup.uncompressMap(map);
 			}
 			
 			map.flip();
 			System.out.println(map.remaining()+"\n\nMap:\n");
 			
-			setup.printMapData();
+			//setup.printMapData();
 			
+			MapPanel panel = new MapPanel(new Map(setup));
 			
+			JFrame frame = new JFrame();
+			
+			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.add(panel);
+			
+			frame.setVisible(true);
 			
 			/*
 			
@@ -361,86 +370,6 @@ public class UDPTest {
 			//System.out.println(reliable);
 		}
 	}
-	
-	public static MapError uncompressMap(ByteBuffer map, MapSetup setup)
-	{
-		map.rewind();
-		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
-		
-		map.get(map_bytes);
-		
-		int	cmp,		/* compressed map pointer */
-		ump,		/* uncompressed map pointer */
-		p;		/* temporary search pointer */
-		int		i,
-		count;
-
-		if(setup.getMapOrder() != MapSetup.SETUP_MAP_ORDER_XY)
-		{
-			return UNKNOWN_MAP_ORDER;
-		}
-		
-		/* Point to last compressed map byte */
-		//cmp = Setup->map_data + Setup->map_data_len - 1;
-		cmp = setup.getMapDataLen()-1;
-			
-		/* Point to last uncompressed map byte */
-		//ump = Setup->map_data + Setup->x * Setup->y - 1;
-		ump = setup.getX() * setup.getY()-1;
-		
-		while (cmp >= 0) {
-			for (p = cmp; p > 0; p--) {
-				if ((map_bytes[p-1] & MapSetup.SETUP_COMPRESSED) == 0) {
-					break;
-				}
-				//System.out.println("Found compressed byte");
-			}
-			if (p == cmp) {
-				map_bytes[ump] = map_bytes[cmp];
-				ump--;
-				cmp--;
-				continue;
-			}
-			if ((cmp - p) % 2 == 0) {
-				map_bytes[ump] = map_bytes[cmp];
-				ump--;
-				cmp--;
-			}
-			while (p < cmp) {
-				count = getUnsignedByte(map_bytes[cmp]);
-				cmp--;
-				if (count < 2) {
-					System.out.println("Map compress count error " + count);
-					return MAP_COMPRESS_ERROR;
-				}
-				map_bytes[cmp] &= ~MapSetup.SETUP_COMPRESSED;
-				for (i = 0; i < count; i++) {
-					map_bytes[ump] = map_bytes[cmp];
-					ump--;
-				}
-				cmp--;
-				if (ump < cmp) {
-					System.out.printf("Map uncompression error (%d,%d)\n",
-							cmp, ump);
-					return MAP_COMPRESS_ERROR;
-				}
-			}
-		}
-		
-		if (ump != cmp) {
-			System.out.printf("map uncompress error (%d,%d)\n",
-					cmp, ump);
-			return MAP_COMPRESS_ERROR;
-		}
-		
-		setup.setMapOrder(MapSetup.SETUP_MAP_UNCOMPRESSED);
-		map.clear();
-		map.put(map_bytes);
-		
-		setup.setMapData(map_bytes);
-		return MapError.NO_ERROR;
-	}
-		
 }
 
 class ReplyData
