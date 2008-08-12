@@ -140,13 +140,7 @@ public class UDPTest {
 			
 			//setup.printMapData();
 			
-			MapPanel panel = new MapPanel(new Map(setup));
-			
-			JFrame frame = new JFrame();
-			
-			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.add(panel);
+			MapFrame frame = new MapFrame(new Map(setup));
 			
 			frame.setVisible(true);
 			
