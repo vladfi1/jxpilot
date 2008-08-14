@@ -1,6 +1,6 @@
 package net.sf.jxpilot.test;
 
-import static net.sf.jxpilot.test.MapObject.*;
+import static net.sf.jxpilot.test.MapBlock.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -19,7 +19,7 @@ public class MapFrame extends JFrame
 	
 	private Map map;
 	private MapSetup setup;
-	private MapObject[][] blocks;
+	private MapBlock[][] blocks;
 	
 	private MapPanel panel;
 	
@@ -133,7 +133,7 @@ public class MapFrame extends JFrame
 			
 			setTransform();
 			g2d.setTransform(currentTransform);
-			g2d.translate(-viewX*DEFAULT_WIDTH, -viewY*DEFAULT_HEIGHT);
+			//g2d.translate(-viewX*DEFAULT_WIDTH, -viewY*DEFAULT_HEIGHT);
 			//g2d.setBackground(spaceColor);
 			
 			
@@ -151,6 +151,10 @@ public class MapFrame extends JFrame
 					g2d.translate(x*setup.getX()*DEFAULT_WIDTH, y*setup.getY()*DEFAULT_HEIGHT);
 					paintBlocks(g2d);
 					
+					
+					//g2d.copyArea(0, 0, setup.getX()*DEFAULT_WIDTH, setup.getY()*DEFAULT_HEIGHT,
+					//		x*setup.getX()*DEFAULT_WIDTH, y*setup.getY()*DEFAULT_HEIGHT);
+					
 					//g.drawImage(buffer, x*viewSize*DEFAULT_WIDTH, y*viewSize*DEFAULT_HEIGHT, this);
 				}
 			}
@@ -158,9 +162,10 @@ public class MapFrame extends JFrame
 			g.drawImage(buffer, 0, 0, this);
 			
 			
+			/*
 			double X = viewX-viewSize*DEFAULT_WIDTH/2.0;
 			double Y = viewY-viewSize*DEFAULT_HEIGHT/2.0;
-		
+			*/
 			
 			
 			/*
@@ -187,16 +192,16 @@ public class MapFrame extends JFrame
 
 		private void paintBlocks(Graphics2D g2)
 		{
-			for (MapObject[] array : blocks)
+			for (MapBlock[] array : blocks)
 			{
-				for (MapObject o : array)
+				for (MapBlock o : array)
 				{
 					paintBlock(g2, o);
 				}
 			}
 		}
 		
-		private void paintBlock(Graphics2D g2, MapObject block)
+		private void paintBlock(Graphics2D g2, MapBlock block)
 		{
 			if (block.getShape()==null) return;
 
@@ -204,8 +209,11 @@ public class MapFrame extends JFrame
 			//g2.setTransform(identity);
 			//g2.translate(block.getX()*block.DEFAULT_WIDTH, (setup.getY()-block.getY()-1)*block.DEFAULT_HEIGHT);
 
-			g2.setColor(blockColor);
-			g2.draw(block.getShape());
+			g2.setColor(block.getColor());
+			if (block.isFilled())
+				g2.fill(block.getShape());
+			else
+				g2.draw(block.getShape());
 		}
 	}
 }

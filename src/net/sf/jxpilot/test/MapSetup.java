@@ -283,7 +283,7 @@ class MapSetup
 		return map_data[y + x*this.y];
 	}
 	
-	private String getBlock(byte block)
+	public static String getBlock(byte block)
 	{
 		switch(block)
 		{

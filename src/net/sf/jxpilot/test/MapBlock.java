@@ -5,22 +5,29 @@ import java.awt.geom.Ellipse2D.Double;
 import java.awt.*;
 import static net.sf.jxpilot.test.MapSetup.*;
 
-public class MapObject
+public class MapBlock
 {
-
 	public static final int DEFAULT_WIDTH = 10, DEFAULT_HEIGHT = 10;
+	public static final Color BLOCK_COLOR = Color.BLUE;
+	public static final Color TREASURE_COLOR = Color.RED;
+	public static final Color BASE_COLOR = Color.WHITE;
+	public static final Color FUEL_COLOR = Color.RED;
 	
 	private byte type;
 	private int x,y;
 	private Shape shape;
+	private Color color;
+	private boolean fill=false;
 	
-	public MapObject(byte type, int x, int y, Shape s)
+	public MapBlock(byte type, int x, int y, Shape s, Color c, boolean fill)
 	{
 		this(type, x, y);
 		shape = s;
+		color = c;
+		this.fill = fill;
 	}
 	
-	public MapObject(byte type, int x, int y)
+	public MapBlock(byte type, int x, int y)
 	{
 		this.type = type;
 		this.x= x;
@@ -36,36 +43,38 @@ public class MapObject
 	public int getY(){return y;}
 	public byte getType(){return type;}
 	public Shape getShape(){return shape;}
+	public Color getColor(){return color;}
+	public boolean isFilled(){return fill;}
 	
-	static MapObject getBlockShape(MapSetup setup, byte block_data, int x, int y)
+	static MapBlock getBlockShape(MapSetup setup, byte block_data, int x, int y)
 	{
 		switch(block_data)
 		{
-		case SETUP_SPACE: return new MapObject(SETUP_SPACE, x, y);
-		case SETUP_FILLED: return new MapObject(SETUP_FILLED, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT));
-		case SETUP_FUEL: return  new MapObject(SETUP_FUEL, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT));
-		case SETUP_REC_RU: return new MapObject(SETUP_REC_RU, x, y, getRec(setup, x, y, true, true));
-		case SETUP_REC_RD: return new MapObject(SETUP_REC_RD, x, y, getRec(setup, x, y, true, false));
-		case SETUP_REC_LU: return new MapObject(SETUP_REC_LU, x, y, getRec(setup, x, y, false, true));
-		case SETUP_REC_LD: return new MapObject(SETUP_REC_LD, x, y, getRec(setup, x, y, false, false));
-		case SETUP_WORM_NORMAL: return new MapObject(SETUP_WORM_NORMAL, x, y);
-		case SETUP_WORM_IN: return new MapObject(SETUP_WORM_IN, x, y);
-		case SETUP_WORM_OUT: return new MapObject(SETUP_WORM_OUT, x, y) ;
+		case SETUP_SPACE: return new MapBlock(SETUP_SPACE, x, y);
+		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT), BLOCK_COLOR, true);
+		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT), FUEL_COLOR, true);
+		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU, x, y, getRec(setup, x, y, true, true), BLOCK_COLOR, true);
+		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD, x, y, getRec(setup, x, y, true, false), BLOCK_COLOR, true);
+		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU, x, y, getRec(setup, x, y, false, true), BLOCK_COLOR, true);
+		case SETUP_REC_LD: return new MapBlock(SETUP_REC_LD, x, y, getRec(setup, x, y, false, false), BLOCK_COLOR, true);
+		case SETUP_WORM_NORMAL: return new MapBlock(SETUP_WORM_NORMAL, x, y);
+		case SETUP_WORM_IN: return new MapBlock(SETUP_WORM_IN, x, y);
+		case SETUP_WORM_OUT: return new MapBlock(SETUP_WORM_OUT, x, y) ;
 		}
 		
 		if (block_data>= SETUP_TREASURE && block_data <SETUP_TREASURE + 10)
 		{
-			return new MapObject(block_data, x, y, new Ellipse2D.Float(x*DEFAULT_WIDTH,getScreenY(setup, y) * DEFAULT_WIDTH,DEFAULT_WIDTH, DEFAULT_HEIGHT));
+			return new MapBlock(block_data, x, y, new Ellipse2D.Float(x*DEFAULT_WIDTH,getScreenY(setup, y) * DEFAULT_WIDTH,DEFAULT_WIDTH, DEFAULT_HEIGHT), TREASURE_COLOR,false);
 		}
 		
 		if (block_data >= SETUP_BASE_LOWEST && block_data <= SETUP_BASE_HIGHEST)
 		{
-			return new MapObject(block_data, x, y, 
+			return new MapBlock(block_data, x, y, 
 					new Line2D.Float(x*DEFAULT_WIDTH,getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT,
-					x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT));
+					x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT), BASE_COLOR, false);
 		}
 		
-		return new MapObject(block_data, x, y);
+		return new MapBlock(block_data, x, y);
 	}
 	
 	public static int getScreenY(MapSetup setup, int y)
