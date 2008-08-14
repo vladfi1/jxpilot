@@ -22,7 +22,7 @@ public class UDPTest {
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = STROWGER_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -33,7 +33,7 @@ public class UDPTest {
 	//client variables
 	public static final int TEAM = 0x0000FFFF;
 	public static final String DISPLAY = "";
-	public static final String REAL_NAME = "vlad";
+	public static final String REAL_NAME = "TEST";
 	public static final String NICK = "test";
 	public static final String HOST = "xxx";
 	public static final short POWER = 55;
@@ -77,10 +77,49 @@ public class UDPTest {
 	
 	public static void main(String[] args)
 	{	
+
+			runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+			//setup.printMapData();
+			
+			//MapFrame frame = new MapFrame(new Map(setup));
+			
+			//frame.setVisible(true);
+			
+			
+			
+			/*
+			
+			//channel.send(out, address);
+			
+			
+			byte[] b = {(byte)0xF4};
+			
+			DatagramPacket send = new DatagramPacket(bytes, bytes.length, address);
+			DatagramPacket receive = new DatagramPacket(new byte[100], 100);
+			
+			
+			socket.send(send);
+			
+			socket.receive(receive);
+			
+			NumberFormat numf = NumberFormat.getIntegerInstance();
+			
+			byte[] reply = {0x4F,0x15,(byte)0xF4,(byte)0xED,0x31,0x00};
+			
+			for(int i = 0;i<reply.length;i++)
+			{
+				System.out.println(reply[i] == receive.getData()[i]);
+			}
+			*/
+
+	}
+	
+	public static void runClient(String serverIP, int serverPort)
+	{
 		try
 		{
 			try{
-				server_address = new InetSocketAddress(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+				server_address = new InetSocketAddress(serverIP, serverPort);
 				
 				channel = DatagramChannel.open();
 				socket = channel.socket();
@@ -132,7 +171,7 @@ public class UDPTest {
 			int server_port = message.getValue();
 			System.out.println("New server port: "+server_port);
 			
-			server_address = new InetSocketAddress(SERVER_IP_ADDRESS, server_port);
+			server_address = new InetSocketAddress(serverIP, server_port);
 			
 			System.out.println("Sending Verify");
 			sendVerify(out, REAL_NAME, NICK);
@@ -178,47 +217,13 @@ public class UDPTest {
 			{
 				netPacket();
 			}
-			
-			
-			//setup.printMapData();
-			
-			//MapFrame frame = new MapFrame(new Map(setup));
-			
-			//frame.setVisible(true);
-			
-			
-			
-			/*
-			
-			//channel.send(out, address);
-			
-			
-			byte[] b = {(byte)0xF4};
-			
-			DatagramPacket send = new DatagramPacket(bytes, bytes.length, address);
-			DatagramPacket receive = new DatagramPacket(new byte[100], 100);
-			
-			
-			socket.send(send);
-			
-			socket.receive(receive);
-			
-			NumberFormat numf = NumberFormat.getIntegerInstance();
-			
-			byte[] reply = {0x4F,0x15,(byte)0xF4,(byte)0xED,0x31,0x00};
-			
-			for(int i = 0;i<reply.length;i++)
-			{
-				System.out.println(reply[i] == receive.getData()[i]);
-			}
-			*/
 		}
-		catch (Exception e)
+		catch(Exception e)
 		{
 			e.printStackTrace();
 		}
+					
 	}
-	
 	
 	public static byte peekByte(ByteBuffer buf)
 	{
