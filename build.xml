@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<project name="JXPilot" default="jar">
+
+	<property name="basedir" value="." />
+	<property name="src.dir" value="${basedir}/src" />
+
+	<property name="distr.dir" value="${basedir}/distr" />
+
+	<property name="jar.file" value="${basedir}/jxpilot.jar" />
+
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${distr.dir}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src.dir}" destdir="${distr.dir}" debug="on" optimize="on" />
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${jar.file}">
+			<fileset dir="${distr.dir}">
+			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="net.sf.jxpilot.test.UDPTest" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete quiet="true" dir="${distr.dir}" />
+		<delete quiet="true" file="${jar.file}" />
+	</target>
+
+</project>
