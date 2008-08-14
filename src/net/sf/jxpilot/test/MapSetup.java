@@ -182,6 +182,18 @@ class MapSetup
 				+ "\nauthor = " + author;
 	}
 	
+	/**
+	 * Uncompress the map which is compressed using a simple
+	 * Run-Length-Encoding algorithm.
+	 * The map object type is encoded in the lower seven bits
+	 * of a byte.
+	 * If the high bit of a byte is set then the next byte
+	 * means the number of contiguous map data bytes that
+	 * have the same type.  Otherwise only one map byte
+	 * has this type.
+	 * Because we uncompress the map backwards to save on
+	 * memory usage there is some complexity involved.
+	 */
 	private static MapError uncompressMap(ByteBuffer map, MapSetup setup)
 	{
 		map.rewind();
@@ -210,7 +222,7 @@ class MapSetup
 		
 		while (cmp >= 0) {
 			for (p = cmp; p > 0; p--) {
-				if ((map_bytes[p-1] & MapSetup.SETUP_COMPRESSED) == 0) {
+				if ((map_bytes[p-1] & SETUP_COMPRESSED) == 0) {
 					break;
 				}
 				//System.out.println("Found compressed byte");
@@ -260,7 +272,76 @@ class MapSetup
 		setup.setMapData(map_bytes);
 		return MapError.NO_ERROR;
 	}
+	
+	/*
+	private static MapError uncompressMap2(ByteBuffer map, MapSetup setup)
+	{
+		map.rewind();
+		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
+		
+		map.get(map_bytes);
+		
+		int	cmp,		// compressed map pointer 
+		ump,			// uncompressed map pointer 
+		p;				// temporary search pointer
+		int		i,
+		count;
 
+	  if (setup.map_order != SETUP_MAP_ORDER_XY) {
+			//warn("Unknown map ordering in setup (%d)", Setup->map_order);
+			return UNKNOWN_MAP_ORDER;
+		    }
+
+		    // Point to last compressed map byte 
+		    cmp = setup.map_data_len - 1;
+
+		    // Point to last uncompressed map byte 
+		    ump = setup.x * setup.y - 1;
+
+		    while (cmp >= 0) {
+			for (p = cmp; p > 0; p--) {
+			    if ((map_bytes[p-1] & SETUP_COMPRESSED) == 0)
+				break;
+			}
+			if (p == cmp) {
+			    map_bytes[ump--] = map_bytes[cmp--];
+			    continue;
+			}
+			if ((cmp - p) % 2 == 0)
+				map_bytes[ump--] = map_bytes[cmp--];
+			while (p < cmp) {
+			    count = getUnsignedByte(map_bytes[cmp--]);
+			    if (count < 2) {
+				//warn("Map compress count error %d", count);
+				return MAP_COMPRESS_ERROR;
+			    }
+			    map_bytes[cmp] &= ~SETUP_COMPRESSED;
+			    
+			    for (i = 0; i < count; i++)
+				map_bytes[ump--] = map_bytes[cmp];
+			    cmp--;
+			    if (ump < cmp) {
+				System.out.printf("\nMap uncompression error (%d,%d)",
+				     cmp, ump);
+				return MAP_COMPRESS_ERROR;
+			    }
+			}
+		    }
+		    
+		    if (ump != cmp) {
+			System.out.printf("\nmap uncompress error (%d,%d)",
+			    cmp, ump);
+			return MAP_COMPRESS_ERROR;
+		    }
+		    
+		    setup.map_order = SETUP_MAP_UNCOMPRESSED;
+		    map.clear();
+		    map.put(map_bytes);
+		    setup.map_data = map_bytes;
+		    return NO_ERROR;
+	}
+	*/
+	
 	public MapError uncompressMap(ByteBuffer map)
 	{
 		return uncompressMap(map, this);

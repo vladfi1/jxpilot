@@ -54,6 +54,4 @@ public class ShipShape
 				")(MR: " + toString(main_rack) + ")\0"
 				+ extras;
 	}
-	
-	
 }

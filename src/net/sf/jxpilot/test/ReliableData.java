@@ -1,25 +1,74 @@
 package net.sf.jxpilot.test;
 
 import java.nio.ByteBuffer;
+import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.UDPTest.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 
 class ReliableData
 {
-
+	public static final int LENGTH = 1+2+4+4;
+	
 	public static ReliableDataError readReliableData(ReliableData data, ByteBuffer buf)
 	{
 		//buf.rewind();
 		
-		if (buf.remaining()<ReliableData.length) return BAD_PACKET;
+		if (buf.remaining()<LENGTH) return BAD_PACKET;
 		
 		data.setData(buf.get(), buf.getShort(),buf.getInt() , buf.getInt());
 		
+		if (data.getPktType()!=PKT_RELIABLE)
+		{
+			buf.position(buf.position()-1);
+			return NOT_RELIABLE_DATA;
+		}
+		if (data.len > buf.remaining()) {
+			
+			in.clear();
+			System.out.println("Not all reliable data in packet");
+			//Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+			return BAD_PACKET;
+		}
+		if (data.getRel() > data.getOffset()) {
+			/*
+			 * We miss one or more packets.
+			 * For now we drop this packet.
+			 * We could have kept it until the missing packet(s) arrived.
+			 */
+			
+			in.position(in.position()+data.len);
+			//System.out.println("Packet out of order");
+			return OUT_OF_ORDER;
+		}
+		if (data.getRel() + data.getLen() <= data.getOffset()) {
+			/*
+			 * Duplicate data.  Probably an ack got lost.
+			 * Send an ack for our current stream position.
+			 */
+			
+			in.position(in.position()+data.len);
+			sendAck(out, Ack.ack.setAck(data));
+			//System.out.println("Duplicate Data");
+			return DUPLICATE_DATA;
+		}
+		
+		System.out.println(data);
+		
+		data.incrementOffset();
+		sendAck(out, Ack.ack.setAck(data));
+
 		return NO_ERROR;
-	
 	}
 	
 	public static ReliableDataError getReliableData(ReliableData data, ByteBuffer in, ByteBuffer out)
+	{
+		receivePacket(in);
+		in.flip();
+		
+		return readReliableData(data, in);
+	}
+	
+	public static ReliableDataError getReliableData(ReliableData data, ByteBuffer in, ByteBuffer out, ByteBuffer reliableBuf)
 	{
 		receivePacket(in);
 		in.flip();
@@ -34,7 +83,7 @@ class ReliableData
 			 * We could have kept it until the missing packet(s) arrived.
 			 */
 			
-			in.clear();
+			in.position(in.position()+data.len);
 			System.out.println("Packet out of order");
 			return OUT_OF_ORDER;
 		}
@@ -44,7 +93,7 @@ class ReliableData
 			 * Send an ack for our current stream position.
 			 */
 			
-			in.clear();
+			in.position(in.position()+data.len);
 			sendAck(out, Ack.ack.setAck(data));
 			System.out.println("Duplicate Data");
 			return DUPLICATE_DATA;
@@ -52,14 +101,19 @@ class ReliableData
 		
 		System.out.println(data);
 		
+		for (int i = 0;i<data.len;i++)
+		{
+			reliableBuf.put(in.get());
+		}
+		
 		data.incrementOffset();
 		sendAck(out, Ack.ack.setAck(data));
+		
+		
 		
 		return error;
 	}
 	
-	
-	public static final int length = 11;
 	private static int offset=0;
 
 	private byte pkt_type;
@@ -76,12 +130,12 @@ class ReliableData
 		return this;
 	}
 
-	public byte getPkt_Type(){return pkt_type;}
+	public byte getPktType(){return pkt_type;}
 	public short getLen(){return len;}
 	public int getRel(){return rel;}
 	public int getRelLoops(){return rel_loops;}
 
-	public void incrementOffset()
+	private void incrementOffset()
 	{
 		offset += len;
 	}

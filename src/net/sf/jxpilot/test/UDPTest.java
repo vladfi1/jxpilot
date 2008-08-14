@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.Packet.*;
+import static net.sf.jxpilot.test.ReplyData.*;
 import javax.swing.*;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
@@ -12,7 +14,7 @@ import java.nio.charset.*;
 
 public class UDPTest {
 	public static final int MAX_PACKET_SIZE = 65507;
-	public static final int MAGIC =0x4501F4ED;
+	public static final int MAGIC =0x4401F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
 	//public static final short CLIENT_PORT = 15345;
 	
@@ -20,39 +22,25 @@ public class UDPTest {
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = LKRAUSS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
 	public static final byte ENTER_QUEUE_pack =	0x01;
 	public static final byte ENTER_GAME_pack = 	0x00;
 	public static final byte SUCCESS = 			0x00;
-	public static final byte PKT_VERIFY = 		0x01;
-	public static final byte PKT_ACK = 			0x2B;
-	public static final byte PKT_PLAY = 		0x03;
-	public static final byte PKT_SHIP = 		0x39;
-	public static final byte PKT_DISPLAY = 		0x37;
-	public static final byte PKT_POWER = 		0x22;
-	public static final byte PKT_POWER_S = 		0x23;
-	public static final byte PKT_TURNSPEED = 	0x24;
-	public static final byte PKT_TURNSPEED_S = 	0x25;
-	public static final byte PKT_TURNRESISTANCE= 0x26;
-	public static final byte PKT_TURNRESISTANCE_S=0x27;
-	public static final byte PKT_ASYNC_FPS = 	0x4B;
-	public static final byte PKT_MOTD =			0x47;
 	
 	//client variables
 	public static final int TEAM = 0x0000FFFF;
 	public static final String DISPLAY = "";
 	public static final String REAL_NAME = "vlad";
-	public static final String NICK = "Vlad";
+	public static final String NICK = "test";
 	public static final String HOST = "xxx";
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 16;
 	public static final short TURN_RESISTANCE = 0;
 	public static final byte MAX_FPS = (byte)0x255;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};
-	
 	
 	//used for sending display
 	public static final short WIDTH_WANTED = 0x400;
@@ -70,7 +58,22 @@ public class UDPTest {
 	static ByteBuffer in = ByteBuffer.allocate(MAX_PACKET_SIZE);
 	static ByteBuffer map = ByteBuffer.allocate(MAX_PACKET_SIZE);
 	static MapSetup setup = new MapSetup();
+	static PacketReader[] readers = new PacketReader[256];
+	static ReplyData reply = new ReplyData();
+	static ReliableData reliable = new ReliableData();
+	static ReplyMessage message = new ReplyMessage();
 	
+	static
+	{
+		readers[PKT_RELIABLE] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer buf)
+			{
+				System.out.println(readReliableData(reliable, buf));
+				buf.clear();
+			}
+		};
+	}
 	
 	public static void main(String[] args)
 	{	
@@ -111,25 +114,22 @@ public class UDPTest {
 			*/
 			
 			
-			ReplyData reply = new ReplyData();
-			ReliableData reliable = new ReliableData();
-			
 			//channel.send(ByteBuffer.wrap(first_packet), server_address);
 			
 			//receivePacket(in);
 			
 			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 			
-			getReplyData(reply, in);
-			System.out.println(reply);
+			getReplyMessage(in, message);
+			System.out.println(message);
 			
-			while(reply.getPack()!=ENTER_GAME_pack)
+			while(message.getPack()!=ENTER_GAME_pack)
 			{
-				getReplyData(reply, in);
-				System.out.println(reply);
+				getReplyMessage(in, message);
+				System.out.println(message);
 			}
 			
-			int server_port = reply.getValue();
+			int server_port = message.getValue();
 			System.out.println("New server port: "+server_port);
 			
 			server_address = new InetSocketAddress(SERVER_IP_ADDRESS, server_port);
@@ -168,6 +168,18 @@ public class UDPTest {
 			
 			netStart(out);
 			
+			while(getReliableData(reliable, in, out)!=ReliableDataError.NO_ERROR)
+			System.out.println(reliable);
+			
+			System.out.println(readReplyData(in, reply));
+			in.clear();
+			
+			while(true)
+			{
+				netPacket();
+			}
+			
+			
 			//setup.printMapData();
 			
 			//MapFrame frame = new MapFrame(new Map(setup));
@@ -205,6 +217,14 @@ public class UDPTest {
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	
+	public static byte peekByte(ByteBuffer buf)
+	{
+		byte b = buf.get();
+		buf.position(buf.position()-1);
+		return b;
 	}
 	
 	//uses 1 byte chars
@@ -252,6 +272,7 @@ public class UDPTest {
 		
 		buf.putInt(MAGIC);
 		putString(buf, real_name);
+		//buf.put(PKT_MESSAGE);
 		buf.putShort((short)port);
 		
 		buf.put(ENTER_QUEUE_pack);
@@ -301,22 +322,19 @@ public class UDPTest {
 			e.printStackTrace();
 		}
 	}
-	
-	public static ReplyData readReplyData(ReplyData data, ByteBuffer buf)
+
+	private static ReplyMessage readReplyMessage(ByteBuffer buf, ReplyMessage message)
 	{
-		//buf.rewind();
-		
-		data.setData(buf.getInt(), buf.get(), buf.get(),  buf.remaining()>0 ? buf.getShort() : (short)0);
-		return data;
+		message.setMessage(buf.getInt(), buf.get(), buf.get(), buf.remaining()>=2 ? buf.getShort(): 0);
+		return message;
 	}
-	
-	public static ReplyData getReplyData(ReplyData data, ByteBuffer buf)
+	private static ReplyMessage getReplyMessage(ByteBuffer buf, ReplyMessage message)
 	{
 		receivePacket(buf);
 		buf.flip();
-		return readReplyData(data, buf);
+		return readReplyMessage(buf, message);
 	}
-	
+
 	public static void putVerify(ByteBuffer buf, String real_name, String nick)
 	{
 		//buf.clear();
@@ -424,7 +442,7 @@ public class UDPTest {
 	 * we have initialized all our other stuff like the user interface
 	 * and we also have the map already.
 	 * 
-	 * This method sends our ShipShape, PKT_PLAY, our power, turnspeed,
+	 * This method sends our PKT_SHAPE, ShipShape, PKT_PLAY, our power, turnspeed,
 	 * turn resistance, display, and max fps request.
 	 * 
 	 */
@@ -432,7 +450,7 @@ public class UDPTest {
 	{
 		out.clear();
 		
-		out.put(PKT_SHIP);
+		out.put(PKT_SHAPE);
 		putString(out, SHIP.toString());
 		
 		out.put(PKT_PLAY);
@@ -492,73 +510,17 @@ public class UDPTest {
 			//System.out.println(reliable);
 		}
 	}
-}
-
-class ReplyData
-{
-	private int magic;
-	private byte pack_type,
-				status;
-	private int value;
 	
-	public ReplyData setData(int magic, byte pack_type, byte status, short value)
+	private static void netPacket()
 	{
-		this.magic = magic;
-		this.pack_type = pack_type;
-		this.status = status;
-		this.value = getUnsignedShort(value);
-		return this;
-	}
-	
-	public int getMagic(){return magic;}
-	public byte getPack(){return pack_type;}
-	public byte getStatus(){return status;}
-	public int getValue(){return value;}
-	
-	public String toString()
-	{
-		return "Reply Data:\n"
-				+"magic = " + String.format("%x", magic)
-				+"\npack_type = " + String.format("%x", pack_type)
-				+"\nstatus = " + String.format("%x", status)
-				+"\nvalue = " + String.format("%x", value);
-	}
-	
-	public static int getUnsignedShort(short val)
-	{
-		return (int)((char)val);
-	}
-}
-
-class Ack
-{
-	public static Ack ack = new Ack();
-	
-	private byte type = UDPTest.PKT_ACK;
-	private int reliable_offset;
-	private int reliable_loops;
-	
-	public Ack setAck(int offset, int loops)
-	{
-		reliable_offset = offset;
-		reliable_loops = loops;
-		return this;
-	}
-	
-	public Ack setAck(ReliableData data)
-	{
-		return setAck(data.getOffset(), data.getRelLoops());
-	}
-	
-	public byte getType(){return type;}
-	public int getOffset(){return reliable_offset;}
-	public int getLoops(){return reliable_loops;}
-	
-	public String toString()
-	{
-		return  "Acknowledgement"
-				+ "\ntype = " + String.format("%x", type)
-				+ "\nreliable offset = " + reliable_offset
-				+ "\nreliable loops = " + reliable_loops;
+		in.clear();
+		receivePacket(in);
+		
+		short type = getUnsignedByte(peekByte(in));
+		
+		if (readers[type]!=null)
+		{
+			readers[type].readPacket(in);
+		}
 	}
 }
