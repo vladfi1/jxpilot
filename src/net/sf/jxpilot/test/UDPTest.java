@@ -87,14 +87,19 @@ public class UDPTest {
 	
 	public static void main(String[] args)
 	{	
-        java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
-        xpilotpanelEmbeddedParams.put(
-                XPilotPanel.EMBEDDED_PARAMETER_MAIN_WINDOW_TITLE,
-                "JXPilot - XPilotPanel");
-        xpilotpanelEmbeddedParams.put(XPilotPanel.EMBEDDED_PARAMETER_ICON,
-                getJXPilotIcon());
 
         try {
+            java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
+            xpilotpanelEmbeddedParams.put(
+                    XPilotPanel.EMBEDDED_PARAMETER_MAIN_WINDOW_TITLE,
+                    "JXPilot - XPilotPanel");
+            xpilotpanelEmbeddedParams.put(XPilotPanel.EMBEDDED_PARAMETER_ICON,
+                    getJXPilotIcon());
+            xpilotpanelEmbeddedParams.put(
+                    XPilotPanel.EMBEDDED_PARAMETER_CLIENT_LAUNCH_METHOD,
+                    UDPTest.class.getDeclaredMethod("runClient", String.class,
+                            int.class));
+
             XPilotPanel.embeddedLaunch(xpilotpanelEmbeddedParams);
         }
         catch (Exception e) {
@@ -103,13 +108,11 @@ public class UDPTest {
 
         // runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
 
-			//setup.printMapData();
-			
-			//MapFrame frame = new MapFrame(new Map(setup));
-			
-			//frame.setVisible(true);
-			
-			
+        // setup.printMapData();
+        //
+        // MapFrame frame = new MapFrame(new Map(setup));
+        //
+        // frame.setVisible(true);
 			
 			/*
 			
@@ -236,8 +239,8 @@ public class UDPTest {
 			
 			System.out.println(readReplyData(in, reply));
 			in.clear();
-			
-			while(true)
+
+            while(true)
 			{
 				netPacket();
 			}
