@@ -3,14 +3,19 @@ package net.sf.jxpilot.test;
 import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.ReplyData.*;
 import javax.swing.*;
+
+import net.sf.xpilotpanel.XPilotPanel;
+import net.sf.xpilotpanel.gui.AboutWindow;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 import static net.sf.jxpilot.test.ReliableData.*;
 import java.net.*;
+import java.awt.Image;
 import java.io.*;
 import java.nio.channels.*;
 import java.nio.*;
 import java.nio.charset.*;
+import java.util.HashMap;
 
 public class UDPTest {
 	public static final int MAX_PACKET_SIZE = 65507;
@@ -50,7 +55,12 @@ public class UDPTest {
 	
 	private static final ShipShape SHIP = ShipShape.defaultShip;
 	
-	//client objects
+    /**
+     * JXPilot's windows icon.
+     */
+    private static Image icon = null;
+
+    // client objects
 	static InetSocketAddress server_address;
 	static DatagramSocket socket;
 	static DatagramChannel channel;
@@ -77,8 +87,22 @@ public class UDPTest {
 	
 	public static void main(String[] args)
 	{	
+        java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
+        xpilotpanelEmbeddedParams.put(
+                XPilotPanel.EMBEDDED_PARAMETER_MAIN_WINDOW_TITLE,
+                "JXPilot - XPilotPanel");
+        xpilotpanelEmbeddedParams.put(XPilotPanel.EMBEDDED_PARAMETER_ICON,
+                getJXPilotIcon());
 
-			runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+        try {
+            XPilotPanel.embeddedLaunch(xpilotpanelEmbeddedParams);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+
 			//setup.printMapData();
 			
 			//MapFrame frame = new MapFrame(new Map(setup));
@@ -528,4 +552,21 @@ public class UDPTest {
 			readers[type].readPacket(in);
 		}
 	}
+
+    /**
+     * Returns JXPilot's windows icon, retrieved from file and stored as
+     * 'single'.
+     * 
+     * @return JXPilot icon.
+     */
+    public static Image getJXPilotIcon() {
+        if (icon == null) {
+            URL u = AboutWindow.class.getClassLoader().getResource(
+                    "data/JXPilotIcon.png");
+            icon = new ImageIcon(u).getImage();
+        }
+
+        return icon;
+    }
+
 }
