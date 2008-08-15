@@ -284,24 +284,7 @@ public class UDPTest {
 				//System.out.println(result);
 			}
 			
-			getFirstMapPacket(in, map, setup, reliable);
-			System.out.println(setup);
-			
-			int todo = setup.getMapDataLen()-reliable.getLen();
-			
-			while(todo>0)
-			{
-				ReliableDataError error = getMapPacket(in, map, reliable);
-				if (error==ReliableDataError.NO_ERROR)
-					todo -= reliable.getLen();
-			}
-			
-			
-			if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
-			{
-				map.flip();
-				setup.uncompressMap(map);
-			}
+			netSetup(in, map, setup, reliable);
 			
 			map.flip();
 			System.out.println(map.remaining()+"\n\nMap:\n");
@@ -585,43 +568,47 @@ public class UDPTest {
 		return readReliableData(data, in, out);
 	}
 	
-	private static void readMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
+	private static int readMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
 	{
 		//readReliableData(reliable, in);
-		System.out.println("Reliable len = "+reliable.getLen()+"\nMapPacket remaining = " + in.remaining());
+		int remaining = in.remaining();
+		System.out.println("Reliable len = "+reliable.getLen()+"\nMapPacket remaining = " + remaining);
 		map.put(in);
+		return remaining;
 	}
 	
-	private static ReliableDataError getMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
+	private static int getMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
 	{
 		ReliableDataError error = getReliableData(reliable, in, out);
 		
 		if (error == ReliableDataError.NO_ERROR)
-			readMapPacket(in, map, reliable);
+			return readMapPacket(in, map, reliable);
 		
-		return error;
+		return -1;
 		
 		//sendAck(out, Ack.ack.setAck(reliable));
 		//System.out.println(reliable);
 	}
 	
-	private static void readFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
+	private static int readFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
 	{
 		setup.readMapSetup(in);
-		System.out.println("Reliable len = "+reliable.getLen()+"\nFirstMapPacket remaining = " + in.remaining());
+		int remaining = in.remaining();
+		System.out.println("Reliable len = "+reliable.getLen()+"\nFirstMapPacket remaining = " + remaining);
 		map.put(in);
+		return remaining;
 	}
 	
-	private static ReliableDataError getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
+	private static int getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
 	{
 		ReliableDataError error = getReliableData(reliable, in, out);
 		
 		if (error == ReliableDataError.NO_ERROR)
 		{
-			readFirstMapPacket(in, map, setup, reliable);		
+			return readFirstMapPacket(in, map, setup, reliable);		
 			//System.out.println(reliable);
 		}
-		return error;
+		return -1;
 	}
 	
 	private static void putKeyboard(ByteBuffer buf, BitVector keyboard)
@@ -638,6 +625,43 @@ public class UDPTest {
 		putKeyboard(out, keyboard);
 		out.flip();
 		sendPacket(out);
+	}
+	
+	/**
+	 * Receive the map data and some game parameters from
+	 * the server.  The map data may be in compressed form.
+	 * 
+	 * Receives the first map packet, which has the setup, which
+	 * tells us how much data the map has.
+	 * 
+	 * Then keeps receiving packets until done w/ data.
+	 * 
+	 * Uncompresses the map if necessary.
+	 * 
+	 */
+	private static void netSetup(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
+	{
+		int i = getFirstMapPacket(in, map, setup, reliable);
+		System.out.println(setup);
+		
+		//map.flip();
+		
+		int todo = setup.getMapDataLen()-i;
+		
+		//map.flip();
+		
+		while(todo>0)
+		{
+			i = getMapPacket(in, map, reliable);
+			if (i>=0)
+				todo -= i;
+		}
+		
+		if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
+		{
+			map.flip();
+			setup.uncompressMap(map);
+		}
 	}
 	
 	private static void netPacket()
