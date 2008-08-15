@@ -1,14 +1,18 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.Ack.*;
+import static net.sf.jxpilot.test.ReplyMessage.*;
 import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.ReplyData.*;
 import javax.swing.*;
-
+import java.util.*;
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 import static net.sf.jxpilot.test.ReliableData.*;
+import static net.sf.jxpilot.test.UDPTest.receivePacket;
+
 import java.net.*;
 import java.awt.Image;
 import java.io.*;
@@ -18,6 +22,7 @@ import java.nio.charset.*;
 import java.util.HashMap;
 
 public class UDPTest {
+
 	public static final int MAX_PACKET_SIZE = 65507;
 	public static final int MAGIC =0x4401F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
@@ -27,7 +32,7 @@ public class UDPTest {
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = STROWGER_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -40,7 +45,7 @@ public class UDPTest {
 	public static final String DISPLAY = "";
 	public static final String REAL_NAME = "TEST";
 	public static final String NICK = "test";
-	public static final String HOST = "xxx";
+	public static final String HOST = "java";
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 16;
 	public static final short TURN_RESISTANCE = 0;
@@ -60,34 +65,107 @@ public class UDPTest {
      */
     private static Image icon = null;
 
-    // client objects
-	static InetSocketAddress server_address;
-	static DatagramSocket socket;
-	static DatagramChannel channel;
-	static ByteBuffer out = ByteBuffer.allocate(MAX_PACKET_SIZE);
-	static ByteBuffer in = ByteBuffer.allocate(MAX_PACKET_SIZE);
-	static ByteBuffer map = ByteBuffer.allocate(MAX_PACKET_SIZE);
-	static MapSetup setup = new MapSetup();
-	static PacketReader[] readers = new PacketReader[256];
-	static ReplyData reply = new ReplyData();
-	static ReliableData reliable = new ReliableData();
-	static ReplyMessage message = new ReplyMessage();
+    // client objects/variables
+	private static InetSocketAddress server_address;
+	private static DatagramSocket socket;
+	private static DatagramChannel channel;
+	private static ByteBuffer out = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	private static ByteBuffer in = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	private static ByteBuffer map = ByteBuffer.allocate(MAX_PACKET_SIZE);
+	private static MapSetup setup = new MapSetup();
+	private static PacketReader[] readers = new PacketReader[256];
+	private static ReplyData reply = new ReplyData();
+	private static ReliableData reliable = new ReliableData();
+	private static ReplyMessage message = new ReplyMessage();
+	private static BitVector keyboard = new BitVector(Keys.NUM_KEYS);
+	private static int last_keyboard_change=0;
 	
+	//sets function to handle packets
 	static
 	{
 		readers[PKT_RELIABLE] = new PacketReader()
 		{
 			public void readPacket(ByteBuffer buf)
 			{
-				System.out.println(readReliableData(reliable, buf));
+				System.out.println(readReliableData(reliable, buf, out));
 				buf.clear();
 			}
+		};
+		
+		readers[PKT_QUIT] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer buf)
+			{
+				byte type = buf.get();
+				String reason = getString(buf);
+				System.out.println("Server closed connection: " + reason);
+				System.exit(0);
+			}
+		};
+		
+		readers[PKT_START] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer buf)
+			{
+				byte type = buf.get();
+				int loops = buf.get();
+				int key_ack = buf.get();
+				
+				/*
+				System.out.println("\nStart Packet :" +
+									"\ntype = " + String.format("%x", type) +
+									"\nloops = " + loops +
+									"\nkey ack = " + key_ack);
+				*/
+			}
+			
+			/*
+			int		n;
+			long	loops;
+			u_byte	ch;
+			long	key_ack;
+
+			if ((n = Packet_scanf(&rbuf,
+					"%c%ld%ld",
+					&ch, &loops, &key_ack)) <= 0) {
+				return n;
+			}
+			if (last_loops >= loops) {
+				
+				// Packet is duplicate or out of order.
+				 
+				Net_measurement(loops, PACKET_DROP);
+				printf("ignoring frame (%ld)\n", last_loops - loops);
+				return 0;
+			}
+			last_loops = loops;
+			if (key_ack > last_keyboard_ack) {
+				if (key_ack > last_keyboard_change) {
+					printf("Premature keyboard ack by server (%ld,%ld,%ld)\n",
+							last_keyboard_change, last_keyboard_ack, key_ack);
+					
+					 // Packet could be corrupt???
+					 // Some blokes turn off checksumming.
+					 
+					return 0;
+				}
+				else {
+					last_keyboard_ack = key_ack;
+				}
+			}
+			Net_lag_measurement(key_ack);
+			if ((n = Handle_start(loops)) == -1) {
+				return -1;
+			}
+			return 1;
+		}
+		*/
 		};
 	}
 	
 	public static void main(String[] args)
 	{	
-
+		/*
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
             xpilotpanelEmbeddedParams.put(
@@ -105,15 +183,10 @@ public class UDPTest {
         catch (Exception e) {
             e.printStackTrace();
         }
-
-        // runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
-
-        // setup.printMapData();
-        //
-        // MapFrame frame = new MapFrame(new Map(setup));
-        //
-        // frame.setVisible(true);
-			
+		*/
+		
+        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+        	
 			/*
 			
 			//channel.send(out, address);
@@ -180,6 +253,7 @@ public class UDPTest {
 			*/
 			
 			
+			
 			//channel.send(ByteBuffer.wrap(first_packet), server_address);
 			
 			//receivePacket(in);
@@ -210,7 +284,6 @@ public class UDPTest {
 				//System.out.println(result);
 			}
 			
-			
 			getFirstMapPacket(in, map, setup, reliable);
 			System.out.println(setup);
 			
@@ -226,11 +299,19 @@ public class UDPTest {
 			
 			if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
 			{
+				map.flip();
 				setup.uncompressMap(map);
 			}
 			
 			map.flip();
 			System.out.println(map.remaining()+"\n\nMap:\n");
+			
+			// setup.printMapData();
+	        //
+	        MapFrame frame = new MapFrame(new Map(setup));
+	        //
+	        frame.setVisible(true);
+			
 			
 			netStart(out);
 			
@@ -239,10 +320,19 @@ public class UDPTest {
 			
 			System.out.println(readReplyData(in, reply));
 			in.clear();
-
+			
+			System.out.println(keyboard.setBits());
+			System.out.println(keyboard.setBit(Keys.KEY_SELF_DESTRUCT, false));
+			System.out.println(keyboard.setBit(Keys.KEY_PAUSE, false));
+			keyboard.clearBits();
+			keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+			
             while(true)
 			{
 				netPacket();
+				keyboard.switchBit(Keys.KEY_FIRE_SHOT);
+				keyboard.switchBit(Keys.KEY_THRUST);
+				sendKeyboard(out, keyboard);
 			}
 		}
 		catch(Exception e)
@@ -255,6 +345,7 @@ public class UDPTest {
 	public static byte peekByte(ByteBuffer buf)
 	{
 		byte b = buf.get();
+			
 		buf.position(buf.position()-1);
 		return b;
 	}
@@ -295,7 +386,12 @@ public class UDPTest {
 	
 	public static short getUnsignedByte(byte val)
 	{
-		return (short)(0xFF & (int)val);
+		
+		short temp = (short)(0xFF & (int)val);
+		
+		//System.out.println("\nByte was " + val + "\nNow is " + temp);
+		
+		return temp;
 	}
 	
 	public static void putJoinRequest(ByteBuffer buf, String real_name, int port, String nick, String host, int team)
@@ -335,7 +431,7 @@ public class UDPTest {
 		try
 		{
 			channel.receive(buf);
-			System.out.println("\nBuf received " + buf.position());
+			//System.out.println("\nBuf received " + buf.position());
 		}
 		catch (IOException e)
 		{
@@ -355,19 +451,7 @@ public class UDPTest {
 		}
 	}
 
-	private static ReplyMessage readReplyMessage(ByteBuffer buf, ReplyMessage message)
-	{
-		message.setMessage(buf.getInt(), buf.get(), buf.get(), buf.remaining()>=2 ? buf.getShort(): 0);
-		return message;
-	}
-	private static ReplyMessage getReplyMessage(ByteBuffer buf, ReplyMessage message)
-	{
-		receivePacket(buf);
-		buf.flip();
-		return readReplyMessage(buf, message);
-	}
-
-	public static void putVerify(ByteBuffer buf, String real_name, String nick)
+	private static void putVerify(ByteBuffer buf, String real_name, String nick)
 	{
 		//buf.clear();
 		
@@ -377,7 +461,7 @@ public class UDPTest {
 		putString(buf, DISPLAY);
 	}
 	
-	public static void sendVerify(ByteBuffer buf, String real_name, String nick)
+	private static void sendVerify(ByteBuffer buf, String real_name, String nick)
 	{
 		buf.clear();
 		putVerify(buf, real_name, nick);
@@ -391,16 +475,7 @@ public class UDPTest {
 			e.printStackTrace();
 		}
 	}
-	
-	public static void putAck(ByteBuffer buf, Ack ack)
-	{
-		//buf.clear();
-	
-		buf.put(ack.getType());
-		buf.putInt(ack.getOffset());
-		buf.putInt(ack.getLoops());
-	}
-	
+
 	public static void sendAck(ByteBuffer buf, Ack ack)
 	{
 		buf.clear();
@@ -501,9 +576,19 @@ public class UDPTest {
 		sendPacket(out);
 	}
 	
+	
+	private static ReliableDataError getReliableData(ReliableData data, ByteBuffer in, ByteBuffer out)
+	{
+		receivePacket(in);
+		in.flip();
+		
+		return readReliableData(data, in, out);
+	}
+	
 	private static void readMapPacket(ByteBuffer in, ByteBuffer map, ReliableData reliable)
 	{
 		//readReliableData(reliable, in);
+		System.out.println("Reliable len = "+reliable.getLen()+"\nMapPacket remaining = " + in.remaining());
 		map.put(in);
 	}
 	
@@ -520,33 +605,46 @@ public class UDPTest {
 		//System.out.println(reliable);
 	}
 	
-	private static MapSetup readMapSetup(ByteBuffer in, MapSetup setup)
-	{	
-		return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
-				in.getShort(), in.getShort(), getString(in), getString(in));
-	}
-	
-	private static void readFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup)
+	private static void readFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
 	{
-		readMapSetup(in, setup);
+		setup.readMapSetup(in);
+		System.out.println("Reliable len = "+reliable.getLen()+"\nFirstMapPacket remaining = " + in.remaining());
 		map.put(in);
 	}
 	
-	private static void getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
+	private static ReliableDataError getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
 	{
 		ReliableDataError error = getReliableData(reliable, in, out);
 		
 		if (error == ReliableDataError.NO_ERROR)
 		{
-			readFirstMapPacket(in, map, setup);		
+			readFirstMapPacket(in, map, setup, reliable);		
 			//System.out.println(reliable);
 		}
+		return error;
+	}
+	
+	private static void putKeyboard(ByteBuffer buf, BitVector keyboard)
+	{
+		buf.put(PKT_KEYBOARD);
+		buf.putInt(last_keyboard_change);
+		buf.put(keyboard.getBytes());
+		last_keyboard_change++;
+	}
+	
+	private static void sendKeyboard(ByteBuffer out, BitVector keyboard)
+	{
+		out.clear();
+		putKeyboard(out, keyboard);
+		out.flip();
+		sendPacket(out);
 	}
 	
 	private static void netPacket()
 	{
 		in.clear();
 		receivePacket(in);
+		in.flip();
 		
 		short type = getUnsignedByte(peekByte(in));
 		
@@ -554,6 +652,7 @@ public class UDPTest {
 		{
 			readers[type].readPacket(in);
 		}
+		else System.out.println("Unsuported type: " + type);
 	}
 
     /**
@@ -571,5 +670,4 @@ public class UDPTest {
 
         return icon;
     }
-
 }

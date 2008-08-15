@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import java.nio.ByteBuffer;
+
 public class ReplyMessage
 {
 	private int magic;
@@ -33,4 +35,17 @@ public class ReplyMessage
 	{
 		return (int)((char)val);
 	}
+	
+	public static ReplyMessage readReplyMessage(ByteBuffer buf, ReplyMessage message)
+	{
+		message.setMessage(buf.getInt(), buf.get(), buf.get(), buf.remaining()>=2 ? buf.getShort(): 0);
+		return message;
+	}
+	public static ReplyMessage getReplyMessage(ByteBuffer buf, ReplyMessage message)
+	{
+		UDPTest.receivePacket(buf);
+		buf.flip();
+		return readReplyMessage(buf, message);
+	}
+
 }

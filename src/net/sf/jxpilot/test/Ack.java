@@ -2,6 +2,8 @@ package net.sf.jxpilot.test;
 
 import static net.sf.jxpilot.test.Packet.PKT_ACK;
 
+import java.nio.ByteBuffer;
+
 class Ack
 {
 	public static Ack ack = new Ack();
@@ -20,6 +22,16 @@ class Ack
 	public Ack setAck(ReliableData data)
 	{
 		return setAck(data.getOffset(), data.getRelLoops());
+	}
+	
+	
+	public static void putAck(ByteBuffer buf, Ack ack)
+	{
+		//buf.clear();
+	
+		buf.put(ack.getType());
+		buf.putInt(ack.getOffset());
+		buf.putInt(ack.getLoops());
 	}
 	
 	public byte getType(){return type;}

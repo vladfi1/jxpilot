@@ -196,10 +196,18 @@ class MapSetup
 	 */
 	private static MapError uncompressMap(ByteBuffer map, MapSetup setup)
 	{
-		map.rewind();
+		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
 		
-		map.get(map_bytes);
+		System.out.println("Compressed size = " + map.remaining());
+		System.out.println("Map data length = " + setup.map_data_len);
+		System.out.println("Uncompressed size shoud be "+ map_bytes.length);
+		
+		int remaining = map.remaining();
+		for (int i =0;i<remaining;i++)
+		{
+			map_bytes[i] = map.get();
+		}
 		
 		int	cmp,		/* compressed map pointer */
 		ump,		/* uncompressed map pointer */
@@ -215,12 +223,15 @@ class MapSetup
 		/* Point to last compressed map byte */
 		//cmp = Setup->map_data + Setup->map_data_len - 1;
 		cmp = setup.getMapDataLen()-1;
-			
+		//System.out.println("Cmp = "+ cmp);	
+		//cmp = map.remaining()-1;
+		
 		/* Point to last uncompressed map byte */
 		//ump = Setup->map_data + Setup->x * Setup->y - 1;
 		ump = setup.getX() * setup.getY()-1;
 		
 		while (cmp >= 0) {
+			//loops from back to find first compressed byte
 			for (p = cmp; p > 0; p--) {
 				if ((map_bytes[p-1] & SETUP_COMPRESSED) == 0) {
 					break;
@@ -241,10 +252,12 @@ class MapSetup
 			while (p < cmp) {
 				count = getUnsignedByte(map_bytes[cmp]);
 				cmp--;
+				
 				if (count < 2) {
 					System.out.println("Map compress count error " + count);
 					return MAP_COMPRESS_ERROR;
 				}
+				
 				map_bytes[cmp] &= ~MapSetup.SETUP_COMPRESSED;
 				for (i = 0; i < count; i++) {
 					map_bytes[ump] = map_bytes[cmp];
@@ -345,6 +358,17 @@ class MapSetup
 	public MapError uncompressMap(ByteBuffer map)
 	{
 		return uncompressMap(map, this);
+	}
+
+	private static MapSetup readMapSetup(ByteBuffer in, MapSetup setup)
+	{	
+		return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
+				in.getShort(), in.getShort(), getString(in), getString(in));
+	}
+	
+	public MapSetup readMapSetup(ByteBuffer in)
+	{	
+		return readMapSetup(in, this);
 	}
 	
 	public void printMapData()
