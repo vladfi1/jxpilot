@@ -44,7 +44,7 @@ public class MapFrame extends JFrame
 		viewX=setup.getX()/2.0;
 		viewY=setup.getY()/2.0;
 		
-		viewSize = setup.getY()/2;
+		viewSize = 27;
 		
 		buffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);
 		
@@ -109,6 +109,7 @@ public class MapFrame extends JFrame
 	{
 		viewX = trueMod(x, setup.getX());
 		viewY = trueMod(y, setup.getY());
+		repaint();
 	}
 	
 	public void moveView(double dx, double dy)

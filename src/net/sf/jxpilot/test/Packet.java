@@ -129,5 +129,5 @@ public class Packet
 
 	/* optimized packet types: 128 - 255 */
 	public static final byte PKT_DEBRIS		=	(byte)128;	/* + color + x + y */
-
+	public static final int DEBRIS_TYPES	=	(8 * 4 * 4);
 }

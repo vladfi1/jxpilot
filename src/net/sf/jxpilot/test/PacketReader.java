@@ -4,5 +4,5 @@ import java.nio.*;
 
 public interface PacketReader
 {
-	public void readPacket(ByteBuffer buf);
+	public void readPacket(ByteBuffer buf, AbstractClient client);
 }
