@@ -96,13 +96,13 @@ public class MapFrame extends JFrame
 	private void setTransform()
 	{
 		//currentTransform.setToIdentity();
-		double scale = (double)this.getHeight()/(viewSize*DEFAULT_HEIGHT);
+		double scale = (double)this.getHeight()/(viewSize*BLOCK_SIZE);
 		//System.out.println("Scale = " + scale + "\nHeight = " + this.getHeight());
 		
 		currentTransform.setToIdentity();
 		currentTransform.translate(this.getWidth()/2.0, this.getHeight()/2.0);
 		currentTransform.scale(scale, scale);
-		currentTransform.translate(-viewX*DEFAULT_WIDTH, -viewY*DEFAULT_HEIGHT);	
+		currentTransform.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);	
 	}
 	
 	public void setView(double x, double y)
@@ -133,7 +133,7 @@ public class MapFrame extends JFrame
 			
 			setTransform();
 			g2d.setTransform(currentTransform);
-			//g2d.translate(-viewX*DEFAULT_WIDTH, -viewY*DEFAULT_HEIGHT);
+			//g2d.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);
 			//g2d.setBackground(spaceColor);
 			
 			
@@ -146,16 +146,16 @@ public class MapFrame extends JFrame
 				for (int y = -1; y<=1;y++)
 				{
 					g2d.setTransform(currentTransform);
-					//g2d.translate(-viewX*DEFAULT_WIDTH, -viewY*DEFAULT_HEIGHT);	
+					//g2d.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);	
 					
-					g2d.translate(x*setup.getX()*DEFAULT_WIDTH, y*setup.getY()*DEFAULT_HEIGHT);
+					g2d.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
 					paintBlocks(g2d);
 					
 					
-					//g2d.copyArea(0, 0, setup.getX()*DEFAULT_WIDTH, setup.getY()*DEFAULT_HEIGHT,
-					//		x*setup.getX()*DEFAULT_WIDTH, y*setup.getY()*DEFAULT_HEIGHT);
+					//g2d.copyArea(0, 0, setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE,
+					//		x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
 					
-					//g.drawImage(buffer, x*viewSize*DEFAULT_WIDTH, y*viewSize*DEFAULT_HEIGHT, this);
+					//g.drawImage(buffer, x*viewSize*BLOCK_SIZE, y*viewSize*BLOCK_SIZE, this);
 				}
 			}
 			
@@ -163,8 +163,8 @@ public class MapFrame extends JFrame
 			
 			
 			/*
-			double X = viewX-viewSize*DEFAULT_WIDTH/2.0;
-			double Y = viewY-viewSize*DEFAULT_HEIGHT/2.0;
+			double X = viewX-viewSize*BLOCK_SIZE/2.0;
+			double Y = viewY-viewSize*BLOCK_SIZE/2.0;
 			*/
 			
 			
@@ -173,7 +173,7 @@ public class MapFrame extends JFrame
 			{
 				for (int y = -1; y<=1;y++)
 				{
-					g2d.copyArea(viewX-viewSize*DEFAULT_WIDTH/2.0, viewY-viewSize*DEFAULT_HEIGHT/2.0, viewSize*DEFAULT_WIDTH ,viewSize*DEFAULT_HEIGHT
+					g2d.copyArea(viewX-viewSize*BLOCK_SIZE/2.0, viewY-viewSize*BLOCK_SIZE/2.0, viewSize*BLOCK_SIZE ,viewSize*BLOCK_SIZE
 							, x*setup., arg5);
 				}
 			}
@@ -207,7 +207,7 @@ public class MapFrame extends JFrame
 
 
 			//g2.setTransform(identity);
-			//g2.translate(block.getX()*block.DEFAULT_WIDTH, (setup.getY()-block.getY()-1)*block.DEFAULT_HEIGHT);
+			//g2.translate(block.getX()*block.BLOCK_SIZE, (setup.getY()-block.getY()-1)*block.BLOCK_SIZE);
 
 			g2.setColor(block.getColor());
 			if (block.isFilled())

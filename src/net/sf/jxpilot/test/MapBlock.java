@@ -7,7 +7,8 @@ import static net.sf.jxpilot.test.MapSetup.*;
 
 public class MapBlock
 {
-	public static final int DEFAULT_WIDTH = 10, DEFAULT_HEIGHT = 10;
+	public static final int BLOCK_SIZE = 35;
+	
 	public static final Color BLOCK_COLOR = Color.BLUE;
 	public static final Color TREASURE_COLOR = Color.RED;
 	public static final Color BASE_COLOR = Color.WHITE;
@@ -51,8 +52,8 @@ public class MapBlock
 		switch(block_data)
 		{
 		case SETUP_SPACE: return new MapBlock(SETUP_SPACE, x, y);
-		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT), BLOCK_COLOR, true);
-		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH ,DEFAULT_WIDTH,DEFAULT_HEIGHT), FUEL_COLOR, true);
+		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE ,BLOCK_SIZE,BLOCK_SIZE), BLOCK_COLOR, true);
+		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE ,BLOCK_SIZE,BLOCK_SIZE), FUEL_COLOR, true);
 		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU, x, y, getRec(setup, x, y, true, true), BLOCK_COLOR, true);
 		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD, x, y, getRec(setup, x, y, true, false), BLOCK_COLOR, true);
 		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU, x, y, getRec(setup, x, y, false, true), BLOCK_COLOR, true);
@@ -64,14 +65,21 @@ public class MapBlock
 		
 		if (block_data>= SETUP_TREASURE && block_data <SETUP_TREASURE + 10)
 		{
-			return new MapBlock(block_data, x, y, new Ellipse2D.Float(x*DEFAULT_WIDTH,getScreenY(setup, y) * DEFAULT_WIDTH,DEFAULT_WIDTH, DEFAULT_HEIGHT), TREASURE_COLOR,false);
+			return new MapBlock(block_data, x, y, new Ellipse2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE,BLOCK_SIZE, BLOCK_SIZE), TREASURE_COLOR,false);
 		}
 		
 		if (block_data >= SETUP_BASE_LOWEST && block_data <= SETUP_BASE_HIGHEST)
 		{
+			if (block_data>= SETUP_BASE_DOWN && block_data < SETUP_BASE_DOWN +10)
+			{
+				return new MapBlock(block_data, x, y, 
+						new Line2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE,
+						x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE), BASE_COLOR, false);
+			}
+			
 			return new MapBlock(block_data, x, y, 
-					new Line2D.Float(x*DEFAULT_WIDTH,getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT,
-					x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT), BASE_COLOR, false);
+					new Line2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE,
+					x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE), BASE_COLOR, false);
 		}
 		
 		return new MapBlock(block_data, x, y);
@@ -89,15 +97,15 @@ public class MapBlock
 		{
 			if (up)
 			{
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH + DEFAULT_HEIGHT);
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE + BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
 			}
 			else
 			{
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT);
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT);
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
 				
 			}
 		}
@@ -106,15 +114,15 @@ public class MapBlock
 			if (up)
 			{
 
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT);
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
 			}
 			else
 			{
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT);
-				poly.addPoint(x*DEFAULT_WIDTH+DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH+DEFAULT_HEIGHT);
-				poly.addPoint(x*DEFAULT_WIDTH, getScreenY(setup, y) * DEFAULT_WIDTH);	
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
+				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);	
 			}
 		}
 		

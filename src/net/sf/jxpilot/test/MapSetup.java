@@ -199,9 +199,9 @@ class MapSetup
 		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
 		
-		System.out.println("Compressed size = " + map.remaining());
-		System.out.println("Map data length = " + setup.map_data_len);
-		System.out.println("Uncompressed size shoud be "+ map_bytes.length);
+		//System.out.println("Compressed size = " + map.remaining());
+		//System.out.println("Map data length = " + setup.map_data_len);
+		//System.out.println("Uncompressed size shoud be "+ map_bytes.length);
 		
 		int remaining = map.remaining();
 		for (int i =0;i<remaining;i++)

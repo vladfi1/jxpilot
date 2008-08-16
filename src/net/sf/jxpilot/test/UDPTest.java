@@ -32,7 +32,7 @@ public class UDPTest {
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = STROWGER_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -88,7 +88,7 @@ public class UDPTest {
 			public void readPacket(ByteBuffer buf)
 			{
 				System.out.println(readReliableData(reliable, buf, out));
-				buf.clear();
+				//buf.clear();
 			}
 		};
 		
@@ -160,6 +160,67 @@ public class UDPTest {
 			return 1;
 		}
 		*/
+		};
+		
+		readers[PKT_PLAYER] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer in)
+			{
+				byte type = in.get();
+				short id = in.getShort();
+				short myTeam = getUnsignedByte(in.get());
+				short myChar = getUnsignedByte(in.get());
+				String name = getString(in);
+				String real = getString(in);
+				String host = getString(in);
+				
+				System.out.println("\nPlayer Packet\ntype = "  +type+
+									"\nid = "  + id +
+									"\nmy team = " + myTeam +
+									"\nmy char = " + myChar +
+									"\n name = " + name +
+									"\nreal = " + real +
+									"\nhost = " + host);
+				
+				
+				ShipShape shape = ShipShape.parseShip(getString(in), getString(in));
+				System.out.println(shape);
+			}
+			
+			/*
+			int Receive_player(void)
+			{
+				int			n;
+				short		id;
+				u_byte		ch, myteam, mychar;
+				char		name[MAX_CHARS],
+				real[MAX_CHARS],
+				host[MAX_CHARS],
+				shape[2*MSG_LEN],
+				*cbuf_ptr = cbuf.ptr;
+
+				if ((n = Packet_scanf(&cbuf,
+						"%c%hd%c%c" "%s%s%s" "%S",
+						&ch, &id, &myteam, &mychar,
+						name, real, host,
+						shape)) <= 0) {
+					return n;
+				}
+				name[MAX_NAME_LEN - 1] = '\0';
+				real[MAX_NAME_LEN - 1] = '\0';
+				host[MAX_HOST_LEN - 1] = '\0';
+				if (version > 0x3200) {
+					if ((n = Packet_scanf(&cbuf, "%S", &shape[strlen(shape)])) <= 0) {
+						cbuf.ptr = cbuf_ptr;
+						return n;
+					}
+				}
+				if ((n = Handle_player(id, myteam, mychar, name, real, host, shape)) == -1) {
+					return -1;
+				}
+				return 1;
+			}
+			*/
 		};
 	}
 	
@@ -302,17 +363,21 @@ public class UDPTest {
 			System.out.println(reliable);
 			
 			System.out.println(readReplyData(in, reply));
-			in.clear();
+			netPacket(in);
 			
-			System.out.println(keyboard.setBits());
-			System.out.println(keyboard.setBit(Keys.KEY_SELF_DESTRUCT, false));
-			System.out.println(keyboard.setBit(Keys.KEY_PAUSE, false));
+			//System.out.println(keyboard.setBits());
+			//System.out.println(keyboard.setBit(Keys.KEY_SELF_DESTRUCT, false));
+			//System.out.println(keyboard.setBit(Keys.KEY_PAUSE, false));
 			keyboard.clearBits();
 			keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
 			
             while(true)
 			{
-				netPacket();
+            	in.clear();
+            	receivePacket(in);
+        		in.flip();
+        		
+				netPacket(in);
 				keyboard.switchBit(Keys.KEY_FIRE_SHOT);
 				keyboard.switchBit(Keys.KEY_THRUST);
 				sendKeyboard(out, keyboard);
@@ -327,8 +392,9 @@ public class UDPTest {
 	
 	public static byte peekByte(ByteBuffer buf)
 	{
+		//return buf.get(0);
+		
 		byte b = buf.get();
-			
 		buf.position(buf.position()-1);
 		return b;
 	}
@@ -664,19 +730,27 @@ public class UDPTest {
 		}
 	}
 	
-	private static void netPacket()
+	private static void netPacket(ByteBuffer in)
 	{
-		in.clear();
-		receivePacket(in);
-		in.flip();
+		//in.clear();
+		//receivePacket(in);
+		//in.flip();
 		
-		short type = getUnsignedByte(peekByte(in));
+		do{
+			short type = getUnsignedByte(peekByte(in));
+
+			if (readers[type]!=null)
+			{
+				readers[type].readPacket(in);
+			}
+			else
+			{
+				System.out.println("Unsuported type: " + type);
+				break;
+			}
+		}while(in.remaining()>0);
+
 		
-		if (readers[type]!=null)
-		{
-			readers[type].readPacket(in);
-		}
-		else System.out.println("Unsuported type: " + type);
 	}
 
     /**
