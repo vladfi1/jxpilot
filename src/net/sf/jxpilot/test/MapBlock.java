@@ -47,13 +47,13 @@ public class MapBlock
 	public Color getColor(){return color;}
 	public boolean isFilled(){return fill;}
 	
-	static MapBlock getBlockShape(MapSetup setup, byte block_data, int x, int y)
+	static MapBlock getMapBlock(MapSetup setup, byte block_data, int x, int y)
 	{
 		switch(block_data)
 		{
 		case SETUP_SPACE: return new MapBlock(SETUP_SPACE, x, y);
-		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE ,BLOCK_SIZE,BLOCK_SIZE), BLOCK_COLOR, true);
-		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE ,BLOCK_SIZE,BLOCK_SIZE), FUEL_COLOR, true);
+		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(0, 0 , BLOCK_SIZE,BLOCK_SIZE), BLOCK_COLOR, true);
+		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(0, 0,BLOCK_SIZE,BLOCK_SIZE), FUEL_COLOR, true);
 		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU, x, y, getRec(setup, x, y, true, true), BLOCK_COLOR, true);
 		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD, x, y, getRec(setup, x, y, true, false), BLOCK_COLOR, true);
 		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU, x, y, getRec(setup, x, y, false, true), BLOCK_COLOR, true);
@@ -65,7 +65,7 @@ public class MapBlock
 		
 		if (block_data>= SETUP_TREASURE && block_data <SETUP_TREASURE + 10)
 		{
-			return new MapBlock(block_data, x, y, new Ellipse2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE,BLOCK_SIZE, BLOCK_SIZE), TREASURE_COLOR,false);
+			return new MapBlock(block_data, x, y, new Ellipse2D.Float(0,0,BLOCK_SIZE, BLOCK_SIZE), TREASURE_COLOR,false);
 		}
 		
 		if (block_data >= SETUP_BASE_LOWEST && block_data <= SETUP_BASE_HIGHEST)
@@ -73,13 +73,11 @@ public class MapBlock
 			if (block_data>= SETUP_BASE_DOWN && block_data < SETUP_BASE_DOWN +10)
 			{
 				return new MapBlock(block_data, x, y, 
-						new Line2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE,
-						x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE), BASE_COLOR, false);
+						new Line2D.Float(0,BLOCK_SIZE,BLOCK_SIZE, BLOCK_SIZE), BASE_COLOR, false);
 			}
 			
 			return new MapBlock(block_data, x, y, 
-					new Line2D.Float(x*BLOCK_SIZE,getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE,
-					x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE), BASE_COLOR, false);
+					new Line2D.Float(0, 0, BLOCK_SIZE, 0), BASE_COLOR, false);
 		}
 		
 		return new MapBlock(block_data, x, y);
@@ -97,15 +95,15 @@ public class MapBlock
 		{
 			if (up)
 			{
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE + BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE, 0);
+				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
+				poly.addPoint(0,BLOCK_SIZE);
 			}
 			else
 			{
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE, 0);
+				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
+				poly.addPoint(0, 0);
 				
 			}
 		}
@@ -113,16 +111,15 @@ public class MapBlock
 		{
 			if (up)
 			{
-
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);
+				poly.addPoint(0, 0);
+				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
+				poly.addPoint(0, BLOCK_SIZE);
 			}
 			else
 			{
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE+BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE+BLOCK_SIZE);
-				poly.addPoint(x*BLOCK_SIZE, getScreenY(setup, y) * BLOCK_SIZE);	
+				poly.addPoint(0, 0);
+				poly.addPoint(BLOCK_SIZE, 0);
+				poly.addPoint(0, BLOCK_SIZE);	
 			}
 		}
 		

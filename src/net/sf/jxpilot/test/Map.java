@@ -17,7 +17,7 @@ public class Map
 		{
 			for (int y = 0 ; y<setup.getY();y++)
 			{
-				blocks[x][y] = MapBlock.getBlockShape(setup, setup.getBlock(x, y), x, y);
+				blocks[x][y] = MapBlock.getMapBlock(setup, setup.getBlock(x, y), x, y);
 				blocks[x][y].setPosition(x, y);
 			}
 		}

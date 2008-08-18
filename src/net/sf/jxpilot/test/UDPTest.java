@@ -31,8 +31,9 @@ public class UDPTest {
 	public static final String LKRAUSS_ADDRESS = "213.239.204.35";
 	public static final String STROWGER_ADDRESS = "149.156.203.245";
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
+	public static final String BURKEN_ADDRESS = "83.168.206.7";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = STROWGER_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -187,7 +188,10 @@ public class UDPTest {
 				
 				
 				ShipShape shape = ShipShape.parseShip(getString(in), getString(in));
+				
 				System.out.println(shape);
+				
+				client.handlePlayer(id, myTeam, myChar, name, real, host, shape);
 			}
 			
 			/*
@@ -228,19 +232,30 @@ public class UDPTest {
 		
 		readers[PKT_SCORE] = new PacketReader()
 		{
+			public static final int LENGTH = 1+2+2+2+1;
+			
 			public void readPacket(ByteBuffer in, AbstractClient client)
 			{
+				if (in.remaining()<LENGTH)
+				{
+					System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
+					in.clear();
+					return;
+				}
+				
 				byte type = in.get();
 				short id = in.getShort();
 				short score = in.getShort();
 				short life = in.getShort();
 				byte myChar = in.get();
 				
+				/*
 				System.out.println("\nScore Packet\ntype = " + type +
 									"\nid = " + id +
 									"\nscore = " + score +
 									"\nlife = " + life +
 									"\nmy char = " + myChar);
+				*/
 			}
 			
 			/*
@@ -311,10 +326,12 @@ public class UDPTest {
 				int type = getUnsignedByte(in.get());
 				int num = getUnsignedByte(in.get());
 				
+				/*
 				System.out.println("\nDebris Packet" +
 									"\ntype = " + type +
 									"\nnum = " + num);
 				in.position(in.position()+2*num);
+				*/
 			}
 		};
 		
@@ -364,8 +381,8 @@ public class UDPTest {
 					}
 				}
 				
-				System.out.println("\nSelf Items Packet\ntype = " + type +
-									"\nmask = " + String.format("%b", mask));
+				//System.out.println("\nSelf Items Packet\ntype = " + type +
+				//					"\nmask = " + String.format("%b", mask));
 				
 				
 			}
@@ -405,8 +422,18 @@ public class UDPTest {
 		
 		readers[PKT_SELF] = new PacketReader()
 		{
+			
+			public static final int LENGTH = 1+2+2+2+2+1+1+1+1+2+2+2+2+1+1+1;
+			
 			public void readPacket(ByteBuffer in, AbstractClient client)
 			{
+				if (in.remaining()<LENGTH)
+				{
+					System.out.println("\nPacket Self ("+in.remaining()+") is too small ("+ LENGTH+")!");
+					in.clear();
+					return;
+				}
+				
 				byte type = in.get();
 				short x = in.getShort();
 				short y = in.getShort();
@@ -503,6 +530,9 @@ public class UDPTest {
 				boolean phased = (flags & 8) != 0;
 				boolean deflector = (flags & 0x10) != 0;
 				
+				client.handleShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector);
+				
+				/*
 				System.out.println("\nShip Packet\ntype = " + type +
 									"\nx = " + x +
 									"\ny = " + y +
@@ -513,7 +543,7 @@ public class UDPTest {
 									"\nemergency shield: " + emergency_shield +
 									"\nphased: " + phased +
 									"\ndeflector: " + deflector);
-				
+				*/
 			}
 		};
 		
@@ -524,6 +554,13 @@ public class UDPTest {
 				byte pkt = in.get();
 				byte type = in.get();
 				short num = getUnsignedByte(in.get());
+				
+				if (in.remaining()<2*num)
+				{
+					in.clear();
+					return;
+				}
+				
 				in.position(in.position()+2*num);
 				
 				System.out.println("\nFastShot Packet\npkt = " + pkt +
@@ -553,6 +590,23 @@ public class UDPTest {
 
 			*/
 			
+		};
+		
+		readers[PKT_ITEM] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer in, AbstractClient client)
+			{
+				byte pkt = in.get();
+				short x = in.getShort();
+				short y = in.getShort();
+				byte type = in.get();
+				
+				System.out.println("\nItem Packet\npkt = " + pkt +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\ntype = " + type);
+				
+			}
 		};
 		
 	}
@@ -710,6 +764,7 @@ public class UDPTest {
         		in.flip();
         		
 				netPacket(in);
+				
 				keyboard.switchBit(Keys.KEY_FIRE_SHOT);
 				keyboard.switchBit(Keys.KEY_THRUST);
 				sendKeyboard(out, keyboard);
@@ -746,6 +801,8 @@ public class UDPTest {
 		}
 	}
 	
+	
+	private static StringBuffer strBuf = new StringBuffer();
 	//uses 1 byte chars
 	public static String getString(ByteBuffer buffer)
 	{
@@ -753,13 +810,29 @@ public class UDPTest {
 		byte ch;
 		
 		do
-		{
+		{	
+			if (buffer.remaining()<=0)
+			{
+				System.out.println("*****error reading string!******");
+				String soFar = "";
+				
+				for (byte c : b.toString().getBytes())
+				{
+					soFar += String.format("%x ", c);
+				}
+				System.out.println("So far getString() has read:\n" +soFar);
+				return b.toString();
+			}
+			
 			ch = buffer.get();
-			b.append((char)ch);
+			if (ch!=END_OF_STRING)
+				b.append((char)ch);
+			
 		} while(ch != END_OF_STRING);
+		
 		return b.toString();
-	
 	}
+	
 	public static int getUnsignedShort(short val)
 	{
 		return (int)((char)val);
@@ -1068,7 +1141,8 @@ public class UDPTest {
 		//receivePacket(in);
 		//in.flip();
 		
-		do{
+		while(in.remaining()>0)
+		{
 			short type = getUnsignedByte(peekByte(in));
 			
 			if (readers[type]!=null)
@@ -1080,8 +1154,7 @@ public class UDPTest {
 				System.out.println("Unsuported type: " + type);
 				break;
 			}
-		}while(in.remaining()>0);
-
+		}
 		
 	}
 

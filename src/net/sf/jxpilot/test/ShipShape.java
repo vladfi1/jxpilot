@@ -100,6 +100,8 @@ public class ShipShape
 		shape.addPoint(right_light.x, right_light.y);
 	}
 	
+	public Polygon getShape(){return shape;}
+	
 	/**
 	 * @return A String representation of the ShipShape that is understood by xpilot
 	 * 			and can be sent over the internet.
@@ -116,7 +118,7 @@ public class ShipShape
 				")(MG: " + toString(main_gun) +
 				")(LL: " + toString(left_light) +
 				")(RL: " + toString(right_light) +
-				")(MR: " + toString(main_rack) + ")\0"
+				")(MR: " + toString(main_rack) + ")"
 				+ extras;
 		
 		return temp;

@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import java.util.*;
 import static net.sf.jxpilot.test.MapBlock.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -13,9 +14,7 @@ public class MapFrame extends JFrame
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
-	private BufferedImage buffer;
-	private Graphics2D g2d;
-	
+	private Color shipColor = Color.white;
 	
 	private Map map;
 	private MapSetup setup;
@@ -26,9 +25,12 @@ public class MapFrame extends JFrame
 	//center of viewing screen, in blocks
 	private double viewX, viewY;
 	//number of blocks in the screen
+	public static final int defaultViewSize = 27;
 	private int viewSize;
 	private AffineTransform currentTransform = new AffineTransform();
+	private AffineTransform flippedTransform = new AffineTransform();
 	
+	private Collection<Drawable> drawables;
 	
 	public MapFrame(Map map)
 	{
@@ -44,13 +46,18 @@ public class MapFrame extends JFrame
 		viewX=setup.getX()/2.0;
 		viewY=setup.getY()/2.0;
 		
-		viewSize = 27;
+		viewSize = defaultViewSize;
 		
-		buffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);
+		//buffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);
 		
-		g2d = buffer.createGraphics();
+		//g2d = buffer.createGraphics();
 		
 		//currentTransform.translate(-viewX, -viewY);
+		
+		flippedTransform.scale(1, -1);
+		flippedTransform.translate(0, -setup.getY()*BLOCK_SIZE);
+		
+		
 		setTransform();
 		//setTransform();
 		
@@ -87,10 +94,12 @@ public class MapFrame extends JFrame
 				repaint();
 			}
 			
-			
-			
 		});
-		
+	}
+	
+	public void setDrawables(Collection<Drawable> d)
+	{
+		drawables = d;
 	}
 	
 	private void setTransform()
@@ -102,14 +111,16 @@ public class MapFrame extends JFrame
 		currentTransform.setToIdentity();
 		currentTransform.translate(this.getWidth()/2.0, this.getHeight()/2.0);
 		currentTransform.scale(scale, scale);
-		currentTransform.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);	
+		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE);	
 	}
 	
+	/**
+	 * Sets the view focus in blocks, measured in regular Cartesian form.
+	 */
 	public void setView(double x, double y)
 	{
 		viewX = trueMod(x, setup.getX());
 		viewY = trueMod(y, setup.getY());
-		repaint();
 	}
 	
 	public void moveView(double dx, double dy)
@@ -119,76 +130,81 @@ public class MapFrame extends JFrame
 	
 	private class MapPanel extends JPanel
 	{
+		private BufferedImage screenBuffer;
+		private Graphics2D screenG2D;
+		private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		private BufferedImage mapBuffer;
+		private BufferedImage worldBuffer;
+		private Graphics2D worldG2D;
+		
 		public MapPanel()
 		{
+			mapBuffer = createMapBuffer();
 			
+			worldBuffer = new BufferedImage(mapBuffer.getWidth(), mapBuffer.getHeight(), BufferedImage.TYPE_INT_RGB);
+			worldG2D = worldBuffer.createGraphics();
+			worldG2D.setTransform(flippedTransform);
+			
+			screenBuffer = new BufferedImage(screenSize.width, screenSize.height, BufferedImage.TYPE_INT_RGB);
+			screenG2D = screenBuffer.createGraphics();
+		}
+		
+		private BufferedImage createMapBuffer()
+		{
+			BufferedImage temp = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g2d = temp.createGraphics();
+			
+			g2d.setColor(spaceColor);
+			g2d.fillRect(0, 0, temp.getWidth(), temp.getHeight());
+			
+			g2d.setTransform(flippedTransform);
+			
+			paintBlocks(g2d);
+			
+			return temp;
+		}
+		
+		private void paintWorld()
+		{
+			worldG2D.setTransform(identity);
+			worldG2D.drawImage(mapBuffer, 0, 0, this);
+			
+			worldG2D.setTransform(flippedTransform);
+			if (drawables!=null)
+			{
+				for (Drawable d : drawables)
+				{
+					//System.out.println("\nPainting drawable: ****************************************");
+					d.paintDrawable(worldG2D);
+				}
+			}
 		}
 		
 		protected void paintComponent(Graphics g)
 		{
 			//super.paintComponent(g);
-
-			g2d.setColor(spaceColor);
-			g2d.setTransform(identity);
-			g2d.fillRect(0, 0, buffer.getWidth(), buffer.getHeight());
+			
+			//Graphics2D screenG2D = (Graphics2D) g;
+			
+			paintWorld();
 			
 			setTransform();
-			g2d.setTransform(currentTransform);
-			//g2d.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);
-			//g2d.setBackground(spaceColor);
-			
-			
-			g2d.setColor(blockColor);
-			//paintBlocks(g2d);
-			
-			
 			for(int x= -1; x<=1;x++)
 			{
 				for (int y = -1; y<=1;y++)
 				{
-					g2d.setTransform(currentTransform);
-					//g2d.translate(-viewX*BLOCK_SIZE, -viewY*BLOCK_SIZE);	
-					
-					g2d.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-					paintBlocks(g2d);
-					
-					
-					//g2d.copyArea(0, 0, setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE,
-					//		x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-					
-					//g.drawImage(buffer, x*viewSize*BLOCK_SIZE, y*viewSize*BLOCK_SIZE, this);
+					screenG2D.setTransform(currentTransform);
+					screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
+					screenG2D.drawImage(worldBuffer, 0, 0, this);
 				}
 			}
 			
-			g.drawImage(buffer, 0, 0, this);
+			//screenG2D.setTransform(identity);
+			//screenG2D.setColor(shipColor);
 			
+			//screenG2D.fillRect(screenSize.width/2-10, screenSize.height/2-10, 40, 40);
 			
-			/*
-			double X = viewX-viewSize*BLOCK_SIZE/2.0;
-			double Y = viewY-viewSize*BLOCK_SIZE/2.0;
-			*/
-			
-			
-			/*
-			for(int x= -1; x<=1;x++)
-			{
-				for (int y = -1; y<=1;y++)
-				{
-					g2d.copyArea(viewX-viewSize*BLOCK_SIZE/2.0, viewY-viewSize*BLOCK_SIZE/2.0, viewSize*BLOCK_SIZE ,viewSize*BLOCK_SIZE
-							, x*setup., arg5);
-				}
-			}
-			
-			
-			Graphics2D g2 = (Graphics2D) g;		
-
-			g2.setColor(spaceColor);
-			//g2.setTransform(identity);
-			g2.fillRect(0, 0, this.getWidth(), this.getHeight());
-			g2.setTransform(currentTransform);
-			*/
-
-			
+			g.drawImage(screenBuffer, 0, 0, this);
 		}
 
 		private void paintBlocks(Graphics2D g2)
@@ -196,7 +212,7 @@ public class MapFrame extends JFrame
 			for (MapBlock[] array : blocks)
 			{
 				for (MapBlock o : array)
-				{
+				{		
 					paintBlock(g2, o);
 				}
 			}
@@ -206,15 +222,19 @@ public class MapFrame extends JFrame
 		{
 			if (block.getShape()==null) return;
 
-
 			//g2.setTransform(identity);
 			//g2.translate(block.getX()*block.BLOCK_SIZE, (setup.getY()-block.getY()-1)*block.BLOCK_SIZE);
 
 			g2.setColor(block.getColor());
+			
+			g2.translate(block.getX()*BLOCK_SIZE, block.getY()*BLOCK_SIZE);
+			
 			if (block.isFilled())
 				g2.fill(block.getShape());
 			else
 				g2.draw(block.getShape());
+			
+			g2.translate(-block.getX()*BLOCK_SIZE, -block.getY()*BLOCK_SIZE);
 		}
 	}
 }
