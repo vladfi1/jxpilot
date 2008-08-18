@@ -33,7 +33,7 @@ public class UDPTest {
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String BURKEN_ADDRESS = "83.168.206.7";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = CHAOS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = LOCAL_LOOPBACK_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -473,6 +473,7 @@ public class UDPTest {
 			}
 		};
 		
+		/*
 		readers[PKT_MODIFIERS] = new PacketReader()
 		{
 			public void readPacket(ByteBuffer in, AbstractClient client)
@@ -484,6 +485,7 @@ public class UDPTest {
 									"\nmodifiers: " + mods);
 			}
 		};
+		*/
 		
 		readers[PKT_END] = new PacketReader()
 		{
@@ -825,7 +827,7 @@ public class UDPTest {
 			}
 			
 			ch = buffer.get();
-			if (ch!=END_OF_STRING)
+			//if (ch!=END_OF_STRING)
 				b.append((char)ch);
 			
 		} while(ch != END_OF_STRING);

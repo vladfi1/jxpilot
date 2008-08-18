@@ -118,7 +118,7 @@ public class ShipShape
 				")(MG: " + toString(main_gun) +
 				")(LL: " + toString(left_light) +
 				")(RL: " + toString(right_light) +
-				")(MR: " + toString(main_rack) + ")"
+				")(MR: " + toString(main_rack) + ")\0"
 				+ extras;
 		
 		return temp;
