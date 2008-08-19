@@ -35,6 +35,7 @@ public class ShipShape
 	
 	public static String toString(Point p)
 	{
+		if (p==null) return "null";
 		return p.x + POINT_SEPARATOR + p.y;
 	}
 	

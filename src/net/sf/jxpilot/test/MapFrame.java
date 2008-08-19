@@ -30,7 +30,7 @@ public class MapFrame extends JFrame
 	private AffineTransform currentTransform = new AffineTransform();
 	private AffineTransform flippedTransform = new AffineTransform();
 	
-	private Collection<Drawable> drawables;
+	private Vector<Drawable> drawables;
 	
 	public MapFrame(Map map)
 	{
@@ -97,7 +97,7 @@ public class MapFrame extends JFrame
 		});
 	}
 	
-	public void setDrawables(Collection<Drawable> d)
+	public void setDrawables(Vector<Drawable> d)
 	{
 		drawables = d;
 	}
@@ -174,6 +174,7 @@ public class MapFrame extends JFrame
 			{
 				for (Drawable d : drawables)
 				{
+					worldG2D.setTransform(flippedTransform);
 					//System.out.println("\nPainting drawable: ****************************************");
 					d.paintDrawable(worldG2D);
 				}

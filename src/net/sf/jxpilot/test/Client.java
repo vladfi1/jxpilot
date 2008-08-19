@@ -7,14 +7,15 @@ public class Client implements AbstractClient
 	public static final int MAX_SHIPS=100;
 	
 	private MapFrame frame;
-	private List<Drawable> drawables;
+	private Vector<Drawable> drawables;
 	
-	private Ship[] ships = new Ship[MAX_SHIPS];
+	//private Ship[] ships = new Ship[MAX_SHIPS];
+	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
 	
 	
 	public Client(MapFrame frame)
 	{
-		drawables = new LinkedList<Drawable>();
+		drawables = new Vector<Drawable>();
 		this.frame = frame;
 		frame.setDrawables(drawables);
 	}
@@ -33,13 +34,29 @@ public class Client implements AbstractClient
 	public void handleShip(short x, short y, short id, byte dir,
 				boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
-		ships[id].setShip(x, y, dir);
+		Ship s = shipMap.get((int)id);
+		if (s==null)
+		{
+			System.out.println("********No ship matches id = " + id + "*********");
+		}
+		else
+		{
+			s.setShip(x, y, dir);
+		}
 	}
 	
 	public void handlePlayer(short id, short myTeam, short myChar, String name, String real, String host, ShipShape ship)
 	{
-		ships[id] = new Ship(ship, id);
-		drawables.add(ships[id]);
-		frame.repaint();
+		//ships[id] = new Ship(ship, id);
+		//drawables.add(ships[id]);
+		Ship s = new Ship(ship, id);
+		shipMap.put((int)id, s);
+		drawables.add(s);
+		//frame.repaint();
+	}
+	
+	public void handleRadar(int x, int y, int size)
+	{
+		
 	}
 }

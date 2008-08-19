@@ -33,7 +33,7 @@ public class UDPTest {
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String BURKEN_ADDRESS = "83.168.206.7";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = LOCAL_LOOPBACK_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = LKRAUSS_ADDRESS;
 	
 	public static final byte END_OF_STRING = 0x00;
 	
@@ -48,7 +48,7 @@ public class UDPTest {
 	public static final String NICK = "test";
 	public static final String HOST = "java";
 	public static final short POWER = 55;
-	public static final short TURN_SPEED = 16;
+	public static final short TURN_SPEED = 4;
 	public static final short TURN_RESISTANCE = 0;
 	public static final byte MAX_FPS = (byte)0x255;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};
@@ -83,6 +83,11 @@ public class UDPTest {
 	
 	private static MapFrame frame;
 	private static Client client;
+	
+	/**
+	 * keeps track of number of packets sent/received for debugging
+	 */
+	static int numPackets=0;
 	
 	//sets function to handle packets
 	static
@@ -249,13 +254,13 @@ public class UDPTest {
 				short life = in.getShort();
 				byte myChar = in.get();
 				
-				/*
+				
 				System.out.println("\nScore Packet\ntype = " + type +
 									"\nid = " + id +
 									"\nscore = " + score +
 									"\nlife = " + life +
 									"\nmy char = " + myChar);
-				*/
+				
 			}
 			
 			/*
@@ -326,12 +331,12 @@ public class UDPTest {
 				int type = getUnsignedByte(in.get());
 				int num = getUnsignedByte(in.get());
 				
-				/*
+				
 				System.out.println("\nDebris Packet" +
 									"\ntype = " + type +
 									"\nnum = " + num);
 				in.position(in.position()+2*num);
-				*/
+				
 			}
 		};
 		
@@ -381,9 +386,8 @@ public class UDPTest {
 					}
 				}
 				
-				//System.out.println("\nSelf Items Packet\ntype = " + type +
-				//					"\nmask = " + String.format("%b", mask));
-				
+				System.out.println("\nSelf Items Packet\ntype = " + type +
+									"\nmask = " + String.format("%x", mask));
 				
 			}
 		};
@@ -423,7 +427,8 @@ public class UDPTest {
 		readers[PKT_SELF] = new PacketReader()
 		{
 			
-			public static final int LENGTH = 1+2+2+2+2+1+1+1+1+2+2+2+2+1+1+1;
+			public static final int LENGTH = 
+			(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
 			
 			public void readPacket(ByteBuffer in, AbstractClient client)
 			{
@@ -440,6 +445,7 @@ public class UDPTest {
 				short vx = in.getShort();
 				short vy = in.getShort();
 				byte heading = in.get();
+				
 				byte power = in.get();
 				byte turnspeed = in.get();
 				byte turnresistance = in.get();
@@ -468,12 +474,12 @@ public class UDPTest {
 									"\ny = " + y +
 									"\nvx = " + vx +
 									"\nvy = " + vy +
-									"\nheading = " + heading);
-				
+									"\nheading = " + heading +
+									"\nautopilotLight = " + autopilotLight);
 			}
 		};
 		
-		/*
+		
 		readers[PKT_MODIFIERS] = new PacketReader()
 		{
 			public void readPacket(ByteBuffer in, AbstractClient client)
@@ -485,7 +491,7 @@ public class UDPTest {
 									"\nmodifiers: " + mods);
 			}
 		};
-		*/
+		
 		
 		readers[PKT_END] = new PacketReader()
 		{
@@ -517,6 +523,8 @@ public class UDPTest {
 		
 		readers[PKT_SHIP] = new PacketReader()
 		{
+			public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
+			
 			public void readPacket(ByteBuffer in, AbstractClient client)
 			{
 				byte type = in.get();
@@ -534,7 +542,7 @@ public class UDPTest {
 				
 				client.handleShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector);
 				
-				/*
+				
 				System.out.println("\nShip Packet\ntype = " + type +
 									"\nx = " + x +
 									"\ny = " + y +
@@ -545,7 +553,7 @@ public class UDPTest {
 									"\nemergency shield: " + emergency_shield +
 									"\nphased: " + phased +
 									"\ndeflector: " + deflector);
-				*/
+				
 			}
 		};
 		
@@ -596,6 +604,8 @@ public class UDPTest {
 		
 		readers[PKT_ITEM] = new PacketReader()
 		{
+			public static final int LENGTH = 1 + 2 + 2 + 1;//6
+			
 			public void readPacket(ByteBuffer in, AbstractClient client)
 			{
 				byte pkt = in.get();
@@ -611,6 +621,77 @@ public class UDPTest {
 			}
 		};
 		
+		readers[PKT_FASTRADAR] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer in, AbstractClient client)
+			{
+				byte type = in.get();
+				int n = (in.get() & 0xFF);
+				int x, y, size;
+				
+				int pos = in.position();
+				
+				for (int i =0;i<n;i++)
+				{
+					x = getUnsignedByte(in.get());
+					y= getUnsignedByte(in.get());
+					
+					byte b = in.get();
+					
+					y |= (b&0xC0) << 2;
+					
+					size = (b & 0x07);
+					if ((b & 0x20)!=0)
+					{
+						size |= 0x80;
+					}
+					
+					client.handleRadar(x, y, size);
+				}
+				
+				System.out.println("\nFast Radar Packet:\ntype = " + type +
+									"\nn = " + n +
+									"\nbuffer advanced " + (in.position()-pos));
+			}
+
+		};
+		
+		readers[PKT_PAUSED] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer in, AbstractClient client)
+			{
+				byte type = in.get();
+				short x = in.getShort();
+				short y = in.getShort();
+				short count = in.getShort();
+				
+				System.out.println("\nPaused Packet:\ntype = " +type +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\ncount = " + count);
+			}
+		};
+		
+		readers[PKT_WRECKAGE] = new PacketReader()
+		{
+			public void readPacket(ByteBuffer in, AbstractClient client)
+			{
+				byte type = in.get();
+				short x= in.getShort();
+				short y = in.getShort();
+				byte wrecktype = in.get();
+				byte size = in.get();
+				byte rot = in.get();
+				
+				System.out.println("\nWreckage Packet:\ntype = "+type +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\nwreck type = " + wrecktype +
+									"\nsize = " + size +
+									"\nrot = " + rot);
+				
+			}
+		};
 	}
 	
 	public static void main(String[] args)
@@ -886,7 +967,10 @@ public class UDPTest {
 		buf.clear();
 		try
 		{
+			
 			channel.receive(buf);
+			numPackets++;
+			System.out.println("\nGot Packet-number: " + numPackets);
 			//System.out.println("\nBuf received " + buf.position());
 		}
 		catch (IOException e)
@@ -898,8 +982,10 @@ public class UDPTest {
 	
 	public static void sendPacket(ByteBuffer buf)
 	{
-		try{
+		try
+		{
 			channel.send(buf, server_address);
+			numPackets++;
 		}
 		catch(IOException e)
 		{
@@ -1074,14 +1160,13 @@ public class UDPTest {
 	
 	private static int getFirstMapPacket(ByteBuffer in, ByteBuffer map, MapSetup setup, ReliableData reliable)
 	{
-		ReliableDataError error = getReliableData(reliable, in, out);
 		
-		if (error == ReliableDataError.NO_ERROR)
+		while(getReliableData(reliable, in, out)!=ReliableDataError.NO_ERROR)
 		{
-			return readFirstMapPacket(in, map, setup, reliable);		
-			//System.out.println(reliable);
+			System.out.println("Didn't get reliable data when waiting for map");
 		}
-		return -1;
+		
+		return readFirstMapPacket(in, map, setup, reliable);		
 	}
 	
 	private static void putKeyboard(ByteBuffer buf, BitVector keyboard)
@@ -1153,7 +1238,7 @@ public class UDPTest {
 			}
 			else
 			{
-				System.out.println("Unsuported type: " + type);
+				System.out.println("**********Unsuported type: " + type + "************");
 				break;
 			}
 		}

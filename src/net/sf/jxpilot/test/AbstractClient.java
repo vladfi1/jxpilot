@@ -11,5 +11,5 @@ public interface AbstractClient
 				boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector);
 
 	public void handlePlayer(short id, short myTeam, short myChar, String name, String real, String host, ShipShape ship);
-	
+	public void handleRadar(int x, int y, int size);
 }

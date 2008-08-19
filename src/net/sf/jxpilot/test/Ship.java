@@ -35,10 +35,19 @@ public class Ship implements Drawable
 	{
 		//g2d.rotate(heading, x, y);
 		g2d.translate(x, y);
-		g2d.rotate(heading);
+		g2d.rotate(getAngleFrom128(heading));
 		g2d.draw(getShape());
-		g2d.rotate(-heading);
-		g2d.translate(-x,-y);
+		//g2d.rotate(-heading);
+		//g2d.translate(-x,-y);
 		//g2d.rotate(-heading, -x, -y);
+	}
+	
+	/**
+	 * @param heading The angle in 128 degree mode.
+	 * @return The angle in radian mode.
+	 */
+	public static double getAngleFrom128(int heading)
+	{
+		return (double)heading * Math.PI/64.0;
 	}
 }
