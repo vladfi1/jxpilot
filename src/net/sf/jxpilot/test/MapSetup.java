@@ -2,7 +2,6 @@ package net.sf.jxpilot.test;
 
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.UDPTest.*;
-import java.nio.ByteBuffer;
 
 class MapSetup
 {
@@ -194,7 +193,7 @@ class MapSetup
 	 * Because we uncompress the map backwards to save on
 	 * memory usage there is some complexity involved.
 	 */
-	private static MapError uncompressMap(ByteBuffer map, MapSetup setup)
+	private static MapError uncompressMap(ByteBufferWrap map, MapSetup setup)
 	{
 		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
@@ -203,10 +202,11 @@ class MapSetup
 		//System.out.println("Map data length = " + setup.map_data_len);
 		//System.out.println("Uncompressed size shoud be "+ map_bytes.length);
 		
+		map.setReading();
 		int remaining = map.remaining();
 		for (int i =0;i<remaining;i++)
 		{
-			map_bytes[i] = map.get();
+			map_bytes[i] = map.getByte();
 		}
 		
 		int	cmp,		/* compressed map pointer */
@@ -280,14 +280,14 @@ class MapSetup
 		
 		setup.setMapOrder(MapSetup.SETUP_MAP_UNCOMPRESSED);
 		map.clear();
-		map.put(map_bytes);
+		map.putBytes(map_bytes);
 		
 		setup.setMapData(map_bytes);
 		return MapError.NO_ERROR;
 	}
 	
 	/*
-	private static MapError uncompressMap2(ByteBuffer map, MapSetup setup)
+	private static MapError uncompressMap2(ByteBufferWrap map, MapSetup setup)
 	{
 		map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
@@ -355,18 +355,26 @@ class MapSetup
 	}
 	*/
 	
-	public MapError uncompressMap(ByteBuffer map)
+	public MapError uncompressMap(ByteBufferWrap map)
 	{
 		return uncompressMap(map, this);
 	}
 
-	private static MapSetup readMapSetup(ByteBuffer in, MapSetup setup)
+	private static MapSetup readMapSetup(ByteBufferWrap in, MapSetup setup)
 	{	
-		return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
+		try
+		{
+			return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
 				in.getShort(), in.getShort(), getString(in), getString(in));
+		}
+		catch (StringReadException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
-	public MapSetup readMapSetup(ByteBuffer in)
+	public MapSetup readMapSetup(ByteBufferWrap in)
 	{	
 		return readMapSetup(in, this);
 	}

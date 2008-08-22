@@ -1,6 +1,5 @@
 package net.sf.jxpilot.test;
 
-import java.nio.ByteBuffer;
 import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.UDPTest.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
@@ -10,13 +9,14 @@ class ReliableData
 {
 	public static final int LENGTH = 1+2+4+4;
 	
-	public static ReliableDataError readReliableData(ReliableData data, ByteBuffer in, ByteBuffer out)
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out)
 	{
 		//buf.rewind();
 		
-		if (in.remaining()<LENGTH) return BAD_PACKET;
+		in.setReading();
 		
-		data.setData(in.get(), in.getShort(),in.getInt() , in.getInt());
+		if (in.remaining()<LENGTH) return BAD_PACKET;
+		data.setData(in.getByte(), in.getShort(),in.getInt() , in.getInt());
 		
 		if (data.getPktType()!=PKT_RELIABLE)
 		{
@@ -53,7 +53,17 @@ class ReliableData
 			return DUPLICATE_DATA;
 		}
 		
-		//System.out.println(data);
+		/*
+		if (data.rel < offset) {
+			data.len -= (short)(offset - data.rel);
+			
+			in.position(in.position()+offset-data.rel);
+			
+			data.rel = offset;
+		}
+		*/
+		
+		System.out.println(data);
 		
 		data.incrementOffset();
 		sendAck(out, ack.setAck(data));
@@ -61,13 +71,31 @@ class ReliableData
 		return NO_ERROR;
 	}
 
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, ByteBufferWrap reliableBuf)
+	{
+		ReliableDataError error = readReliableData(data, in, out);
+		
+		if (error == NO_ERROR)
+		{
+			//reliableBuf.put(in.array(), in.position(), data.getLen());
+			//in.position(in.position() + data.getLen());
+			
+			for(int i =0;i<data.getLen();i++)
+			{
+				reliableBuf.putByte(in.getByte());
+			}
+		}
+		
+		return error;
+	}
+	
 	/*
-	public static ReliableDataError getReliableData(ReliableData data, ByteBuffer in, ByteBuffer reliableBuf)
+	public static ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, ByteBufferWrap reliableBuf)
 	{
 		receivePacket(in);
 		in.flip();
 		
-		ReliableDataError error = readReliableData(data, in);
+		ReliableDataError error = readReliableData(data, in, out);
 		reliableBuf.put(in);
 		
 		return error;

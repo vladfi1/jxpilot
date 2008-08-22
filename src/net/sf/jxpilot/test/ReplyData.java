@@ -1,20 +1,20 @@
 package net.sf.jxpilot.test;
 
-import java.nio.ByteBuffer;
 
 class ReplyData
 {
+	public static final int LENGTH = 1 + 1 + 1;//3
 	
-	public static ReplyData readReplyData(ByteBuffer buf, ReplyData data)
+	public static ReplyData readReplyData(ByteBufferWrap buf, ReplyData data)
 	{
 		//buf.rewind();
 		
-		data.setData(buf.get(), buf.get(), buf.get());
+		data.setData(buf.getByte(), buf.getByte(), buf.getByte());
 		return data;
 	}
 	
 	/*
-	public static ReplyData getReplyData(ReplyData data, ByteBuffer buf)
+	public static ReplyData getReplyData(ReplyData data, ByteBufferWrap buf)
 	{
 		
 		receivePacket(buf);
