@@ -115,6 +115,7 @@ public class ByteBufferWrap
 	{
 		buffer.compact();
 		mark = 0;
+		writing = true;
 	}
 	
 	public byte[] getArray()
@@ -252,17 +253,18 @@ public class ByteBufferWrap
 		return buffer.getLong();
 	}
 	
-	private static StringBuffer strBuf = new StringBuffer();
+	private StringBuilder strBuf = new StringBuilder();
 	
 	/**
 	 * @return A String read from the buffer using ASCII encoding.
 	 * @throws StringReadException If the buffer is read to the end but no null char is found.
-	 */	
+	 */
 	public String getString() throws StringReadException
 	{
 		setReading();
 		
 		StringBuffer b = new StringBuffer();
+		
 		byte ch;
 		//boolean ends_with_null = false;
 
@@ -281,7 +283,7 @@ public class ByteBufferWrap
 					}
 					System.out.println("So far getString() has read:\n" +soFar);
 				 */
-				throw new StringReadException();
+				throw stringReadException;
 			}
 
 
@@ -296,4 +298,6 @@ public class ByteBufferWrap
 
 		return b.toString();
 	}
+	
+	private static StringReadException stringReadException = new StringReadException();
 }

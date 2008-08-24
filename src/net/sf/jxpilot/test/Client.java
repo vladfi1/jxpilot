@@ -2,23 +2,38 @@ package net.sf.jxpilot.test;
 
 import java.util.*;
 
-public class Client implements AbstractClient
+public class Client implements AbstractClient, ClientInputListener
 {
 	public static final int MAX_SHIPS=100;
 	
+	private NetClient netClient;
+	private Map map;
 	private MapFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
-	
 	
 	//private Ship[] ships = new Ship[MAX_SHIPS];
 	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
 	
-	public Client(MapFrame frame)
+	public Client()
 	{
+		netClient = new NetClient(this);
+		
 		drawables = new Vector<Collection<? extends Drawable>>();
 		drawables.add(shipMap.values());
-		this.frame = frame;
+	}
+	
+	public void runClient(String serverIP, int serverPort)
+	{
+		netClient.runClient(serverIP, serverPort);
+	}
+	
+	//Abstract Client methods
+	public void mapInit(Map map)
+	{
+		this.map = map;
+		frame = new MapFrame(map, this);
 		frame.setDrawables(drawables);
+		frame.setVisible(true);
 	}
 	
 	public void handleSelf(short x, short y, short vx, short vy, byte heading,
@@ -28,7 +43,6 @@ public class Client implements AbstractClient
 			byte currentTank, short fuelSum, short fuelMax)
 	{
 		frame.setView((double)x/MapBlock.BLOCK_SIZE, (double)y/MapBlock.BLOCK_SIZE);
-		frame.repaint();
 	}
 	
 	public void handleShip(short x, short y, short id, byte dir,
@@ -63,5 +77,17 @@ public class Client implements AbstractClient
 	public void handleLeave(short id)
 	{
 		shipMap.remove(id);
+	}
+	
+	public void handleEnd()
+	{
+		frame.repaint();
+	}
+	
+	//Client Input Listener methods
+	public void quit()
+	{
+		netClient.sendQuit();
+		System.exit(0);
 	}
 }

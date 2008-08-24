@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.UDPTest.PRINT_PACKETS;
 import static net.sf.jxpilot.test.Ack.putAck;
 import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.ReliableData.readReliableData;
@@ -9,9 +10,12 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
-
+import java.util.*;
 public class NetClient
 {
+	
+	private static final Random rnd = new Random();
+	
 	/**
 	 * MAGIC = 0x4401F4ED
 	 * 
@@ -26,7 +30,7 @@ public class NetClient
 	public static final int TEAM = 0x0000FFFF;
 	public static final String DISPLAY = "";
 	public static final String REAL_NAME = "TEST";
-	public static final String NICK = "test";
+	public static final String NICK = "test"+rnd.nextInt(1024);
 	public static final String HOST = "java";
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 4;
@@ -63,12 +67,12 @@ public class NetClient
 	private int last_keyboard_change=0;
 	private long numPackets = 0;
 	
-	//maybe these should be instantiated elsewhere
-	private MapFrame frame;
-	private Client client;	
+	private AbstractClient client;	
 	
-	public NetClient()
+	public NetClient(AbstractClient client)
 	{
+		this.client = client;
+		
 		//sets function to handle packets
 		
 		//have to be careful here, not all the reliable data may be in packet
@@ -77,7 +81,14 @@ public class NetClient
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				in.setReading();
-				System.out.println(readReliableData(reliable, in, out, NetClient.this, reliableBuf));
+				if(PRINT_PACKETS)
+				{
+					System.out.println(readReliableData(reliable, in, out, NetClient.this, reliableBuf));
+				}
+				else
+				{
+					readReliableData(reliable, in, out, NetClient.this, reliableBuf);
+				}
 				//in.clear();
 			}
 		};
@@ -88,10 +99,17 @@ public class NetClient
 			{
 				if (in.remaining()<ReplyData.LENGTH)
 				{
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 
-				System.out.println(readReplyData(in, reply));
+				if(PRINT_PACKETS)
+				{
+					System.out.println(readReplyData(in, reply));
+				}
+				else
+				{
+					readReplyData(in, reply);
+				}
 			}
 		};
 
@@ -109,7 +127,7 @@ public class NetClient
 				catch (StringReadException e)
 				{
 					//e.printStackTrace();
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 
 			}
@@ -126,7 +144,7 @@ public class NetClient
 				int key_ack = in.getInt();
 
 
-				System.out.println("\nStart Packet :" +
+				if(PRINT_PACKETS)System.out.println("\nStart Packet :" +
 						"\ntype = " + type +
 						"\nloops = " + loops +
 						"\nkey ack = " + key_ack);
@@ -194,7 +212,7 @@ public class NetClient
 					ShipShape shape = ShipShape.parseShip(in.getString(), in.getString());
 
 
-					System.out.println("\nPlayer Packet\ntype = "  +type+
+					if(PRINT_PACKETS)System.out.println("\nPlayer Packet\ntype = "  +type+
 							"\nid = "  + id +
 							"\nmy team = " + myTeam +
 							"\nmy char = " + myChar +
@@ -209,7 +227,7 @@ public class NetClient
 				{
 					//e.printStackTrace();
 					in.position(pos);
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 			}
 
@@ -257,10 +275,10 @@ public class NetClient
 			{
 				if (in.remaining()<LENGTH)
 				{
-					//System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
+					//if(PRINT_PACKETS)System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
 
 					//in.clear();
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 
 				byte type = in.getByte();
@@ -270,7 +288,7 @@ public class NetClient
 				byte myChar = in.getByte();
 
 
-				System.out.println("\nScore Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nScore Packet\ntype = " + type +
 						"\nid = " + id +
 						"\nscore = " + score +
 						"\nlife = " + life +
@@ -319,15 +337,15 @@ public class NetClient
 			{
 				if (in.remaining()<LENGTH)
 				{
-					System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
-					throw new ReliableReadException();
+					if(PRINT_PACKETS)System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
+					throw reliableReadException;
 				}
 
 				byte type = in.getByte();
 				short id = in.getShort();
 				int num = in.getUnsignedShort();
 
-				System.out.println("\nBase Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nBase Packet\ntype = " + type +
 						"\nid = " + id +
 						"\nnum = " + num);
 			}
@@ -342,13 +360,13 @@ public class NetClient
 				{
 					byte type = in.getByte();
 					String message = in.getString();
-					System.out.println("\nMessage Packet\n" + message);
+					if(PRINT_PACKETS)System.out.println("\nMessage Packet\n" + message);
 				}
 				catch (StringReadException e)
 				{
 					//e.printStackTrace();
 					in.position(pos);
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 			}
 		};
@@ -364,7 +382,7 @@ public class NetClient
 				int num = in.getUnsignedByte();
 
 
-				System.out.println("\nDebris Packet" +
+				if(PRINT_PACKETS)System.out.println("\nDebris Packet" +
 						"\ntype = " + type +
 						"\nnum = " + num);
 				in.position(in.position()+2*num);
@@ -419,7 +437,7 @@ public class NetClient
 					}
 				}
 
-				System.out.println("\nSelf Items Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nSelf Items Packet\ntype = " + type +
 						"\nmask = " + String.format("%x", mask));
 
 			}
@@ -502,7 +520,7 @@ public class NetClient
 						nextCheckPoint, autopilotLight, 
 						currentTank, fuelSum, fuelMax);
 
-				System.out.println("\nPacket Self\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nPacket Self\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nvx = " + vx +
@@ -524,7 +542,7 @@ public class NetClient
 					byte type = in.getByte();
 					String mods = in.getString();
 
-					System.out.println("\nModifiers Packet\ntype = " + type +
+					if(PRINT_PACKETS)System.out.println("\nModifiers Packet\ntype = " + type +
 							"\nmodifiers: " + mods);					
 				}
 				catch (StringReadException e)
@@ -542,9 +560,11 @@ public class NetClient
 			{
 				byte type = in.getByte();
 				int loops = in.getInt();
-
-				System.out.println("\nEnd Packet\ntype = " + type +
+				
+				if(PRINT_PACKETS)System.out.println("\nEnd Packet\ntype = " + type +
 						"\nloops = " + loops);
+				
+				client.handleEnd();
 			}
 		};
 
@@ -557,7 +577,7 @@ public class NetClient
 				short y = in.getShort();
 				short id = in.getShort();
 
-				System.out.println("\nBall Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nBall Packet\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nid = " + id);
@@ -584,7 +604,7 @@ public class NetClient
 				boolean deflector = (flags & 0x10) != 0;
 
 
-				System.out.println("\nShip Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nShip Packet\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nid = " + id +
@@ -615,7 +635,7 @@ public class NetClient
 
 				in.position(in.position()+2*num);
 
-				System.out.println("\nFastShot Packet\npkt = " + pkt +
+				if(PRINT_PACKETS)System.out.println("\nFastShot Packet\npkt = " + pkt +
 						"\ntype = " + type +
 						"\nnum = " + num);
 			}
@@ -655,7 +675,7 @@ public class NetClient
 				short y = in.getShort();
 				byte type = in.getByte();
 
-				System.out.println("\nItem Packet\npkt = " + pkt +
+				if(PRINT_PACKETS)System.out.println("\nItem Packet\npkt = " + pkt +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\ntype = " + type);
@@ -691,7 +711,7 @@ public class NetClient
 					client.handleRadar(x, y, size);
 				}
 
-				System.out.println("\nFast Radar Packet:\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nFast Radar Packet:\ntype = " + type +
 						"\nn = " + n +
 						"\nbuffer advanced " + (in.position()-pos));
 			}
@@ -707,7 +727,7 @@ public class NetClient
 				short y = in.getShort();
 				short count = in.getShort();
 
-				System.out.println("\nPaused Packet:\ntype = " +type +
+				if(PRINT_PACKETS)System.out.println("\nPaused Packet:\ntype = " +type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\ncount = " + count);
@@ -725,7 +745,7 @@ public class NetClient
 				byte size = in.getByte();
 				byte rot = in.getByte();
 
-				System.out.println("\nWreckage Packet:\ntype = "+type +
+				if(PRINT_PACKETS)System.out.println("\nWreckage Packet:\ntype = "+type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nwreck type = " + wrecktype +
@@ -742,13 +762,13 @@ public class NetClient
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 
-				if (in.remaining()<LENGTH) throw new ReliableReadException();
+				if (in.remaining()<LENGTH) throw reliableReadException;
 
 				byte type = in.getByte();
 				short robot_id = in.getShort();
 				short killer_id = in.getShort();
 
-				System.out.println("\nWar Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nWar Packet\ntype = " + type +
 						"\nRobot id = " + robot_id +
 						"\nKiller id = " + killer_id);
 
@@ -766,7 +786,7 @@ public class NetClient
 				short y1 = in.getShort();
 				byte tractor = in.getByte();
 
-				System.out.println("\nConnector Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nConnector Packet\ntype = " + type +
 						"\nx0 = " + x0 +
 						"\ny0 = " + y0 +
 						"\nx1 = " + x1 +
@@ -781,12 +801,12 @@ public class NetClient
 
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
-				if (in.remaining()<LENGTH) throw new ReliableReadException();
+				if (in.remaining()<LENGTH) throw reliableReadException;
 
 				byte type = in.getByte();
 				short id = in.getShort();
 
-				System.out.println("\nLeave Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nLeave Packet\ntype = " + type +
 						"\nid = " + id);
 
 				client.handleLeave(id);
@@ -798,7 +818,7 @@ public class NetClient
 			public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
-				if (in.remaining()<LENGTH) throw new ReliableReadException();
+				if (in.remaining()<LENGTH) throw reliableReadException;
 
 				try
 				{
@@ -809,7 +829,7 @@ public class NetClient
 					int y = in.getUnsignedShort();
 					String message = in.getString();
 
-					System.out.println("\nScore Object Packet\ntype = " + type +
+					if(PRINT_PACKETS)System.out.println("\nScore Object Packet\ntype = " + type +
 							"\nscore = " + score +
 							"\nx = " + x +
 							"\ny = " + y +
@@ -817,7 +837,7 @@ public class NetClient
 				}
 				catch (StringReadException e)
 				{
-					throw new ReliableReadException();
+					throw reliableReadException;
 				}
 			}
 			/*
@@ -862,7 +882,7 @@ public class NetClient
 				byte team_mine = in.getByte();
 				short id = in.getShort();
 
-				System.out.println("\nMine Packet\ntype = " + type +
+				if(PRINT_PACKETS)System.out.println("\nMine Packet\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nteam mine = " + team_mine +
@@ -878,7 +898,7 @@ public class NetClient
 				int num = in.getUnsignedShort();
 				int dead_time = in.getUnsignedShort();
 
-				System.out.println("\nCannon Packet\ntype = " + type + 
+				if(PRINT_PACKETS)System.out.println("\nCannon Packet\ntype = " + type + 
 						"\nnum = " + num +
 						"\ndead time = " + dead_time);
 			}
@@ -966,10 +986,9 @@ public class NetClient
 			
 			// setup.printMapData();
 	        //
-	        frame = new MapFrame(new Map(setup));
-	        client = new Client(frame);
-	        frame.setVisible(true);
 			
+	        client.mapInit(new Map(setup));
+	        
 	        System.out.println("\nSending Net Start");
 			netStart(out);
 			
@@ -1092,7 +1111,7 @@ public class NetClient
 			//buf.flip();
 			buf.sendPacket(channel, server_address);
 			
-			System.out.println("\n"+ack);
+			if(PRINT_PACKETS)System.out.println("\n"+ack);
 		}
 		catch(IOException e)
 		{
@@ -1331,7 +1350,7 @@ public class NetClient
 
 		while (reliableBuf.remaining()>0)
 		{
-			System.out.println("\nAttempting to read from reliableBuf");
+			if(PRINT_PACKETS)System.out.println("\nAttempting to read from reliableBuf");
 
 			short type = reliableBuf.peekByte();
 
@@ -1370,5 +1389,29 @@ public class NetClient
 	private interface PacketReader
 	{
 		public void readPacket(ByteBufferWrap buf, AbstractClient client) throws PacketReadException;	
+		
+		static final ReliableReadException reliableReadException = new ReliableReadException();
 	}	
+	
+	
+	//public send methods
+	
+	/**
+	 * Number of quit packets to send to server.
+	 */
+	public static final int NUM_QUITS = 5;
+	
+	public void sendQuit()
+	{
+		System.out.println("\nSending quit packets");
+		synchronized(out)
+		{
+			for (int i = 0;i<NUM_QUITS;i++)
+			{
+				out.clear();
+				out.putByte(PKT_QUIT);
+				sendPacket(out);
+			}
+		}
+	}
 }

@@ -16,6 +16,8 @@ public class MapFrame extends JFrame
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
 	
+	private ClientInputListener clientInputListener;
+	
 	private Map map;
 	private MapSetup setup;
 	private MapBlock[][] blocks;
@@ -32,13 +34,14 @@ public class MapFrame extends JFrame
 	
 	private Vector<Collection<? extends Drawable>> drawables;
 	
-	public MapFrame(Map map)
+	public MapFrame(Map map, ClientInputListener l)
 	{
+		this.clientInputListener = l;
+		
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		this.map = map;
 		setup = map.getSetup();
 		blocks = map.getBlocks();
@@ -71,6 +74,7 @@ public class MapFrame extends JFrame
 				
 				switch (e.getKeyCode())
 				{
+				/*
 				case KeyEvent.VK_RIGHT:
 					moveView(1, 0);
 					break;
@@ -83,6 +87,7 @@ public class MapFrame extends JFrame
 				case KeyEvent.VK_DOWN:
 					moveView(0,1);
 					break;
+				*/
 				case KeyEvent.VK_COMMA:
 					viewSize += 1;
 					break;
@@ -95,13 +100,33 @@ public class MapFrame extends JFrame
 			}
 			
 		});
+		
+		this.addWindowListener(new WindowAdapter()
+		{
+			
+			public void windowActivated(WindowEvent e){}
+			public void windowOpened(WindowEvent e){}
+				
+			public void windowClosed(WindowEvent e)
+			{
+				//close = true;
+				clientInputListener.quit();
+			}
+
+			public void windowClosing(WindowEvent e)
+			{
+				clientInputListener.quit();
+				//close = true;
+			}
+
+		});
 	}
 	
 	public void setDrawables(Vector<Collection<? extends Drawable>> d)
 	{
 		drawables = d;
 	}
-	
+
 	private void setTransform()
 	{
 		//currentTransform.setToIdentity();

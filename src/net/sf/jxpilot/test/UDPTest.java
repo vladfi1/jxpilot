@@ -10,6 +10,16 @@ import java.util.HashMap;
 
 public class UDPTest {
 
+	/**
+	 * Whether or not to print various packet information.
+	 */
+	public static final boolean PRINT_PACKETS = false;
+	
+	/**
+	 * Whether or not to print reliable data.
+	 */
+	public static final boolean PRINT_RELIABLE = false;
+	
 	public static final int MAX_PACKET_SIZE = 65507;
 	public static final int MAGIC =0x4401F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
@@ -54,7 +64,7 @@ public class UDPTest {
 	
 	public static void runClient(String serverIP, int serverPort)
 	{	
-		new NetClient().runClient(serverIP, serverPort);
+		new Client().runClient(serverIP, serverPort);
 	}
 	
     /**

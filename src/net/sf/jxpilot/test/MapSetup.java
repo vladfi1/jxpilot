@@ -209,6 +209,8 @@ class MapSetup
 			map_bytes[i] = map.getByte();
 		}
 		
+		
+		
 		int	cmp,		/* compressed map pointer */
 		ump,		/* uncompressed map pointer */
 		p;		/* temporary search pointer */

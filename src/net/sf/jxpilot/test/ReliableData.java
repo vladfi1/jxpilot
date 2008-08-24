@@ -63,7 +63,8 @@ class ReliableData
 		}
 		
 		
-		System.out.println(data);
+		if (UDPTest.PRINT_RELIABLE)
+			System.out.println(data);
 		
 		data.incrementOffset();
 		client.sendAck(out, ack.setAck(data));
