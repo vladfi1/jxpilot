@@ -10,4 +10,18 @@ public interface ClientInputListener
 	 * Signals that client wants to quit the game.
 	 */
 	public void quit();
+	
+	/**
+	 * @param key The constant from the class Keys corresponding to this key.
+	 * @param value Whether or not the key is pressed.
+	 */
+	public void setKey(int key, boolean value);
+	
+	public void setThrust(boolean b);
+	
+	public void setTurnLeft(boolean b);
+	
+	public void setTurnRight(boolean b);
+	
+	public void setShoot(boolean b);
 }

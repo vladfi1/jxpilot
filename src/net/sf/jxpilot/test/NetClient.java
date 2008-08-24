@@ -993,7 +993,7 @@ public class NetClient
 			netStart(out);
 			
 			keyboard.clearBits();
-			keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+			//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
 			
 			System.out.println("\nStarting input loop.");
             while(true)
@@ -1003,8 +1003,8 @@ public class NetClient
         		
 				netPacket(in, reliableBuf);
 				
-				keyboard.switchBit(Keys.KEY_FIRE_SHOT);
-				keyboard.switchBit(Keys.KEY_THRUST);
+				//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
+				//keyboard.switchBit(Keys.KEY_THRUST);
 				sendKeyboard(out, keyboard);
 			}
 		}
@@ -1261,7 +1261,7 @@ public class NetClient
 		return readFirstMapPacket(in, map, setup, reliable);		
 	}
 	
-	private  void putKeyboard(ByteBufferWrap buf, BitVector keyboard)
+	private void putKeyboard(ByteBufferWrap buf, BitVector keyboard)
 	{
 		buf.putByte(PKT_KEYBOARD);
 		buf.putInt(last_keyboard_change);
@@ -1269,12 +1269,15 @@ public class NetClient
 		last_keyboard_change++;
 	}
 	
-	private  void sendKeyboard(ByteBufferWrap out, BitVector keyboard)
+	private void sendKeyboard(ByteBufferWrap out, BitVector keyboard)
 	{
-		out.clear();
-		putKeyboard(out, keyboard);
-		//out.flip();
-		sendPacket(out);
+		synchronized(keyboard)
+		{
+			out.clear();
+			putKeyboard(out, keyboard);
+			//out.flip();
+			sendPacket(out);
+		}
 	}
 	
 	/**
@@ -1394,7 +1397,7 @@ public class NetClient
 	}	
 	
 	
-	//public send methods
+	//public send methods for Client
 	
 	/**
 	 * Number of quit packets to send to server.
@@ -1412,6 +1415,15 @@ public class NetClient
 				out.putByte(PKT_QUIT);
 				sendPacket(out);
 			}
+		}
+	}
+	
+	//other methods client might need
+	public BitVector getKeyboard()
+	{
+		synchronized(keyboard)
+		{
+			return keyboard;
 		}
 	}
 }

@@ -34,8 +34,23 @@ public class MapFrame extends JFrame
 	
 	private Vector<Collection<? extends Drawable>> drawables;
 	
+	/*
+	private static final int NUM_KEYS = KeyEvent.KEY_LAST-KeyEvent.KEY_FIRST+1; 
+	
+	private static int getKeyIndex(int key)
+	{
+		return key-KeyEvent.KEY_FIRST;
+	}
+	
+	private byte[] keyPreferences = new byte[NUM_KEYS];
+	*/
+	
+	private HashMap<Integer, Byte> keyPreferences;
+	
 	public MapFrame(Map map, ClientInputListener l)
 	{
+		defaultKeyInit();
+		
 		this.clientInputListener = l;
 		
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -72,6 +87,8 @@ public class MapFrame extends JFrame
 			public void keyPressed(KeyEvent e)
 			{
 				
+				
+				
 				switch (e.getKeyCode())
 				{
 				/*
@@ -96,7 +113,22 @@ public class MapFrame extends JFrame
 					break;
 				}
 				
-				repaint();
+				int key = e.getKeyCode();
+				
+				if (keyPreferences.containsKey(key))
+				{
+					clientInputListener.setKey(keyPreferences.get(key), true);
+				}
+			}
+
+			public void keyReleased(KeyEvent e)
+			{
+				int key = e.getKeyCode();
+				
+				if (keyPreferences.containsKey(key))
+				{
+					clientInputListener.setKey(keyPreferences.get(key), false);
+				}
 			}
 			
 		});
@@ -120,6 +152,19 @@ public class MapFrame extends JFrame
 			}
 
 		});
+	}
+	
+	/**
+	 * sets default keys 
+	 */
+	private void defaultKeyInit()
+	{
+		keyPreferences = new HashMap<Integer, Byte>();
+		
+		keyPreferences.put(KeyEvent.VK_ENTER, Keys.KEY_FIRE_SHOT);
+		keyPreferences.put(KeyEvent.VK_A, Keys.KEY_TURN_LEFT);
+		keyPreferences.put(KeyEvent.VK_S, Keys.KEY_TURN_RIGHT);
+		keyPreferences.put(KeyEvent.VK_SHIFT, Keys.KEY_THRUST);
 	}
 	
 	public void setDrawables(Vector<Collection<? extends Drawable>> d)

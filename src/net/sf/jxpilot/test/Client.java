@@ -10,6 +10,7 @@ public class Client implements AbstractClient, ClientInputListener
 	private Map map;
 	private MapFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
+	private BitVector keyboard;
 	
 	//private Ship[] ships = new Ship[MAX_SHIPS];
 	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
@@ -17,6 +18,7 @@ public class Client implements AbstractClient, ClientInputListener
 	public Client()
 	{
 		netClient = new NetClient(this);
+		keyboard = netClient.getKeyboard();
 		
 		drawables = new Vector<Collection<? extends Drawable>>();
 		drawables.add(shipMap.values());
@@ -89,5 +91,42 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		netClient.sendQuit();
 		System.exit(0);
+	}
+	
+	public void setThrust(boolean b)
+	{
+		synchronized(keyboard)
+		{
+			keyboard.setBit(Keys.KEY_THRUST, b);
+		}
+	}
+	
+	public void setTurnLeft(boolean b)
+	{
+		synchronized(keyboard)
+		{
+			keyboard.setBit(Keys.KEY_TURN_LEFT, b);
+		}
+	}
+	
+	public void setTurnRight(boolean b)
+	{
+		synchronized(keyboard)
+		{
+			keyboard.setBit(Keys.KEY_TURN_RIGHT, b);
+		}
+	}
+	
+	public void setShoot(boolean b)
+	{
+		synchronized(keyboard)
+		{
+			keyboard.setBit(Keys.KEY_FIRE_SHOT, b);
+		}
+	}
+	
+	public void setKey(int key, boolean value)
+	{
+		keyboard.setBit(key, value);
 	}
 }
