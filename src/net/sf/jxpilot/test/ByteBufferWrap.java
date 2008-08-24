@@ -16,6 +16,22 @@ public class ByteBufferWrap
 {
 	public static final byte END_OF_STRING = 0x00;
 	
+	public static int getUnsignedShort(short val)
+	{
+		return (int)((char)val);
+	}
+	
+	public static short getUnsignedByte(byte val)
+	{
+		
+		short temp = (short)(0xFF & (int)val);
+		
+		//System.out.println("\nByte was " + val + "\nNow is " + temp);
+		
+		return temp;
+	}
+	
+	
 	private boolean writing=true;
 	private ByteBuffer buffer;
 	private int mark=0;
@@ -116,7 +132,6 @@ public class ByteBufferWrap
 	public ByteBufferWrap putBytes(byte[] bytes)
 	{
 		setWriting();
-		
 		buffer.put(bytes);
 		return this;
 	}
@@ -198,6 +213,16 @@ public class ByteBufferWrap
 		return b;
 	}
 	
+	public short getUnsignedByte()
+	{
+		return getUnsignedByte(getByte());
+	}
+	
+	public short peekUnsignedByte()
+	{
+		return getUnsignedByte(peekByte());
+	}
+	
 	public char getChar()
 	{
 		setReading();
@@ -209,6 +234,11 @@ public class ByteBufferWrap
 		setReading();
 		return buffer.getShort();
 	}	
+	
+	public int getUnsignedShort()
+	{
+		return getUnsignedShort(getShort());
+	}
 	
 	public int getInt()
 	{

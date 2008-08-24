@@ -2,6 +2,12 @@ package net.sf.jxpilot.test;
 
 public class Packet
 {
+	
+	
+	public static final byte ENTER_QUEUE_pack =	0x01;
+	public static final byte ENTER_GAME_pack = 	0x00;
+	public static final byte SUCCESS = 			0x00;
+	
 	/* before version 3.8.0 this was 8 bytes. */
 	public static final byte KEYBOARD_SIZE	=9;
 

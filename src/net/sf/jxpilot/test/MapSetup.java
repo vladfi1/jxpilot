@@ -250,7 +250,7 @@ class MapSetup
 				cmp--;
 			}
 			while (p < cmp) {
-				count = getUnsignedByte(map_bytes[cmp]);
+				count = ByteBufferWrap.getUnsignedByte(map_bytes[cmp]);
 				cmp--;
 				
 				if (count < 2) {
@@ -280,7 +280,7 @@ class MapSetup
 		
 		setup.setMapOrder(MapSetup.SETUP_MAP_UNCOMPRESSED);
 		map.clear();
-		map.putBytes(map_bytes);
+		//map.putBytes(map_bytes);
 		
 		setup.setMapData(map_bytes);
 		return MapError.NO_ERROR;
@@ -365,7 +365,7 @@ class MapSetup
 		try
 		{
 			return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
-				in.getShort(), in.getShort(), getString(in), getString(in));
+				in.getShort(), in.getShort(), in.getString(), in.getString());
 		}
 		catch (StringReadException e)
 		{

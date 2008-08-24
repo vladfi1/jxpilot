@@ -39,11 +39,5 @@ public class ReplyMessage
 		message.setMessage(buf.getInt(), buf.getByte(), buf.getByte(), buf.remaining()>=2 ? buf.getShort(): 0);
 		return message;
 	}
-	public static ReplyMessage getReplyMessage(ByteBufferWrap buf, ReplyMessage message)
-	{
-		UDPTest.receivePacket(buf);
-		//buf.flip();
-		return readReplyMessage(buf, message);
-	}
 
 }

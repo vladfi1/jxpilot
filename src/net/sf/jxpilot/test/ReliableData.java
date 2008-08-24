@@ -9,7 +9,7 @@ class ReliableData
 {
 	public static final int LENGTH = 1+2+4+4;
 	
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out)
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, NetClient client)
 	{
 		//buf.rewind();
 		
@@ -48,12 +48,12 @@ class ReliableData
 			 */
 			
 			in.position(in.position()+data.len);
-			sendAck(out, Ack.ack.setAck(data));
+			client.sendAck(out, Ack.ack.setAck(data));
 			//System.out.println("Duplicate Data");
 			return DUPLICATE_DATA;
 		}
 		
-		/*
+		
 		if (data.rel < offset) {
 			data.len -= (short)(offset - data.rel);
 			
@@ -61,19 +61,19 @@ class ReliableData
 			
 			data.rel = offset;
 		}
-		*/
+		
 		
 		System.out.println(data);
 		
 		data.incrementOffset();
-		sendAck(out, ack.setAck(data));
-
+		client.sendAck(out, ack.setAck(data));
+		
 		return NO_ERROR;
 	}
 
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, ByteBufferWrap reliableBuf)
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, NetClient client, ByteBufferWrap reliableBuf)
 	{
-		ReliableDataError error = readReliableData(data, in, out);
+		ReliableDataError error = readReliableData(data, in, out, client);
 		
 		if (error == NO_ERROR)
 		{
