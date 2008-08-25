@@ -68,7 +68,7 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		//ships[id] = new Ship(ship, id);
 		//drawables.add(ships[id]);
-		Ship s = new Ship(ship, id);
+		Ship s = new Ship(ship, id, name);
 		shipMap.put((int)id, s);
 		//frame.repaint();
 	}

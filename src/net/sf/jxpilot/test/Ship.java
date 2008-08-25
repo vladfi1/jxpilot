@@ -5,16 +5,19 @@ import java.awt.geom.*;
 
 public class Ship implements Drawable
 {
+	public static final int SHIP_RADIUS = 16;
 	public static final Color SHIP_COLOR = Color.WHITE;
 	
 	private int x, y, heading;
 	private int id;
 	private ShipShape shipshape;
+	private String nick;
 	
-	public Ship(ShipShape shape, int id)
+	public Ship(ShipShape shape, int id, String nick)
 	{
 		this.shipshape = shape;
 		this.id = id;
+		this.nick = nick;
 	}
 	
 	public Polygon getShape(){return shipshape.getShape();}
@@ -24,6 +27,7 @@ public class Ship implements Drawable
 	public Color getColor(){return SHIP_COLOR;}
 	public boolean isFilled(){return false;}
 	public int getId(){return id;}
+	public String getNick(){return nick;}
 	
 	public void setShip(int x, int y, int heading)
 	{
@@ -39,6 +43,15 @@ public class Ship implements Drawable
 		g2d.setColor(SHIP_COLOR);
 		//g2d.rotate(heading, x, y);
 		g2d.translate(x, y);
+		
+		FontMetrics fm = g2d.getFontMetrics();
+		
+		Rectangle2D bounds = fm.getStringBounds(nick, g2d);
+		
+		g2d.scale(1, -1);
+		g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
+		g2d.scale(1, -1);
+		
 		g2d.rotate(getAngleFrom128(heading));
 		g2d.draw(getShape());
 		//g2d.rotate(-heading);

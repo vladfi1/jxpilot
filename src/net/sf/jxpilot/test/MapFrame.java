@@ -14,8 +14,9 @@ public class MapFrame extends JFrame
 {
 	/**
 	 * Whether the MapFrame uses Full Screen Exclusive Mode.
+	 * Otherwise uses USF (undecorated full screen)
 	 */
-	public static final boolean FSEM = true;
+	public static final boolean FSEM = false;
 	
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
@@ -93,6 +94,8 @@ public class MapFrame extends JFrame
 			this.setUndecorated(true);
 			this.setIgnoreRepaint(true);
 			this.setSize(screenSize);
+			this.setVisible(true);
+			setBufferStrategy();
 		}
 		
 		initBuffers();
@@ -216,6 +219,7 @@ public class MapFrame extends JFrame
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			System.out.println("Error while creating buffer strategy.");
 			System.exit(0);
 		}
@@ -300,8 +304,6 @@ public class MapFrame extends JFrame
 	
 	public void activeRender()
 	{
-		if (FSEM)
-		{
 			try
 			{
 				screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
@@ -321,13 +323,7 @@ public class MapFrame extends JFrame
 			{
 				e.printStackTrace();
 			}
-		}
-		else
-		{
-			screenG2D = (Graphics2D) this.getGraphics();
-			renderGame(screenG2D);
-			screenG2D.dispose();
-		}
+		
 		//panel.paintScreen();
 	}
 	
