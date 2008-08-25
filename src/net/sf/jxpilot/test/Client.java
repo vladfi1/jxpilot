@@ -60,7 +60,7 @@ public class Client implements AbstractClient, ClientInputListener
 		}
 		else
 		{
-			s.setShip(x, y, dir);
+			s.setShip(x, y, dir, shield, cloak, emergency_shield, phased, deflector);
 		}
 	}
 	

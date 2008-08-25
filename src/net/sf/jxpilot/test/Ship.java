@@ -12,12 +12,21 @@ public class Ship implements Drawable
 	private int id;
 	private ShipShape shipshape;
 	private String nick;
+	private Ellipse2D shield;
+	private boolean shielded=false,
+					cloaked=false,
+					emergency_shield=false,
+					phased=false,
+					deflector=false;
 	
 	public Ship(ShipShape shape, int id, String nick)
 	{
 		this.shipshape = shape;
 		this.id = id;
 		this.nick = nick;
+		
+		shield = new Ellipse2D.Float();
+		shield.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 	}
 	
 	public Polygon getShape(){return shipshape.getShape();}
@@ -29,11 +38,16 @@ public class Ship implements Drawable
 	public int getId(){return id;}
 	public String getNick(){return nick;}
 	
-	public void setShip(int x, int y, int heading)
+	public void setShip(int x, int y, int heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
 		this.x = x;
 		this.y =y;
 		this.heading = heading;
+		this.shielded=shield;
+		this.cloaked=cloak;
+		this.emergency_shield=emergency_shield;
+		this.phased=phased;
+		this.deflector=deflector;
 	}
 	
 	public void paintDrawable(Graphics2D g2d)
@@ -48,10 +62,15 @@ public class Ship implements Drawable
 		
 		Rectangle2D bounds = fm.getStringBounds(nick, g2d);
 		
+		//need to flip g2d so nick comes out ok
 		g2d.scale(1, -1);
 		g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
 		g2d.scale(1, -1);
 		
+		if (shielded)
+		{
+			g2d.draw(shield);
+		}
 		g2d.rotate(getAngleFrom128(heading));
 		g2d.draw(getShape());
 		//g2d.rotate(-heading);

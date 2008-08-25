@@ -1,6 +1,5 @@
 package net.sf.jxpilot.test;
 
-import net.sf.jxpilot.test.*;
 import java.util.*;
 import static net.sf.jxpilot.test.MapBlock.*;
 import javax.swing.*;
@@ -16,7 +15,7 @@ public class MapFrame extends JFrame
 	 * Whether the MapFrame uses Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	public static final boolean FSEM = false;
+	public static final boolean FSEM = true;
 	
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
