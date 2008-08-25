@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
+import java.awt.image.*;
 import static net.sf.jxpilot.MathFunctions.*;
 
 public class TestMapFrame extends JFrame
@@ -22,8 +22,6 @@ public class TestMapFrame extends JFrame
 	private BlockMap blockMap;
 	private MapSetup setup;
 	private MapBlock[][] blocks;
-	
-	private MapPanel panel;
 	
 	//center of viewing screen, in blocks
 	private double viewX, viewY;
@@ -52,14 +50,11 @@ public class TestMapFrame extends JFrame
 	{	
 		defaultKeyInit();
 		
-		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		
-		this.setUndecorated(true);
-		this.setIgnoreRepaint(true);
+		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		
 		this.blockMap = blockMap;
 		setup = blockMap.getSetup();
@@ -82,8 +77,8 @@ public class TestMapFrame extends JFrame
 		setTransform();
 		//setTransform();
 		
-		panel = new MapPanel();
-		this.add(panel);
+		initFullScreen();
+		initBuffers();
 		
 		//pack();
 		
@@ -91,8 +86,6 @@ public class TestMapFrame extends JFrame
 		{
 			public void keyPressed(KeyEvent e)
 			{
-				
-				
 				
 				switch (e.getKeyCode())
 				{
@@ -104,10 +97,10 @@ public class TestMapFrame extends JFrame
 					moveView(-1, 0);
 					break;
 				case KeyEvent.VK_UP:
-					moveView(0,-1);
+					moveView(0,1);
 					break;
 				case KeyEvent.VK_DOWN:
-					moveView(0,1);
+					moveView(0,-1);
 					break;
 				case KeyEvent.VK_COMMA:
 					viewSize += 1;
@@ -116,11 +109,12 @@ public class TestMapFrame extends JFrame
 					viewSize -= 1;
 					break;
 				case KeyEvent.VK_ESCAPE:
-					System.exit(0);
+					finish();
 					break;
 				}
 				
-				repaint();
+				//repaint();
+				activeRender();
 				
 				int key = e.getKeyCode();
 				
@@ -163,6 +157,85 @@ public class TestMapFrame extends JFrame
 		});
 	}
 	
+	private static final int NUM_BUFFERS = 2;
+	private GraphicsDevice gd;
+	private Graphics2D screenG2D;
+	private BufferStrategy bufferStrategy;
+	
+	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	private BufferedImage mapBuffer;
+	private BufferedImage worldBuffer;
+	private Graphics2D worldG2D;
+	
+	private void initFullScreen()
+	{
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		gd = ge.getDefaultScreenDevice();
+		
+		this.setUndecorated(true);
+		this.setIgnoreRepaint(true);
+		this.setResizable(false);
+		
+		if (!gd.isFullScreenSupported())
+		{
+			System.out.println("FSEM not supported.");
+			System.exit(0);
+		}
+		gd.setFullScreenWindow(this);
+		
+		setBufferStrategy();
+	}
+	
+	private void setBufferStrategy()
+	{
+		try
+		{
+			EventQueue.invokeAndWait(new Runnable(){
+				public void run()
+				{
+					TestMapFrame.this.createBufferStrategy(NUM_BUFFERS);
+				}
+			});
+		}
+		catch (Exception e)
+		{
+			System.out.println("Error while creating buffer strategy.");
+			System.exit(0);
+		}
+		
+		try
+		{
+			Thread.sleep(500);
+		}
+		catch(InterruptedException e){}
+		
+		bufferStrategy = this.getBufferStrategy();
+	}
+	
+	private void restoreScreen()
+	{
+		Window w = gd.getFullScreenWindow();
+		if(w!=null)
+		{
+			w.dispose();
+		}
+		gd.setFullScreenWindow(null);
+	}
+	
+	public void finish()
+	{
+		restoreScreen();
+		System.exit(0);
+	}
+	
+	private void initBuffers()
+	{
+		mapBuffer = createMapBuffer();
+		worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(mapBuffer.getWidth(), mapBuffer.getHeight());
+		worldG2D = worldBuffer.createGraphics();
+		worldG2D.setTransform(flippedTransform);
+	}
+	
 	/**
 	 * sets default keys 
 	 */
@@ -190,18 +263,38 @@ public class TestMapFrame extends JFrame
 		currentTransform.setToIdentity();
 		currentTransform.translate(this.getWidth()/2.0, this.getHeight()/2.0);
 		currentTransform.scale(scale, scale);
-		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE);	
+		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE-setup.getY()*BLOCK_SIZE);
 	}
 	
+	/*
 	public void renderGame()
 	{
 		panel.renderGame();
 	}
+	*/
 	
 	public void activeRender()
 	{
-		panel.renderGame();
-		panel.paintScreen();
+		try
+		{
+			screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
+			renderGame(screenG2D);
+			screenG2D.dispose();
+			if (!bufferStrategy.contentsLost())
+			{
+				bufferStrategy.show();
+			}
+			else
+			{
+				System.out.println("BufferStrategy contents lost");
+			}
+			Toolkit.getDefaultToolkit().sync();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		//panel.paintScreen();
 	}
 	
 	/**
@@ -218,123 +311,100 @@ public class TestMapFrame extends JFrame
 		setView(viewX+dx, viewY+dy);
 	}
 	
-	private class MapPanel extends JPanel
+	//private BufferedImage screenBuffer;
+	//private Graphics2D screenG2D;
+	
+	private void renderGame(Graphics2D screenG2D)
 	{
-		private BufferedImage screenBuffer;
-		private Graphics2D screenG2D;
-		private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		private BufferedImage mapBuffer;
-		private BufferedImage worldBuffer;
-		private Graphics2D worldG2D;
-		
-		public MapPanel()
-		{
-			mapBuffer = createMapBuffer();
-			
-			worldBuffer = new BufferedImage(mapBuffer.getWidth(), mapBuffer.getHeight(), BufferedImage.TYPE_INT_RGB);
-			worldG2D = worldBuffer.createGraphics();
-			worldG2D.setTransform(flippedTransform);
-			
-			screenBuffer = new BufferedImage(screenSize.width, screenSize.height, BufferedImage.TYPE_INT_RGB);
-			screenG2D = screenBuffer.createGraphics();
-		}
-		
-		public void renderGame()
-		{
-			paintWorld();
-			setTransform();
-			for(int x= -1; x<=1;x++)
-			{
-				for (int y = -1; y<=1;y++)
-				{
-					screenG2D.setTransform(currentTransform);
-					screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-					screenG2D.drawImage(worldBuffer, 0, 0, this);
-				}
-			}
+		//paintWorld();
+		setTransform();
 
-		}
 		
-		private BufferedImage createMapBuffer()
+		for(int x= -1; x<=1;x++)
 		{
-			BufferedImage temp = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
-			Graphics2D g2d = temp.createGraphics();
-			
-			g2d.setColor(spaceColor);
-			g2d.fillRect(0, 0, temp.getWidth(), temp.getHeight());
-			
-			g2d.setTransform(flippedTransform);
-			
-			paintBlocks(g2d);
-			
-			return temp;
-		}
-		
-		private void paintWorld()
-		{
-			worldG2D.setTransform(identity);
-			worldG2D.drawImage(mapBuffer, 0, 0, this);
-			
-			worldG2D.setTransform(flippedTransform);
-			if (drawables!=null)
+			for (int y = -1; y<=1;y++)
 			{
-				for (Collection<? extends Drawable> c : drawables)
-				{
-					if (c!=null)
+				screenG2D.setTransform(currentTransform);
+				screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
+				screenG2D.drawImage(mapBuffer, 0, 0, this);
+			}
+		}
+		
+
+		//screenG2D.setTransform(currentTransform);
+		//screenG2D.drawImage(mapBuffer, 0, 0, this);
+	}
+
+	private BufferedImage createMapBuffer()
+	{
+		BufferedImage temp = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
+		Graphics2D g2d = temp.createGraphics();
+
+		g2d.setColor(spaceColor);
+		g2d.fillRect(0, 0, temp.getWidth(), temp.getHeight());
+
+		g2d.setTransform(flippedTransform);
+
+		paintBlocks(g2d);
+
+		return temp;
+	}
+
+	private void paintWorldGraphics()
+	{
+		//worldG2D.setTransform(identity);
+		worldG2D.drawImage(mapBuffer, 0, 0, this);
+
+		//worldG2D.setTransform(flippedTransform);
+
+		if (drawables!=null)
+		{
+			for (Collection<? extends Drawable> c : drawables)
+			{
+				if (c!=null)
 					for (Drawable d : c)
 					{
 						worldG2D.setTransform(flippedTransform);
 						//System.out.println("\nPainting drawable: ****************************************");
 						d.paintDrawable(worldG2D);
 					}
-				}
 			}
-		}
-		
-		protected void paintComponent(Graphics g)
-		{
-			super.paintComponent(g);
-			
-			//screenG2D.setTransform(identity);
-			//screenG2D.setColor(shipColor);
-			
-			//screenG2D.fillRect(screenSize.width/2-10, screenSize.height/2-10, 40, 40);
-			paintScreen();
-		}
-
-		public void paintScreen()
-		{
-			this.getGraphics().drawImage(screenBuffer, 0, 0, this);
-		}
-		
-		private void paintBlocks(Graphics2D g2)
-		{
-			for (MapBlock[] array : blocks)
-			{
-				for (MapBlock o : array)
-				{		
-					paintBlock(g2, o);
-				}
-			}
-		}
-		
-		private void paintBlock(Graphics2D g2, MapBlock block)
-		{
-			if (block.getShape()==null) return;
-
-			//g2.setTransform(identity);
-			//g2.translate(block.getX()*block.BLOCK_SIZE, (setup.getY()-block.getY()-1)*block.BLOCK_SIZE);
-
-			g2.setColor(block.getColor());
-			
-			g2.translate(block.getX()*BLOCK_SIZE, block.getY()*BLOCK_SIZE);
-			
-			if (block.isFilled())
-				g2.fill(block.getShape());
-			else
-				g2.draw(block.getShape());
-			
-			g2.translate(-block.getX()*BLOCK_SIZE, -block.getY()*BLOCK_SIZE);
 		}
 	}
+	
+	private void paintWorld(Graphics2D g2d)
+	{
+		g2d.drawImage(mapBuffer, 0, 0, this);
+	}
+	
+	private void paintBlocks(Graphics2D g2)
+	{
+		for (MapBlock[] array : blocks)
+		{
+			for (MapBlock o : array)
+			{		
+				paintBlock(g2, o);
+			}
+		}
+	}
+
+	private void paintBlock(Graphics2D g2, MapBlock block)
+	{
+		if (block.getShape()==null) return;
+
+		//g2.setTransform(identity);
+		//g2.translate(block.getX()*block.BLOCK_SIZE, (setup.getY()-block.getY()-1)*block.BLOCK_SIZE);
+
+		g2.setColor(block.getColor());
+
+		g2.translate(block.getX()*BLOCK_SIZE, block.getY()*BLOCK_SIZE);
+
+		if (block.isFilled())
+			g2.fill(block.getShape());
+		else
+			g2.draw(block.getShape());
+
+		g2.translate(-block.getX()*BLOCK_SIZE, -block.getY()*BLOCK_SIZE);
+	}
+
 }

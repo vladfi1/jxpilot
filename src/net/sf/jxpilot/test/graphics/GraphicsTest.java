@@ -30,10 +30,11 @@ public class GraphicsTest {
 		
 		File mapFile = new File(mapsFile.getName()+"/"+map.getSetup().getName());
 		
-		if (mapFile.exists())
+		if (!mapFile.exists())
 		{
 			mapFile.createNewFile();
 		}
+		else return;
 		
 		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(mapFile));
 		
@@ -96,7 +97,7 @@ public class GraphicsTest {
 	{
 		for (int i = 0;i<NUM_LOOPS;i++)
 		{
-			frame.moveView(0.1, 0.1);
+			frame.moveView(0.2, 0.2);
 			frame.activeRender();
 			//frame.repaint();
 			try
