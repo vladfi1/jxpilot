@@ -1,8 +1,15 @@
 package net.sf.jxpilot.test.graphics;
 
-import net.sf.jxpilot.test.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
-import java.io.*;
+import net.sf.jxpilot.test.BlockMap;
+import net.sf.jxpilot.test.Client;
+import net.sf.jxpilot.test.UDPTest;
 
 public class GraphicsTest {
 
@@ -35,16 +42,30 @@ public class GraphicsTest {
 	
 	private static BlockMap getMap() throws Exception
 	{
-		File[] mapFiles = mapsFile.listFiles();
-		
-		if (mapFiles.length>0)
-		{
-			File mapFile = mapFiles[0];
-			
-			return (BlockMap) (new ObjectInputStream(new FileInputStream(mapFile)).readObject());
-		}
-		return null;
-		
+        File[] mapFiles = mapsFile.listFiles();
+
+        if (mapFiles.length > 0) {
+            File mapFile = mapFiles[0];
+
+            if (mapFile.isFile() && mapFile.canRead()) {
+                BlockMap map = null;
+
+                try {
+                    map = (BlockMap) (new ObjectInputStream(
+                            new FileInputStream(mapFile)).readObject());
+                }
+                catch (Exception e) {
+                    // On errors with reading file - like problems with
+                    // deserialising object from file(@see
+                    // ObjectInputStream#readObject() or IOException.
+                }
+
+                if (map != null)
+                    return map;
+            }
+        }
+
+        return null;
 	}
 	
 	private static TestMapFrame frame;
