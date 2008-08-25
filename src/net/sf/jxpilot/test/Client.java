@@ -7,7 +7,7 @@ public class Client implements AbstractClient, ClientInputListener
 	public static final int MAX_SHIPS=100;
 	
 	private NetClient netClient;
-	private Map map;
+	private BlockMap blockMap;
 	private MapFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
 	private BitVector keyboard;
@@ -29,11 +29,13 @@ public class Client implements AbstractClient, ClientInputListener
 		netClient.runClient(serverIP, serverPort);
 	}
 	
+	public BlockMap getMap(){return blockMap;}
+	
 	//Abstract Client methods
-	public void mapInit(Map map)
+	public void mapInit(BlockMap blockMap)
 	{
-		this.map = map;
-		frame = new MapFrame(map, this);
+		this.blockMap = blockMap;
+		frame = new MapFrame(blockMap, this);
 		frame.setDrawables(drawables);
 		frame.setVisible(true);
 	}
@@ -89,8 +91,9 @@ public class Client implements AbstractClient, ClientInputListener
 	//Client Input Listener methods
 	public void quit()
 	{
-		netClient.sendQuit();
-		System.exit(0);
+		netClient.quit();
+		frame.dispose();
+		//System.exit(0);
 	}
 	
 	public void setThrust(boolean b)

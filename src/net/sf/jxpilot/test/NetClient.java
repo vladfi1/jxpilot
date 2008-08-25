@@ -65,7 +65,14 @@ public class NetClient
 	private ReplyMessage message = new ReplyMessage();
 	private BitVector keyboard = new BitVector(Keys.NUM_KEYS);
 	private int last_keyboard_change=0;
+	
+	private volatile boolean quit = false;
+	
+	//for measurement
 	private long numPackets = 0;
+	private long numPacketsReceived = 0;
+	private long numFrames = 0;
+	private long startTime;
 	
 	private AbstractClient client;	
 	
@@ -143,7 +150,8 @@ public class NetClient
 				int loops = in.getInt();
 				int key_ack = in.getInt();
 
-
+				numFrames++;
+				
 				if(PRINT_PACKETS)System.out.println("\nStart Packet :" +
 						"\ntype = " + type +
 						"\nloops = " + loops +
@@ -907,112 +915,108 @@ public class NetClient
 
 	public void runClient(String serverIP, int serverPort)
 	{
-		
-		try
+
+		try{
+			server_address = new InetSocketAddress(serverIP, serverPort);
+
+			channel = DatagramChannel.open();
+			socket = channel.socket();
+			//socket.bind();
+
+			System.out.println(socket.getLocalPort());
+		}
+		catch(IOException e)
 		{
-			try{
-				server_address = new InetSocketAddress(serverIP, serverPort);
-				
-				channel = DatagramChannel.open();
-				socket = channel.socket();
-				//socket.bind();
-				
-				System.out.println(socket.getLocalPort());
-			}
-			catch(IOException e)
-			{
-				e.printStackTrace();
-			}
-			
-			
-			
-			//creates first message
-			//putJoinRequest(out, "vlad", PORT, "Vlad","xxx", 0x0000FFFF);
-			
-			byte[] first_packet = 
-			{0x4F, 0x15, (byte)0xF4, (byte)0xED, 0x76, 0x6C, 0x61, 0x64, 0x00, 0x04, 0x12, 0x31};
-			
-			//{0x4f, 0x15, (byte)0xf4, (byte)0xed, 0x76, 0x6c, 0x61, 0x64, 0x00, 0x04, 0x13, 0x01, 0x56, 0x6c, 0x61, 0x64, 0x00, 0x00, 0x78, 0x78, 0x78, 0x00, 0x00, 0x00, (byte)0xff, (byte)0xff};
+			e.printStackTrace();
+		}
 
-			//4f15f4ed766c616400041301566c61640000787878000000ffff
 
-			/*
+
+		//creates first message
+		//putJoinRequest(out, "vlad", PORT, "Vlad","xxx", 0x0000FFFF);
+
+		byte[] first_packet = 
+		{0x4F, 0x15, (byte)0xF4, (byte)0xED, 0x76, 0x6C, 0x61, 0x64, 0x00, 0x04, 0x12, 0x31};
+
+		//{0x4f, 0x15, (byte)0xf4, (byte)0xed, 0x76, 0x6c, 0x61, 0x64, 0x00, 0x04, 0x13, 0x01, 0x56, 0x6c, 0x61, 0x64, 0x00, 0x00, 0x78, 0x78, 0x78, 0x00, 0x00, 0x00, (byte)0xff, (byte)0xff};
+
+		//4f15f4ed766c616400041301566c61640000787878000000ffff
+
+		/*
 			out.flip();
 			for(int i=0;i < bytes.length;i++)
 			{
 				System.out.printf("Buffer : %x Actual %x\n", out.getByte(), bytes[i]);
 			}
-			*/
-			
-			
-			
-			//channel.send(ByteBufferWrap.wrap(first_packet), server_address);
-			
-			//receivePacket(in);
-			
-			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
-			
-			getReplyMessage(in, message);
-			
-			
-			//getReplyMessage(in, message);
-			System.out.println(message);
-			
-			while(message.getPack()!=ENTER_GAME_pack)
-			{
-				getReplyMessage(in, message);
-				System.out.println(message);
-			}
-			
-			int server_port = message.getValue();
-			System.out.println("New server port: "+server_port);
-			
-			server_address = new InetSocketAddress(serverIP, server_port);
-			
-			System.out.println("Sending Verify");
-			sendVerify(out, REAL_NAME, NICK);
-			
-			ReliableDataError result=null;
-			while (result!=ReliableDataError.NO_ERROR)
-			{
-				result = getReliableData(reliable, in, out);
-				//System.out.println(result);
-			}
-			
-			netSetup(in, map, setup, reliable);
-			
-			//map.flip();
-			System.out.println(map.remaining()+"\n\nMap:\n");
-			
-			// setup.printMapData();
-	        //
-			
-	        client.mapInit(new Map(setup));
-	        
-	        System.out.println("\nSending Net Start");
-			netStart(out);
-			
-			keyboard.clearBits();
-			//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
-			
-			System.out.println("\nStarting input loop.");
-            while(true)
-			{
-            	in.clear();
-            	in.receivePacket(channel);
-        		
-				netPacket(in, reliableBuf);
-				
-				//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
-				//keyboard.switchBit(Keys.KEY_THRUST);
-				sendKeyboard(out, keyboard);
-			}
-		}
-		catch(Exception e)
+		 */
+
+
+
+		//channel.send(ByteBufferWrap.wrap(first_packet), server_address);
+
+		//receivePacket(in);
+
+		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
+
+		getReplyMessage(in, message);
+
+
+		//getReplyMessage(in, message);
+		System.out.println(message);
+
+		while(message.getPack()!=ENTER_GAME_pack)
 		{
-			e.printStackTrace();
+			getReplyMessage(in, message);
+			System.out.println(message);
 		}
-					
+
+		int server_port = message.getValue();
+		System.out.println("New server port: "+server_port);
+
+		server_address = new InetSocketAddress(serverIP, server_port);
+
+		System.out.println("Sending Verify");
+		sendVerify(out, REAL_NAME, NICK);
+
+		ReliableDataError result=null;
+		while (result!=ReliableDataError.NO_ERROR)
+		{
+			result = getReliableData(reliable, in, out);
+			//System.out.println(result);
+		}
+
+		netSetup(in, map, setup, reliable);
+
+		//map.flip();
+		System.out.println(map.remaining()+"\n\nMap:\n");
+
+		// setup.printMapData();
+		//
+
+		client.mapInit(new BlockMap(setup));
+
+		System.out.println("\nSending Net Start");
+		netStart(out);
+
+		keyboard.clearBits();
+		//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+
+		System.out.println("\nStarting input loop.");
+		startTime = System.currentTimeMillis();
+
+		while(!quit)
+		{
+			in.clear();
+			receivePacket(in);
+			netPacket(in, reliableBuf);
+
+			//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
+			//keyboard.switchBit(Keys.KEY_THRUST);
+			sendKeyboard(out, keyboard);
+		}
+		
+		
+		System.out.println("\nEnd of input loop");
 	}
 	
 	public void putJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team)
@@ -1047,13 +1051,14 @@ public class NetClient
 		}
 	}
 	
-	public void receivePacket(ByteBufferWrap buf)
+	private void receivePacket(ByteBufferWrap buf)
 	{
 		buf.clear();
 		try
 		{
 			buf.receivePacket(channel);
 			numPackets++;
+			numPacketsReceived++;
 			System.out.println("\nGot Packet-number: " + numPackets + ", " + buf.position() + " bytes.");
 			//System.out.println("\nBuf received " + buf.position());
 		}
@@ -1064,7 +1069,7 @@ public class NetClient
 		
 	}
 	
-	public void sendPacket(ByteBufferWrap buf)
+	private void sendPacket(ByteBufferWrap buf)
 	{
 		try
 		{
@@ -1404,7 +1409,7 @@ public class NetClient
 	 */
 	public static final int NUM_QUITS = 5;
 	
-	public void sendQuit()
+	private void sendQuit()
 	{
 		System.out.println("\nSending quit packets");
 		synchronized(out)
@@ -1416,6 +1421,19 @@ public class NetClient
 				sendPacket(out);
 			}
 		}
+		
+		long runTime = (System.currentTimeMillis()-startTime)/1000;
+		
+		System.out.println("\nClient ran for " + runTime + " seconds.\n" +
+							numPacketsReceived + " packets were received.\n" +
+							numFrames + " frames were received.\n" +
+							"Average fps = " + (double)numFrames/runTime); 
+	}
+	
+	public void quit()
+	{
+		quit = true;
+		sendQuit();
 	}
 	
 	//other methods client might need

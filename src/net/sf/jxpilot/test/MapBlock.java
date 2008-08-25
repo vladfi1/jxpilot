@@ -1,11 +1,15 @@
 package net.sf.jxpilot.test;
 
 import java.awt.geom.*;
-import java.awt.geom.Ellipse2D.Double;
 import java.awt.*;
 import static net.sf.jxpilot.test.MapSetup.*;
 
-public class MapBlock
+/**
+ * Represents a block of a BlockMap.
+ * @author vlad
+ *
+ */
+public class MapBlock implements java.io.Serializable
 {
 	public static final int BLOCK_SIZE = 35;
 	
@@ -13,6 +17,7 @@ public class MapBlock
 	public static final Color TREASURE_COLOR = Color.RED;
 	public static final Color BASE_COLOR = Color.WHITE;
 	public static final Color FUEL_COLOR = Color.RED;
+	public static final Color WORMHOLE_COLOR = Color.MAGENTA;
 	
 	private byte type;
 	private int x,y;
@@ -20,7 +25,7 @@ public class MapBlock
 	private Color color;
 	private boolean fill=false;
 	
-	public MapBlock(byte type, int x, int y, Shape s, Color c, boolean fill)
+	private MapBlock(byte type, int x, int y, Shape s, Color c, boolean fill)
 	{
 		this(type, x, y);
 		shape = s;
@@ -28,18 +33,13 @@ public class MapBlock
 		this.fill = fill;
 	}
 	
-	public MapBlock(byte type, int x, int y)
+	private MapBlock(byte type, int x, int y)
 	{
 		this.type = type;
 		this.x= x;
 		this.y = y;
 	}
 	
-	public void setPosition(int x, int y)
-	{
-		this.x = x;
-		this.y=y;
-	}
 	public int getX(){return x;}
 	public int getY(){return y;}
 	public byte getType(){return type;}
@@ -47,20 +47,31 @@ public class MapBlock
 	public Color getColor(){return color;}
 	public boolean isFilled(){return fill;}
 	
-	static MapBlock getMapBlock(MapSetup setup, byte block_data, int x, int y)
+	private static Rectangle getDefaultRectangle()
+	{
+		return new Rectangle(0,0, BLOCK_SIZE,BLOCK_SIZE);
+	}
+	
+	private static Ellipse2D getDefaultCircle()
+	{
+		return new Ellipse2D.Float(0,0, BLOCK_SIZE,BLOCK_SIZE);
+	}
+	
+	
+	static MapBlock getMapBlock(byte block_data, int x, int y)
 	{
 		switch(block_data)
 		{
 		case SETUP_SPACE: return new MapBlock(SETUP_SPACE, x, y);
-		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, new Rectangle(0, 0 , BLOCK_SIZE,BLOCK_SIZE), BLOCK_COLOR, true);
-		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, new Rectangle(0, 0,BLOCK_SIZE,BLOCK_SIZE), FUEL_COLOR, true);
-		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU, x, y, getRec(setup, x, y, true, true), BLOCK_COLOR, true);
-		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD, x, y, getRec(setup, x, y, true, false), BLOCK_COLOR, true);
-		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU, x, y, getRec(setup, x, y, false, true), BLOCK_COLOR, true);
-		case SETUP_REC_LD: return new MapBlock(SETUP_REC_LD, x, y, getRec(setup, x, y, false, false), BLOCK_COLOR, true);
-		case SETUP_WORM_NORMAL: return new MapBlock(SETUP_WORM_NORMAL, x, y);
-		case SETUP_WORM_IN: return new MapBlock(SETUP_WORM_IN, x, y);
-		case SETUP_WORM_OUT: return new MapBlock(SETUP_WORM_OUT, x, y) ;
+		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, x, y, getDefaultRectangle(), BLOCK_COLOR, true);
+		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL, x, y, getDefaultRectangle(), FUEL_COLOR, true);
+		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU, x, y, getRec(x, y, true, true), BLOCK_COLOR, true);
+		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD, x, y, getRec(x, y, true, false), BLOCK_COLOR, true);
+		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU, x, y, getRec(x, y, false, true), BLOCK_COLOR, true);
+		case SETUP_REC_LD: return new MapBlock(SETUP_REC_LD, x, y, getRec(x, y, false, false), BLOCK_COLOR, true);
+		case SETUP_WORM_NORMAL: return new MapBlock(SETUP_WORM_NORMAL, x, y, getDefaultCircle(), WORMHOLE_COLOR, true);
+		case SETUP_WORM_IN: return new MapBlock(SETUP_WORM_IN, x, y, getDefaultCircle(), WORMHOLE_COLOR, true);
+		case SETUP_WORM_OUT: return new MapBlock(SETUP_WORM_OUT, x, y, getDefaultCircle(), WORMHOLE_COLOR, true) ;
 		}
 		
 		if (block_data>= SETUP_TREASURE && block_data <SETUP_TREASURE + 10)
@@ -88,7 +99,7 @@ public class MapBlock
 		return (setup.getY()-y-1);
 	}
 	
-	private static Polygon getRec(MapSetup setup, int x, int y, boolean right, boolean up)
+	private static Polygon getRec(int x, int y, boolean right, boolean up)
 	{
 		Polygon poly = new Polygon();
 		if (right)
@@ -122,7 +133,41 @@ public class MapBlock
 				poly.addPoint(0, BLOCK_SIZE);	
 			}
 		}
-		
 		return poly;
+	}
+	
+	public static String getBlockChar(byte block)
+	{
+		switch(block)
+		{
+		case SETUP_SPACE: return " ";
+		case SETUP_FILLED: return "\0";
+		case SETUP_FUEL: return "F";
+		case SETUP_REC_RU: return "\\";
+		case SETUP_REC_RD: return "/";
+		case SETUP_REC_LU: return "/";
+		case SETUP_REC_LD: return "\\";
+		case SETUP_WORM_NORMAL:
+		case SETUP_WORM_IN:
+		case SETUP_WORM_OUT: return "W";
+		}
+		
+		if (block>= SETUP_TREASURE && block <SETUP_TREASURE + 10)
+		{
+			return "O";
+		}
+		
+		if (block >= SETUP_BASE_LOWEST && block <= SETUP_BASE_HIGHEST)
+		{
+			return "B";
+		}
+		
+		//return String.valueOf(block);
+		return "?";
+	}
+	
+	public String toString()
+	{
+		return getBlockChar(type);
 	}
 }

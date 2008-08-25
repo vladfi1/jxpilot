@@ -1,5 +1,6 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.test.graphics;
 
+import net.sf.jxpilot.test.*;
 import java.util.*;
 import static net.sf.jxpilot.test.MapBlock.*;
 import javax.swing.*;
@@ -9,14 +10,14 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import static net.sf.jxpilot.MathFunctions.*;
 
-public class MapFrame extends JFrame
+public class TestMapFrame extends JFrame
 {
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
 	
-	private ClientInputListener clientInputListener;
+	//private ClientInputListener clientInputListener;
 	
 	private BlockMap blockMap;
 	private MapSetup setup;
@@ -47,16 +48,18 @@ public class MapFrame extends JFrame
 	
 	private HashMap<Integer, Byte> keyPreferences;
 	
-	public MapFrame(BlockMap blockMap, ClientInputListener l)
+	public TestMapFrame(BlockMap blockMap)
 	{	
 		defaultKeyInit();
 		
-		this.clientInputListener = l;
-		
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+		
+		this.setUndecorated(true);
+		this.setIgnoreRepaint(true);
 		
 		this.blockMap = blockMap;
 		setup = blockMap.getSetup();
@@ -76,12 +79,13 @@ public class MapFrame extends JFrame
 		flippedTransform.scale(1, -1);
 		flippedTransform.translate(0, -setup.getY()*BLOCK_SIZE);
 		
-		
 		setTransform();
 		//setTransform();
 		
 		panel = new MapPanel();
 		this.add(panel);
+		
+		//pack();
 		
 		this.addKeyListener(new KeyAdapter()
 		{
@@ -92,7 +96,7 @@ public class MapFrame extends JFrame
 				
 				switch (e.getKeyCode())
 				{
-				/*
+				
 				case KeyEvent.VK_RIGHT:
 					moveView(1, 0);
 					break;
@@ -105,20 +109,24 @@ public class MapFrame extends JFrame
 				case KeyEvent.VK_DOWN:
 					moveView(0,1);
 					break;
-				*/
 				case KeyEvent.VK_COMMA:
 					viewSize += 1;
 					break;
 				case KeyEvent.VK_PERIOD:
 					viewSize -= 1;
 					break;
+				case KeyEvent.VK_ESCAPE:
+					System.exit(0);
+					break;
 				}
+				
+				repaint();
 				
 				int key = e.getKeyCode();
 				
 				if (keyPreferences.containsKey(key))
 				{
-					clientInputListener.setKey(keyPreferences.get(key), true);
+					//clientInputListener.setKey(keyPreferences.get(key), true);
 				}
 			}
 
@@ -128,7 +136,7 @@ public class MapFrame extends JFrame
 				
 				if (keyPreferences.containsKey(key))
 				{
-					clientInputListener.setKey(keyPreferences.get(key), false);
+					//clientInputListener.setKey(keyPreferences.get(key), false);
 				}
 			}
 			
@@ -148,7 +156,7 @@ public class MapFrame extends JFrame
 
 			public void windowClosing(WindowEvent e)
 			{
-				clientInputListener.quit();
+				//clientInputListener.quit();
 				//close = true;
 			}
 
@@ -185,6 +193,17 @@ public class MapFrame extends JFrame
 		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE);	
 	}
 	
+	public void renderGame()
+	{
+		panel.renderGame();
+	}
+	
+	public void activeRender()
+	{
+		panel.renderGame();
+		panel.paintScreen();
+	}
+	
 	/**
 	 * Sets the view focus in blocks, measured in regular Cartesian form.
 	 */
@@ -218,6 +237,22 @@ public class MapFrame extends JFrame
 			
 			screenBuffer = new BufferedImage(screenSize.width, screenSize.height, BufferedImage.TYPE_INT_RGB);
 			screenG2D = screenBuffer.createGraphics();
+		}
+		
+		public void renderGame()
+		{
+			paintWorld();
+			setTransform();
+			for(int x= -1; x<=1;x++)
+			{
+				for (int y = -1; y<=1;y++)
+				{
+					screenG2D.setTransform(currentTransform);
+					screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
+					screenG2D.drawImage(worldBuffer, 0, 0, this);
+				}
+			}
+
 		}
 		
 		private BufferedImage createMapBuffer()
@@ -258,31 +293,20 @@ public class MapFrame extends JFrame
 		
 		protected void paintComponent(Graphics g)
 		{
-			//super.paintComponent(g);
-			
-			//Graphics2D screenG2D = (Graphics2D) g;
-			
-			paintWorld();
-			
-			setTransform();
-			for(int x= -1; x<=1;x++)
-			{
-				for (int y = -1; y<=1;y++)
-				{
-					screenG2D.setTransform(currentTransform);
-					screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-					screenG2D.drawImage(worldBuffer, 0, 0, this);
-				}
-			}
+			super.paintComponent(g);
 			
 			//screenG2D.setTransform(identity);
 			//screenG2D.setColor(shipColor);
 			
 			//screenG2D.fillRect(screenSize.width/2-10, screenSize.height/2-10, 40, 40);
-			
-			g.drawImage(screenBuffer, 0, 0, this);
+			paintScreen();
 		}
 
+		public void paintScreen()
+		{
+			this.getGraphics().drawImage(screenBuffer, 0, 0, this);
+		}
+		
 		private void paintBlocks(Graphics2D g2)
 		{
 			for (MapBlock[] array : blocks)

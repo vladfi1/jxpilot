@@ -1,13 +1,16 @@
 package net.sf.jxpilot.test;
 
-import java.awt.*;
-
-public class Map
+/**
+ * Represents a block-based xpilot map.
+ * @author vlad
+ *
+ */
+public class BlockMap implements java.io.Serializable
 {
 	private MapSetup setup;
 	private MapBlock[][] blocks;
 	
-	public Map(MapSetup setup)
+	public BlockMap(MapSetup setup)
 	{
 		this.setup = setup;
 		
@@ -17,19 +20,14 @@ public class Map
 		{
 			for (int y = 0 ; y<setup.getY();y++)
 			{
-				blocks[x][y] = MapBlock.getMapBlock(setup, setup.getBlock(x, y), x, y);
-				blocks[x][y].setPosition(x, y);
+				blocks[x][y] = MapBlock.getMapBlock(setup.getBlock(x, y), x, y);
+				//blocks[x][y].setPosition(x, y);
 			}
 		}
 	}
 	
 	public MapBlock[][] getBlocks(){return blocks;}
 	public MapSetup getSetup(){return setup;}
-	
-	private static interface blockHelper
-	{
-		public void processBlock(byte type, int x, int y);
-	}
 	
 	public String toString()
 	{
@@ -38,8 +36,9 @@ public class Map
 		{
 			for (int x = 0;x<setup.getY();x++)
 			{
-				temp += setup.getBlock(setup.getBlock(x, y));
+				temp += blocks[x][y];
 			}
+			temp+="\n";
 		}
 		return temp;
 	}

@@ -3,7 +3,7 @@ package net.sf.jxpilot.test;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.UDPTest.*;
 
-class MapSetup
+public class MapSetup implements java.io.Serializable
 {
 	
 	/*
@@ -387,7 +387,7 @@ class MapSetup
 		{
 			for (int x =0;x<this.x; x++)
 			{
-				System.out.print(getBlock(getBlock(x,y)));
+				System.out.print(MapBlock.getBlockChar(getBlock(x,y)));
 			}
 			System.out.println();
 		}
@@ -396,35 +396,5 @@ class MapSetup
 	public byte getBlock(int x, int y)
 	{	
 		return map_data[y + x*this.y];
-	}
-	
-	public static String getBlock(byte block)
-	{
-		switch(block)
-		{
-		case SETUP_SPACE: return " ";
-		case SETUP_FILLED: return "\0";
-		case SETUP_FUEL: return "F";
-		case SETUP_REC_RU: return "\\";
-		case SETUP_REC_RD: return "/";
-		case SETUP_REC_LU: return "/";
-		case SETUP_REC_LD: return "\\";
-		case SETUP_WORM_NORMAL:
-		case SETUP_WORM_IN:
-		case SETUP_WORM_OUT: return "W";
-		}
-		
-		if (block>= SETUP_TREASURE && block <SETUP_TREASURE + 10)
-		{
-			return "O";
-		}
-		
-		if (block >= SETUP_BASE_LOWEST && block <= SETUP_BASE_HIGHEST)
-		{
-			return "B";
-		}
-		
-		//return String.valueOf(block);
-		return "?";
 	}
 }
