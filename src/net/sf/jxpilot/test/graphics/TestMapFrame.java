@@ -12,10 +12,17 @@ import static net.sf.jxpilot.MathFunctions.*;
 
 public class TestMapFrame extends JFrame
 {
+	/**
+	 * Whether the MapFrame uses Full Screen Exclusive Mode.
+	 */
+	public static final boolean FSEM = true;
+	
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
+
+	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	
 	//private ClientInputListener clientInputListener;
 	
@@ -32,6 +39,8 @@ public class TestMapFrame extends JFrame
 	private AffineTransform flippedTransform = new AffineTransform();
 	
 	private Vector<Collection<? extends Drawable>> drawables;
+	
+	
 	
 	/*
 	private static final int NUM_KEYS = KeyEvent.KEY_LAST-KeyEvent.KEY_FIRST+1; 
@@ -77,7 +86,15 @@ public class TestMapFrame extends JFrame
 		setTransform();
 		//setTransform();
 		
-		initFullScreen();
+		if (FSEM)
+			initFullScreen();
+		else
+		{
+			this.setUndecorated(true);
+			this.setIgnoreRepaint(true);
+			this.setSize(screenSize);
+		}
+		
 		initBuffers();
 		
 		//pack();
@@ -162,7 +179,6 @@ public class TestMapFrame extends JFrame
 	private Graphics2D screenG2D;
 	private BufferStrategy bufferStrategy;
 	
-	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private BufferedImage mapBuffer;
 	private BufferedImage worldBuffer;
 	private Graphics2D worldG2D;
@@ -224,14 +240,21 @@ public class TestMapFrame extends JFrame
 	
 	public void finish()
 	{
-		restoreScreen();
+		if (FSEM)
+			restoreScreen();
+		
 		System.exit(0);
 	}
 	
 	private void initBuffers()
 	{
 		mapBuffer = createMapBuffer();
-		worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(mapBuffer.getWidth(), mapBuffer.getHeight());
+		
+		if (FSEM)
+			worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(mapBuffer.getWidth(), mapBuffer.getHeight());
+		else
+			worldBuffer = new BufferedImage(mapBuffer.getWidth(), mapBuffer.getHeight(), BufferedImage.TYPE_INT_RGB);
+		
 		worldG2D = worldBuffer.createGraphics();
 		worldG2D.setTransform(flippedTransform);
 	}
@@ -275,24 +298,33 @@ public class TestMapFrame extends JFrame
 	
 	public void activeRender()
 	{
-		try
+		if (FSEM)
 		{
-			screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
+			try
+			{
+				screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
+				renderGame(screenG2D);
+				screenG2D.dispose();
+				if (!bufferStrategy.contentsLost())
+				{
+					bufferStrategy.show();
+				}
+				else
+				{
+					System.out.println("BufferStrategy contents lost");
+				}
+				Toolkit.getDefaultToolkit().sync();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			screenG2D = (Graphics2D) this.getGraphics();
 			renderGame(screenG2D);
 			screenG2D.dispose();
-			if (!bufferStrategy.contentsLost())
-			{
-				bufferStrategy.show();
-			}
-			else
-			{
-				System.out.println("BufferStrategy contents lost");
-			}
-			Toolkit.getDefaultToolkit().sync();
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
 		}
 		//panel.paintScreen();
 	}
@@ -318,7 +350,6 @@ public class TestMapFrame extends JFrame
 	{
 		//paintWorld();
 		setTransform();
-
 		
 		for(int x= -1; x<=1;x++)
 		{
@@ -337,7 +368,13 @@ public class TestMapFrame extends JFrame
 
 	private BufferedImage createMapBuffer()
 	{
-		BufferedImage temp = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
+		BufferedImage temp;
+		
+		if (FSEM)
+			temp = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
+		else
+			temp = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
+		
 		Graphics2D g2d = temp.createGraphics();
 
 		g2d.setColor(spaceColor);
@@ -375,6 +412,20 @@ public class TestMapFrame extends JFrame
 	private void paintWorld(Graphics2D g2d)
 	{
 		g2d.drawImage(mapBuffer, 0, 0, this);
+		
+		if (drawables!=null)
+		{
+			for (Collection<? extends Drawable> c : drawables)
+			{
+				if (c!=null)
+					for (Drawable d : c)
+					{
+						//g2d.setTransform(flippedTransform);
+						//System.out.println("\nPainting drawable: ****************************************");
+						d.paintDrawable(worldG2D);
+					}
+			}
+		}
 	}
 	
 	private void paintBlocks(Graphics2D g2)

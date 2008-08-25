@@ -1,6 +1,7 @@
 package net.sf.jxpilot.test;
 
 import java.awt.*;
+import java.awt.geom.*;
 
 public class Ship implements Drawable
 {
@@ -33,6 +34,9 @@ public class Ship implements Drawable
 	
 	public void paintDrawable(Graphics2D g2d)
 	{
+		AffineTransform saved = g2d.getTransform();
+		
+		g2d.setColor(SHIP_COLOR);
 		//g2d.rotate(heading, x, y);
 		g2d.translate(x, y);
 		g2d.rotate(getAngleFrom128(heading));
@@ -40,6 +44,7 @@ public class Ship implements Drawable
 		//g2d.rotate(-heading);
 		//g2d.translate(-x,-y);
 		//g2d.rotate(-heading, -x, -y);
+		g2d.setTransform(saved);
 	}
 	
 	/**

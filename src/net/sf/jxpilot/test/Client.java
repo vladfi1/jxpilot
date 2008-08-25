@@ -85,14 +85,14 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handleEnd()
 	{
-		frame.repaint();
+		frame.activeRender();
 	}
 	
 	//Client Input Listener methods
 	public void quit()
 	{
 		netClient.quit();
-		frame.dispose();
+		frame.finish();
 		//System.exit(0);
 	}
 	
