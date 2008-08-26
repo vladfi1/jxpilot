@@ -388,13 +388,12 @@ public class JXPilotFrame extends JFrame
 				paintWorld(screenG2D, translated);
 			}
 		}
-		
-		screenG2D.setTransform(identity);
-		screenG2D.setColor(Color.WHITE);
-		screenG2D.drawString("TEST", 30, 30);
 
-		
-		//messagePool.render(screenG2D);
+		screenG2D.setTransform(identity);
+//		screenG2D.setColor(Color.WHITE);
+//		screenG2D.drawString("TEST", 30, 30);
+
+		messagePool.render(screenG2D);
 
 		//screenG2D.setTransform(currentTransform);
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);

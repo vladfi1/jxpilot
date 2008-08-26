@@ -380,8 +380,10 @@ public class NetClient
                     throw reliableReadException;
                 }
 
-                if (message != null)
+                if (message != null) {
+                    message = message.substring(0, message.length() - 1);
                     client.handleMessage(message);
+                }
 			}
 		};
 
