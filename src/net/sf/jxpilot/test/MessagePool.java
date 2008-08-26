@@ -10,7 +10,7 @@ import java.util.Vector;
  * @author Taras Kostiak
  * 
  */
-public class MessagePool implements Drawable {
+public class MessagePool {
 
     /**
      * Shows timeout between publishing message and removing it.<br>
@@ -44,14 +44,6 @@ public class MessagePool implements Drawable {
      */
     public void publishMessage(String message) {
         messages.add(new TimedMessage(message));
-    }
-
-    /**
-     * @see net.sf.jxpilot.test.Drawable#paintDrawable(java.awt.Graphics2D)
-     */
-    @Override
-    public void paintDrawable(Graphics2D g2d) {
-        // TODO: Fix method.
     }
 
     /**
@@ -95,6 +87,15 @@ public class MessagePool implements Drawable {
             return publishTime;
         }
 
+    }
+
+    /**
+     * Renders current messages into given Graphics2D.
+     * 
+     * @param g2
+     */
+    public void render(Graphics2D g2) {
+        g2.drawString("TEST", 13, 13);
     }
 
 }

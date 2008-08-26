@@ -151,7 +151,7 @@ public class Client implements AbstractClient, ClientInputListener
      */
     @Override
     public void handleMessage(String message) {
-        // TODO: FIX METHOD.
+        frame.getMessagePool().publishMessage(message);
     }
 
 }

@@ -40,7 +40,12 @@ public class JXPilotFrame extends JFrame
 	private AffineTransform flippedTransform = new AffineTransform();
 	
 	private Vector<Collection<? extends Drawable>> drawables;
-	
+
+	/**
+	 * Messages to draw.
+	 */
+	private MessagePool messagePool = null;
+
 	/*
 	private static final int NUM_KEYS = KeyEvent.KEY_LAST-KeyEvent.KEY_FIRST+1; 
 	
@@ -349,6 +354,7 @@ public class JXPilotFrame extends JFrame
 	
 	
 	private AffineTransform translated = new AffineTransform();
+
 	private void renderGame(Graphics2D screenG2D)
 	{
 		//paintWorld();
@@ -366,6 +372,8 @@ public class JXPilotFrame extends JFrame
 				paintWorld(screenG2D, translated);
 			}
 		}
+
+		messagePool.render(screenG2D);
 
 		//screenG2D.setTransform(currentTransform);
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);
@@ -485,6 +493,13 @@ public class JXPilotFrame extends JFrame
      */
     public boolean isFSEMSupported() {
         return FSEM;
+    }
+
+    /**
+     * @see #messagePool
+     */
+    public MessagePool getMessagePool() {
+        return messagePool;
     }
 
 }
