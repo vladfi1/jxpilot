@@ -12,9 +12,15 @@ public class Client implements AbstractClient, ClientInputListener
 	private Vector<Collection<? extends Drawable>> drawables;
 	private BitVector keyboard;
 	
-	//private Ship[] ships = new Ship[MAX_SHIPS];
-	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
+	/**
+	 * Our current position.
+	 */
+	private short selfX, selfY;
 	
+	//private Ship[] ships = new Ship[MAX_SHIPS];
+	//Collections holding drawables
+	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
+	private ShotHandler shots = new ShotHandler();
 	
 	public Client()
 	{
@@ -23,6 +29,9 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		drawables = new Vector<Collection<? extends Drawable>>();
 		drawables.add(shipMap.values());
+		
+		shots = new ShotHandler();
+		drawables.add(shots);
 	}
 	
 	public void runClient(String serverIP, int serverPort)
@@ -41,13 +50,21 @@ public class Client implements AbstractClient, ClientInputListener
 		frame.setVisible(true);
 	}
 	
+	private void setFrameView()
+	{
+		frame.setView((double)selfX/MapBlock.BLOCK_SIZE, (double)selfY/MapBlock.BLOCK_SIZE);
+	}
+	
 	public void handleSelf(short x, short y, short vx, short vy, byte heading,
 			byte power, byte turnspeed, byte turnresistance,
 			short lockId, short lockDist, byte lockDir,
 			byte nextCheckPoint, byte autopilotLight,
 			byte currentTank, short fuelSum, short fuelMax)
 	{
-		frame.setView((double)x/MapBlock.BLOCK_SIZE, (double)y/MapBlock.BLOCK_SIZE);
+		selfX = x;
+		selfY = y;
+		shots.setSelfPosition(x, y);
+		setFrameView();
 	}
 	
 	public void handleShip(short x, short y, short id, byte dir,
@@ -91,6 +108,8 @@ public class Client implements AbstractClient, ClientInputListener
 		{
 			s.setActive(false);
 		}
+		
+		shots.clearShots();
 	}
 	
 	public void handleEnd(int loops)
@@ -102,7 +121,12 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		System.out.println("\nFastShot type = " + type + "\nnum = " + num);
 		
-		in.position(in.position()+2*num);
+		for (int i = 0;i<num;i++)
+		{
+			shots.addShot(type, in.getUnsignedByte(), in.getUnsignedByte());
+		}
+		
+		//in.position(in.position()+2*num);
 	}
 
 	
