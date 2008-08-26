@@ -2,18 +2,12 @@ package net.sf.jxpilot.test;
 
 import java.awt.*;
 import java.awt.geom.*;
-//import java.util.*;
 
 /**
  * Class that holds shots as an ArrayList. Shots are held as a private inner class.
  * Shots are represented by a type, and an x/y.
  * 
  * Types relative to ship
- * 
- * 26 = 0,0 
- * 25 = -1,0
- * 22 = 0,-1
- * 21 = -1,-1
  * 
  * +1 is one to the right
  * +4 is one up
@@ -116,12 +110,21 @@ public class ShotHandler extends java.util.ArrayList<ShotHandler.Shot>
 	/**
 	 * 256 = 1+max value of an unsigned byte
 	 */
-	static final int AREA_SIZE = 256;
+	public static final int AREA_SIZE = 256;
+	
+	/**
+	 * @param type The area type.
+	 * @return The x-coordinate for the area: type % 4 - 2
+	 */
 	static int getXArea(int type)
 	{
 		return type%4 - 2;
 	}
 	
+	/**
+	 * @param type The area type.
+	 * @return The y-coordinate for the area: type / 4 - 6
+	 */
 	static int getYArea(int type)
 	{
 		return type / 4 - 6;
@@ -158,8 +161,8 @@ public class ShotHandler extends java.util.ArrayList<ShotHandler.Shot>
 			g2d.translate(x+selfX+getXArea(type)*AREA_SIZE, y+selfY+getYArea(type)*AREA_SIZE);
 			
 			g2d.fill(shotShape);
+			
 			g2d.setTransform(saved);
-		}
-		
+		}		
 	}
 }

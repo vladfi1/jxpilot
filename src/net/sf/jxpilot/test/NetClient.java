@@ -526,13 +526,14 @@ public class NetClient
 				short ext_view_height = in.getShort();
 				byte debris_colors = in.getByte();
 				byte stat = in.getByte();
-				byte autopilotLight = in.getByte();
+				byte autopilot_light = in.getByte();
 
 				client.handleSelf(x, y, vx, vy, 
 						heading, power, turnspeed, turnresistance, 
-						lockId, lockDist, lockDir, 
-						nextCheckPoint, autopilotLight, 
-						currentTank, fuelSum, fuelMax);
+						lockId, lockDist, lockDir, nextCheckPoint, 
+						currentTank, fuelSum, fuelMax,
+						ext_view_width, ext_view_height,
+						debris_colors, stat, autopilot_light);
 
 				if(PRINT_PACKETS)System.out.println("\nPacket Self\ntype = " + type +
 						"\nx = " + x +
@@ -540,7 +541,7 @@ public class NetClient
 						"\nvx = " + vx +
 						"\nvy = " + vy +
 						"\nheading = " + heading +
-						"\nautopilotLight = " + autopilotLight);
+						"\nautopilotLight = " + autopilot_light);
 			}
 		};
 

@@ -31,13 +31,27 @@ public class JXPilotFrame extends JFrame
 	private MapSetup setup;
 	private MapBlock[][] blocks;
 	
-	//center of viewing screen, in blocks
+	/**
+	 * center of viewing screen, in blocks
+	 */
 	private double viewX, viewY;
-	//number of blocks in the screen
+
 	public static final int defaultViewSize = 27;
+	
+	/**
+	 * number of blocks in the screen
+	 */
 	private int viewSize;
+	
+	/**
+	 * current transform of screen
+	 */
 	private AffineTransform currentTransform = new AffineTransform();
+	/**
+	 * transform for switching between Cartesian mode and AWT mode. (y is changed with -y)
+	 */
 	private AffineTransform flippedTransform = new AffineTransform();
+	
 	
 	private Vector<Collection<? extends Drawable>> drawables;
 
@@ -374,8 +388,13 @@ public class JXPilotFrame extends JFrame
 				paintWorld(screenG2D, translated);
 			}
 		}
+		
+		screenG2D.setTransform(identity);
+		screenG2D.setColor(Color.WHITE);
+		screenG2D.drawString("TEST", 30, 30);
 
-		messagePool.render(screenG2D);
+		
+		//messagePool.render(screenG2D);
 
 		//screenG2D.setTransform(currentTransform);
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);
