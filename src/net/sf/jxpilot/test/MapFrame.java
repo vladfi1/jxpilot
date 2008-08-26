@@ -15,7 +15,7 @@ public class MapFrame extends JFrame
 	 * Whether the MapFrame uses Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	public static final boolean FSEM = true;
+	public boolean FSEM = true;
 	
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
@@ -85,7 +85,10 @@ public class MapFrame extends JFrame
 		
 		setTransform();
 		//setTransform();
-		
+
+		FSEM = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice().isFullScreenSupported();
+
 		if (FSEM)
 			initFullScreen();
 		else
