@@ -95,6 +95,8 @@ public class JXPilotFrame extends JFrame
 		FSEM = GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice().isFullScreenSupported();
 
+		messagePool = new MessagePool();
+
 		if (FSEM)
 			initFullScreen();
 		else

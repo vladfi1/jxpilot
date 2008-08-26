@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.List;
 import java.util.Vector;
@@ -95,7 +96,9 @@ public class MessagePool {
      * @param g2
      */
     public void render(Graphics2D g2) {
-        g2.drawString("TEST", 13, 13);
+        // TODO: Draw messages.
+//        g2.setColor(Color.WHITE);
+//        g2.drawString("TEST", 256, 256);
     }
 
 }
