@@ -8,7 +8,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	private NetClient netClient;
 	private BlockMap blockMap;
-	private MapFrame frame;
+	private JXPilotFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
 	private BitVector keyboard;
 	
@@ -45,7 +45,7 @@ public class Client implements AbstractClient, ClientInputListener
 	public void mapInit(BlockMap blockMap)
 	{
 		this.blockMap = blockMap;
-		frame = new MapFrame(blockMap, this);
+		frame = new JXPilotFrame(blockMap, this);
 		frame.setDrawables(drawables);
 		frame.setVisible(true);
 	}

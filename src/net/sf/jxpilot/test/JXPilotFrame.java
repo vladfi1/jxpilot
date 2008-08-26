@@ -9,14 +9,15 @@ import java.awt.geom.*;
 import java.awt.image.*;
 import static net.sf.jxpilot.MathFunctions.*;
 
-public class MapFrame extends JFrame
+public class JXPilotFrame extends JFrame
 {
-	/**
+
+    /**
 	 * Whether the MapFrame uses Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	public boolean FSEM = true;
-	
+	private boolean FSEM = true;
+
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
@@ -53,7 +54,7 @@ public class MapFrame extends JFrame
 	
 	private HashMap<Integer, Byte> keyPreferences;
 	
-	public MapFrame(BlockMap blockMap, ClientInputListener l)
+	public JXPilotFrame(BlockMap blockMap, ClientInputListener l)
 	{	
 		clientInputListener = l;
 		
@@ -215,7 +216,7 @@ public class MapFrame extends JFrame
 			EventQueue.invokeAndWait(new Runnable(){
 				public void run()
 				{
-					MapFrame.this.createBufferStrategy(NUM_BUFFERS);
+					JXPilotFrame.this.createBufferStrategy(NUM_BUFFERS);
 				}
 			});
 		}
@@ -475,5 +476,15 @@ public class MapFrame extends JFrame
 
 		g2.translate(-block.getX()*BLOCK_SIZE, -block.getY()*BLOCK_SIZE);
 	}
+
+	/**
+     * Shows if Full Screen Exclusive Mode is used by this
+     * <code>JXPilotFrame</code>.
+     * 
+     * @return <code>True</code>, if supported.
+     */
+    public boolean isFSEMSupported() {
+        return FSEM;
+    }
 
 }
