@@ -18,6 +18,10 @@ public class Ship implements Drawable
 					emergency_shield=false,
 					phased=false,
 					deflector=false;
+	/**
+	 * Whether or not to draw the ship.
+	 */
+	private boolean active=false;
 	
 	public Ship(ShipShape shape, int id, String nick)
 	{
@@ -37,6 +41,8 @@ public class Ship implements Drawable
 	public boolean isFilled(){return false;}
 	public int getId(){return id;}
 	public String getNick(){return nick;}
+	public void setActive(boolean b){active = b;}
+	public boolean isActive(){return active;}
 	
 	public void setShip(int x, int y, int heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
@@ -52,6 +58,8 @@ public class Ship implements Drawable
 	
 	public void paintDrawable(Graphics2D g2d)
 	{
+		if (!active) return;
+		
 		AffineTransform saved = g2d.getTransform();
 		
 		g2d.setColor(SHIP_COLOR);

@@ -16,12 +16,4 @@ public interface ClientInputListener
 	 * @param value Whether or not the key is pressed.
 	 */
 	public void setKey(int key, boolean value);
-	
-	public void setThrust(boolean b);
-	
-	public void setTurnLeft(boolean b);
-	
-	public void setTurnRight(boolean b);
-	
-	public void setShoot(boolean b);
 }

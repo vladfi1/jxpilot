@@ -156,7 +156,7 @@ public class NetClient
 						"\ntype = " + type +
 						"\nloops = " + loops +
 						"\nkey ack = " + key_ack);
-
+				client.handleStart(loops);
 			}
 
 			/*
@@ -572,7 +572,7 @@ public class NetClient
 				if(PRINT_PACKETS)System.out.println("\nEnd Packet\ntype = " + type +
 						"\nloops = " + loops);
 				
-				client.handleEnd();
+				client.handleEnd(loops);
 			}
 		};
 
@@ -629,7 +629,7 @@ public class NetClient
 
 		readers[PKT_FASTSHOT] = new PacketReader()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
 			{
 				byte pkt = in.getByte();
 				byte type = in.getByte();
@@ -638,14 +638,16 @@ public class NetClient
 				if (in.remaining()<2*num)
 				{
 					in.clear();
-					return;
+					throw new PacketReadException();
 				}
 
-				in.position(in.position()+2*num);
+				//in.position(in.position()+2*num);
 
 				if(PRINT_PACKETS)System.out.println("\nFastShot Packet\npkt = " + pkt +
 						"\ntype = " + type +
 						"\nnum = " + num);
+				
+				client.handleFastShot(type, in, num);
 			}
 			/*
 				int Receive_fastshot(void)

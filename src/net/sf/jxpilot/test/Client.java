@@ -15,6 +15,7 @@ public class Client implements AbstractClient, ClientInputListener
 	//private Ship[] ships = new Ship[MAX_SHIPS];
 	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
 	
+	
 	public Client()
 	{
 		netClient = new NetClient(this);
@@ -61,6 +62,7 @@ public class Client implements AbstractClient, ClientInputListener
 		else
 		{
 			s.setShip(x, y, dir, shield, cloak, emergency_shield, phased, deflector);
+			s.setActive(true);
 		}
 	}
 	
@@ -83,10 +85,26 @@ public class Client implements AbstractClient, ClientInputListener
 		shipMap.remove(id);
 	}
 	
-	public void handleEnd()
+	public void handleStart(int loops)
+	{
+		for (Ship s : shipMap.values())
+		{
+			s.setActive(false);
+		}
+	}
+	
+	public void handleEnd(int loops)
 	{
 		frame.activeRender();
 	}
+	
+	public void handleFastShot(int type, ByteBufferWrap in, short num)
+	{
+		System.out.println("\nFastShot type = " + type + "\nnum = " + num);
+		
+		in.position(in.position()+2*num);
+	}
+
 	
 	//Client Input Listener methods
 	public void quit()
@@ -96,40 +114,11 @@ public class Client implements AbstractClient, ClientInputListener
 		//System.exit(0);
 	}
 	
-	public void setThrust(boolean b)
-	{
-		synchronized(keyboard)
-		{
-			keyboard.setBit(Keys.KEY_THRUST, b);
-		}
-	}
-	
-	public void setTurnLeft(boolean b)
-	{
-		synchronized(keyboard)
-		{
-			keyboard.setBit(Keys.KEY_TURN_LEFT, b);
-		}
-	}
-	
-	public void setTurnRight(boolean b)
-	{
-		synchronized(keyboard)
-		{
-			keyboard.setBit(Keys.KEY_TURN_RIGHT, b);
-		}
-	}
-	
-	public void setShoot(boolean b)
-	{
-		synchronized(keyboard)
-		{
-			keyboard.setBit(Keys.KEY_FIRE_SHOT, b);
-		}
-	}
-	
 	public void setKey(int key, boolean value)
 	{
-		keyboard.setBit(key, value);
+		synchronized(keyboard)
+		{
+			keyboard.setBit(key, value);
+		}
 	}
 }
