@@ -364,18 +364,24 @@ public class NetClient
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				int pos = in.position();
-				try
-				{
-					byte type = in.getByte();
-					String message = in.getString();
-					if(PRINT_PACKETS)System.out.println("\nMessage Packet\n" + message);
-				}
-				catch (StringReadException e)
-				{
-					//e.printStackTrace();
-					in.position(pos);
-					throw reliableReadException;
-				}
+
+                // Message to print in client.
+                String message = null;
+
+                try {
+                    byte type = in.getByte();
+                    message = in.getString();
+                    if (PRINT_PACKETS)
+                        System.out.println("\nMessage Packet\n" + message);
+                }
+                catch (StringReadException e) {
+                    // e.printStackTrace();
+                    in.position(pos);
+                    throw reliableReadException;
+                }
+
+                if (message != null)
+                    client.handleMessage(message);
 			}
 		};
 

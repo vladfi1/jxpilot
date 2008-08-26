@@ -17,4 +17,13 @@ public interface AbstractClient
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
 	public void handleFastShot(int type, ByteBufferWrap in, short num);
+
+	/**
+     * Prints message in client window.
+     * 
+     * @param message
+     *            Message to print.
+     */
+    public void handleMessage(String message);
+
 }

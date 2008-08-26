@@ -145,4 +145,13 @@ public class Client implements AbstractClient, ClientInputListener
 			keyboard.setBit(key, value);
 		}
 	}
+
+    /**
+     * @see net.sf.jxpilot.test.AbstractClient#handleMessage(java.lang.String)
+     */
+    @Override
+    public void handleMessage(String message) {
+        // TODO: FIX METHOD.
+    }
+
 }
