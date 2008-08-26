@@ -20,7 +20,9 @@ public class Client implements AbstractClient, ClientInputListener
 	//private Ship[] ships = new Ship[MAX_SHIPS];
 	//Collections holding drawables
 	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
-	private ShotHandler shots = new ShotHandler();
+	private ShotHandler shots;
+	private BallHandler balls;
+	private ConnectorHandler connectors;
 	
 	public Client()
 	{
@@ -32,6 +34,12 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		shots = new ShotHandler();
 		drawables.add(shots);
+		
+		balls = new BallHandler();
+		drawables.add(balls);
+		
+		connectors = new ConnectorHandler();
+		drawables.add(connectors);
 	}
 	
 	public void runClient(String serverIP, int serverPort)
@@ -111,6 +119,8 @@ public class Client implements AbstractClient, ClientInputListener
 		}
 		
 		shots.clearShots();
+		balls.clearBalls();
+		connectors.clearConnectors();
 	}
 	
 	public void handleEnd(int loops)
@@ -130,6 +140,16 @@ public class Client implements AbstractClient, ClientInputListener
 		//in.position(in.position()+2*num);
 	}
 
+	
+	public void handleBall(short x, short y, short id)
+	{
+		balls.addBall(x, y, id);
+	}
+	
+	public void handleConnector(short x0,short y0,short x1,short y1, byte tractor)
+	{
+		connectors.addConnector(x0, y0, x1, y1, tractor);
+	}
 	
 	//Client Input Listener methods
 	public void quit()
@@ -154,5 +174,4 @@ public class Client implements AbstractClient, ClientInputListener
     public void handleMessage(String message) {
         frame.getMessagePool().publishMessage(message);
     }
-
 }

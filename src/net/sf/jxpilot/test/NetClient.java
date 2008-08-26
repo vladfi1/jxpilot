@@ -35,7 +35,7 @@ public class NetClient
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 4;
 	public static final short TURN_RESISTANCE = 0;
-	public static final byte MAX_FPS = (byte)0x255;
+	public static final byte MAX_FPS = (byte)20;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};
 
 	//used for sending display
@@ -596,6 +596,8 @@ public class NetClient
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nid = " + id);
+				
+				client.handleBall(x, y, id);
 			}
 		};
 
@@ -809,6 +811,8 @@ public class NetClient
 						"\nx1 = " + x1 +
 						"\ny1 = " + y1 +
 						"\ntractor = " + tractor);
+				
+				client.handleConnector(x0,y0,x1,y1,tractor);
 			}
 		};
 
