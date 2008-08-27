@@ -1,7 +1,7 @@
 package net.sf.jxpilot.test;
 
 public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.ArrayList<T>
-{	
+{
 	/**
 	 * Represents the 1+the largest index used in the ArrayList.
 	 * (The number of indexes used).

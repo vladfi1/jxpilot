@@ -17,7 +17,7 @@ public interface AbstractClient
 	public void handleLeave(short id);
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
-	public void handleFastShot(int type, ByteBufferWrap in, short num);
+	public void handleFastShot(Shot s);
 	public void handleBall(Ball b);
 	public void handleConnector(Connector c);
 	public void handleFuel(int num, int fuel);
@@ -31,5 +31,13 @@ public interface AbstractClient
      *            Message to print.
      */
     public void handleMessage(String message);
-
+    
+    /**
+     * Returns current view position x value.
+     */
+    public short getSelfX();
+    /**
+     * Returns current view position y value.
+     */
+    public short getSelfY();
 }

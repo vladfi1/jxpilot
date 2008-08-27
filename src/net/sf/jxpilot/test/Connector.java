@@ -14,7 +14,7 @@ public class Connector implements ExtendedDrawable<Connector>
 	private byte tractor;
 	
 	public Connector setConnector(short x0, short y0,short x1, short y1, byte tractor)
-	{
+	{	
 		this.x0 = x0;
 		this.y0 = y0;
 		this.x1 = x1;

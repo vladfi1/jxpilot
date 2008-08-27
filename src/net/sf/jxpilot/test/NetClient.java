@@ -665,6 +665,8 @@ public class NetClient
 
 		readers[PKT_FASTSHOT] = new PacketReader()
 		{
+			private Shot s = new Shot();
+			
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
 			{
 				byte pkt = in.getByte();
@@ -683,8 +685,11 @@ public class NetClient
 						"\ntype = " + type +
 						"\nnum = " + num);
 				
-				client.handleFastShot(type, in, num);
-			}
+				for(int i = 0;i<num;i++)
+				{
+					client.handleFastShot(s.setShot(type, in.getUnsignedByte(), in.getUnsignedByte()));
+				}
+		}
 			/*
 				int Receive_fastshot(void)
 				{
@@ -1046,7 +1051,6 @@ public class NetClient
 
 		getReplyMessage(in, message);
 
-
 		//getReplyMessage(in, message);
 		System.out.println(message);
 
@@ -1089,7 +1093,6 @@ public class NetClient
 
 		System.out.println("\nStarting input loop.");
 		startTime = System.currentTimeMillis();
-		
 		
 		inputLoop();
 		

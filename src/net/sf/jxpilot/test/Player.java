@@ -3,47 +3,66 @@ package net.sf.jxpilot.test;
 import java.awt.*;
 import java.awt.geom.*;
 
-public class Ship implements Drawable
+/**
+ * Holds all Player information including ship data.
+ * @author vlad
+ */
+public class Player implements Drawable
 {
 	public static final int SHIP_RADIUS = 16;
 	public static final Color SHIP_COLOR = Color.WHITE;
 	
+	//player data
+	private short id, my_team, my_char;
+	private String nick, real, host;
+	private ShipShape ship_shape;
+	
+	//ship data
+	/**
+	 * Whether or not to draw the ship.
+	 */
+	private boolean active=false;
 	private int x, y, heading;
-	private int id;
-	private ShipShape shipshape;
-	private String nick;
 	private Ellipse2D shield;
 	private boolean shielded=false,
 					cloaked=false,
 					emergency_shield=false,
 					phased=false,
 					deflector=false;
-	/**
-	 * Whether or not to draw the ship.
-	 */
-	private boolean active=false;
 	
-	public Ship(ShipShape shape, int id, String nick)
+	
+	public Player(short id, short my_team, short my_char, String nick, String real, String host, ShipShape shape)
 	{
-		this.shipshape = shape;
 		this.id = id;
+		this.my_team = my_team;
+		this.my_char = my_char;
 		this.nick = nick;
+		this.real = real;
+		this.host = host;
+		this.ship_shape = shape;
 		
 		shield = new Ellipse2D.Float();
 		shield.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 	}
 	
-	public Polygon getShape(){return shipshape.getShape();}
+	//player data
+	public short getId(){return id;}
+	public short getTeam(){return my_team;}
+	public short getChar(){return my_char;}
+	public String getNick(){return nick;}
+	public String getReal(){return real;}
+	public String getHost(){return host;}
+	public ShipShape getShipShape(){return ship_shape;}
+	
+	//ship data
+	public Polygon getShape(){return ship_shape.getShape();}
 	public int getX(){return x;}
 	public int getY(){return y;}
 	public int getHeading(){return heading;}
-	public Color getColor(){return SHIP_COLOR;}
-	public boolean isFilled(){return false;}
-	public int getId(){return id;}
-	public String getNick(){return nick;}
 	public void setActive(boolean b){active = b;}
 	public boolean isActive(){return active;}
 	
+
 	public void setShip(int x, int y, int heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
 		this.x = x;

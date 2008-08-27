@@ -10,12 +10,13 @@ public class Client implements AbstractClient, ClientInputListener
 	private BlockMap blockMap;
 	private JXPilotFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
-	private Collection<DrawableHandler<?>> drawableHandlers;
+	private Collection<DrawableHandler<? extends ExtendedDrawable<?>>> drawableHandlers;
 	private BitVector keyboard;
 	
 	//Collections holding drawables
-	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
-	private ShotHandler shots;
+	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
+	private DrawableHandler<Shot> shotHandler;
+	private final int SHOTS_SIZE = 100;
 	private DrawableHandler<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
 	private DrawableHandler<Ball> ballHandler;
@@ -24,10 +25,12 @@ public class Client implements AbstractClient, ClientInputListener
 	private final int MINES_SIZE = 20;
 	
 	/**
-	 * Our current position.
+	 * Our current position. Perhaps would be more efficient to be protected so as to allow direct access.
 	 */
 	private short selfX, selfY;
 	
+	public short getSelfX(){return selfX;}
+	public short getSelfY(){return selfY;}
 	
 	public Client()
 	{
@@ -35,18 +38,17 @@ public class Client implements AbstractClient, ClientInputListener
 		keyboard = netClient.getKeyboard();
 		
 		drawables = new Vector<Collection<? extends Drawable>>();
-		drawables.add(shipMap.values());
-		
-
-		shots = new ShotHandler();
-		drawables.add(shots);
+		drawables.add(playerMap.values());
 		
 		initDrawableHandlers();
 	}
 	
 	private void initDrawableHandlers()
 	{
-		drawableHandlers = new ArrayList<DrawableHandler<?>>();
+		drawableHandlers = new ArrayList<DrawableHandler<? extends ExtendedDrawable<?>>>();
+		
+		shotHandler = new DrawableHandler<Shot>(new Shot(this), SHOTS_SIZE);
+		drawableHandlers.add(shotHandler);
 		
 		ballHandler = new DrawableHandler<Ball>(new Ball(), BALLS_SIZE);
 		drawableHandlers.add(ballHandler);
@@ -90,32 +92,32 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		selfX = x;
 		selfY = y;
-		shots.setSelfPosition(x, y);
+		//shots.setSelfPosition(x, y);
 		setFrameView();
 	}
 	
 	public void handleShip(short x, short y, short id, byte dir,
 				boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
-		Ship s = shipMap.get((int)id);
+		Player p = playerMap.get(id);
 		
-		if (s==null)
+		if (p==null)
 		{
 			System.out.println("********No ship matches id = " + id + "*********");
 		}
 		else
 		{
-			s.setShip(x, y, dir, shield, cloak, emergency_shield, phased, deflector);
-			s.setActive(true);
+			p.setShip(x, y, dir, shield, cloak, emergency_shield, phased, deflector);
+			p.setActive(true);
 		}
 	}
 	
-	public void handlePlayer(short id, short myTeam, short myChar, String name, String real, String host, ShipShape ship)
+	public void handlePlayer(short id, short my_team, short my_char, String nick, String real, String host, ShipShape ship)
 	{
 		//ships[id] = new Ship(ship, id);
 		//drawables.add(ships[id]);
-		Ship s = new Ship(ship, id, name);
-		shipMap.put((int)id, s);
+		Player p = new Player(id, my_team, my_char, nick, real, host, ship);
+		playerMap.put(id, p);
 		//frame.repaint();
 	}
 	
@@ -126,7 +128,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handleLeave(short id)
 	{
-		shipMap.remove(id);
+		playerMap.remove(id);
 	}
 	
 	public void handleStart(int loops)
@@ -139,12 +141,12 @@ public class Client implements AbstractClient, ClientInputListener
 	 */
 	private void clearHandlers()
 	{
-		for (Ship s : shipMap.values())
+		for (Player p : playerMap.values())
 		{
-			s.setActive(false);
+			p.setActive(false);
 		}
 		
-		shots.clearShots();
+		//shots.clearShots();
 		
 		for (DrawableHandler<?> d : drawableHandlers)
 		{
@@ -157,15 +159,9 @@ public class Client implements AbstractClient, ClientInputListener
 		frame.activeRender();
 	}
 	
-	public void handleFastShot(int type, ByteBufferWrap in, short num)
+	public void handleFastShot(Shot s)
 	{
-		System.out.println("\nFastShot type = " + type + "\nnum = " + num);
-		
-		for (int i = 0;i<num;i++)
-		{
-			shots.addShot(type, in.getUnsignedByte(), in.getUnsignedByte());
-		}
-		
+		shotHandler.addDrawable(s);
 		//in.position(in.position()+2*num);
 	}
 
