@@ -66,6 +66,11 @@ public class NetClient
 	private BitVector keyboard = new BitVector(Keys.NUM_KEYS);
 	private int last_keyboard_change=0;
 	
+	/**
+	 * Used for sending acknowledgements.
+	 */
+	private int last_loops;
+	
 	private volatile boolean quit = false;
 	
 	//for measurement
@@ -146,6 +151,7 @@ public class NetClient
 
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
+				
 				byte type = in.getByte();
 				int loops = in.getInt();
 				int key_ack = in.getInt();
@@ -158,7 +164,24 @@ public class NetClient
 						"\nkey ack = " + key_ack);
 				client.handleStart(loops);
 			}
-
+			
+			/**
+			 * Drops all frame data in a packet.
+			 * @param in The ByteBufferWrap containing the data.
+			 */
+			/*
+			private void dropPacket(ByteBufferWrap in)
+			{
+				in.position(in.position()+LENGTH);
+				
+				do
+				{
+					
+					
+				}
+			}
+			*/
+			
 			/*
 				int		n;
 				long	loops;
@@ -926,6 +949,46 @@ public class NetClient
 						"\ndead time = " + dead_time);
 			}
 		};
+		
+		readers[PKT_FUEL] = new PacketReader()
+		{
+			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				int num = in.getUnsignedShort();
+				int fuel = in.getUnsignedShort();
+				
+				if(PRINT_PACKETS)
+				{
+					System.out.println("\nFuel Packet\ntype = " + type +
+										"\nnum = " + num +
+										"\nfuel = " + fuel);
+				}
+				
+				client.handleFuel(num, fuel);
+			}
+			
+			/*
+			 * int Receive_fuel(void)
+				{
+					int			n;
+					unsigned short	num, fuel;
+					u_byte		ch;
+				
+					if ((n = Packet_scanf(&rbuf, "%c%hu%hu", &ch, &num, &fuel)) <= 0) {
+						return n;
+					}
+					if ((n = Handle_fuel(num, fuel << FUEL_SCALE_BITS)) == -1) {
+						return -1;
+					}
+					if (wbuf.len < MAX_MAP_ACK_LEN) {
+						Packet_printf(&wbuf, "%c%ld%hu", PKT_ACK_FUEL, last_loops, num);
+					}
+					return 1;
+				}
+
+			 */
+		};
 	}
 
 	public void runClient(String serverIP, int serverPort)
@@ -1018,21 +1081,52 @@ public class NetClient
 
 		System.out.println("\nStarting input loop.");
 		startTime = System.currentTimeMillis();
-
+		
+		
+		inputLoop();
+		
+		System.out.println("\nEnd of input loop");
+	}
+	
+	private void inputLoop()
+	{
+		try
+		{
+			channel.configureBlocking(true);
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+		
+		long lastFrameTime = 0;
+		long min_interval = 1000000000/MAX_FPS;
+		long currentFrameTime;
+		
 		while(!quit)
 		{
+			
 			in.clear();
 			receivePacket(in);
+			
+			currentFrameTime = System.nanoTime();
+			//skips packet if FPS is too high
+			if (currentFrameTime-lastFrameTime < min_interval)
+			{
+				continue;
+			}
+			else
+			{
+				lastFrameTime = currentFrameTime;
+			}
+			
 			netPacket(in, reliableBuf);
 
 			//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
 			//keyboard.switchBit(Keys.KEY_THRUST);
 			sendKeyboard(out, keyboard);
 		}
-		
-		
-		System.out.println("\nEnd of input loop");
 	}
+	
 	
 	public void putJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team)
 	{
@@ -1122,7 +1216,7 @@ public class NetClient
 		}
 	}
 
-	public  void sendAck(ByteBufferWrap buf, Ack ack)
+	public void sendAck(ByteBufferWrap buf, Ack ack)
 	{
 		buf.clear();
 		putAck(buf, ack);
@@ -1130,7 +1224,6 @@ public class NetClient
 		{
 			//buf.flip();
 			buf.sendPacket(channel, server_address);
-			
 			if(PRINT_PACKETS)System.out.println("\n"+ack);
 		}
 		catch(IOException e)
@@ -1138,6 +1231,8 @@ public class NetClient
 			e.printStackTrace();
 		}
 	}
+	
+	
 	
 	private  void putPower(ByteBufferWrap buf, short power)
 	{

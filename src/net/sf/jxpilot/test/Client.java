@@ -151,6 +151,12 @@ public class Client implements AbstractClient, ClientInputListener
 		connectors.addConnector(x0, y0, x1, y1, tractor);
 	}
 	
+	public void handleFuel(int num, int fuel)
+	{
+		
+	}
+	
+	
 	//Client Input Listener methods
 	public void quit()
 	{

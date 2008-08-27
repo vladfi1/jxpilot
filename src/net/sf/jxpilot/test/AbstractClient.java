@@ -20,6 +20,7 @@ public interface AbstractClient
 	public void handleFastShot(int type, ByteBufferWrap in, short num);
 	public void handleBall(short x, short y, short id);
 	public void handleConnector(short x0,short y0,short x1,short y1, byte tractor);
+	public void handleFuel(int num, int fuel);
 	
 	/**
      * Prints message in client window.
