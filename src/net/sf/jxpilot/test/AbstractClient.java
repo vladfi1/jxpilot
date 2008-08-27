@@ -18,9 +18,11 @@ public interface AbstractClient
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
 	public void handleFastShot(int type, ByteBufferWrap in, short num);
-	public void handleBall(short x, short y, short id);
-	public void handleConnector(short x0,short y0,short x1,short y1, byte tractor);
+	public void handleBall(Ball b);
+	public void handleConnector(Connector c);
 	public void handleFuel(int num, int fuel);
+	public void handleMine(Mine m);
+	
 	
 	/**
      * Prints message in client window.

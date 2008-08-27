@@ -10,19 +10,24 @@ public class Client implements AbstractClient, ClientInputListener
 	private BlockMap blockMap;
 	private JXPilotFrame frame;
 	private Vector<Collection<? extends Drawable>> drawables;
+	private Collection<DrawableHandler<?>> drawableHandlers;
 	private BitVector keyboard;
+	
+	//Collections holding drawables
+	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
+	private ShotHandler shots;
+	private DrawableHandler<Connector> connectorHandler;
+	private final int CONNECTORS_SIZE = 10;
+	private DrawableHandler<Ball> ballHandler;
+	private final int BALLS_SIZE = 10;
+	private DrawableHandler<Mine> mineHandler;
+	private final int MINES_SIZE = 20;
 	
 	/**
 	 * Our current position.
 	 */
 	private short selfX, selfY;
 	
-	//private Ship[] ships = new Ship[MAX_SHIPS];
-	//Collections holding drawables
-	private HashMap<Integer, Ship> shipMap = new HashMap<Integer, Ship>();
-	private ShotHandler shots;
-	private BallHandler balls;
-	private ConnectorHandler connectors;
 	
 	public Client()
 	{
@@ -32,14 +37,27 @@ public class Client implements AbstractClient, ClientInputListener
 		drawables = new Vector<Collection<? extends Drawable>>();
 		drawables.add(shipMap.values());
 		
+
 		shots = new ShotHandler();
 		drawables.add(shots);
 		
-		balls = new BallHandler();
-		drawables.add(balls);
+		initDrawableHandlers();
+	}
+	
+	private void initDrawableHandlers()
+	{
+		drawableHandlers = new ArrayList<DrawableHandler<?>>();
 		
-		connectors = new ConnectorHandler();
-		drawables.add(connectors);
+		ballHandler = new DrawableHandler<Ball>(new Ball(), BALLS_SIZE);
+		drawableHandlers.add(ballHandler);
+		
+		connectorHandler = new DrawableHandler<Connector>(new Connector(), CONNECTORS_SIZE);
+		drawableHandlers.add(connectorHandler);
+		
+		mineHandler = new DrawableHandler<Mine>(new Mine(), MINES_SIZE);
+		drawableHandlers.add(mineHandler);
+		
+		drawables.addAll(drawableHandlers);
 	}
 	
 	public void runClient(String serverIP, int serverPort)
@@ -113,14 +131,25 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handleStart(int loops)
 	{
+		clearHandlers();
+	}
+	
+	/**
+	 * Clears all in-game objects so that they are refreshed each frame.
+	 */
+	private void clearHandlers()
+	{
 		for (Ship s : shipMap.values())
 		{
 			s.setActive(false);
 		}
 		
 		shots.clearShots();
-		balls.clearBalls();
-		connectors.clearConnectors();
+		
+		for (DrawableHandler<?> d : drawableHandlers)
+		{
+			d.clearDrawables();
+		}
 	}
 	
 	public void handleEnd(int loops)
@@ -141,14 +170,14 @@ public class Client implements AbstractClient, ClientInputListener
 	}
 
 	
-	public void handleBall(short x, short y, short id)
+	public void handleBall(Ball b)
 	{
-		balls.addBall(x, y, id);
+		ballHandler.addDrawable(b);
 	}
 	
-	public void handleConnector(short x0,short y0,short x1,short y1, byte tractor)
+	public void handleConnector(Connector c)
 	{
-		connectors.addConnector(x0, y0, x1, y1, tractor);
+		connectorHandler.addDrawable(c);
 	}
 	
 	public void handleFuel(int num, int fuel)
@@ -156,6 +185,10 @@ public class Client implements AbstractClient, ClientInputListener
 		
 	}
 	
+	public void handleMine(Mine m)
+	{
+		mineHandler.addDrawable(m);
+	}
 	
 	//Client Input Listener methods
 	public void quit()

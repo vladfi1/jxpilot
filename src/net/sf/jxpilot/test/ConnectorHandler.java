@@ -102,6 +102,6 @@ public class ConnectorHandler extends java.util.ArrayList<ConnectorHandler.Conne
 			g2d.draw(ConnectorShape);
 			
 			g2d.setTransform(saved);
-		}		
+		}
 	}
 }

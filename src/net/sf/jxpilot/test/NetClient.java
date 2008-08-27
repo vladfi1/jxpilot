@@ -610,6 +610,8 @@ public class NetClient
 
 		readers[PKT_BALL] = new PacketReader()
 		{
+			private Ball b = new Ball();
+			
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -622,7 +624,7 @@ public class NetClient
 						"\ny = " + y +
 						"\nid = " + id);
 				
-				client.handleBall(x, y, id);
+				client.handleBall(b.setBall(x, y, id));
 			}
 		};
 
@@ -821,6 +823,8 @@ public class NetClient
 
 		readers[PKT_CONNECTOR] = new PacketReader()
 		{
+			private Connector c = new Connector();
+			
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -837,7 +841,7 @@ public class NetClient
 						"\ny1 = " + y1 +
 						"\ntractor = " + tractor);
 				
-				client.handleConnector(x0,y0,x1,y1,tractor);
+				client.handleConnector(c.setConnector(x0, y0, x1, y1, tractor));
 			}
 		};
 
@@ -920,6 +924,8 @@ public class NetClient
 
 		readers[PKT_MINE] = new PacketReader()
 		{
+			private Mine m = new Mine();
+			
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -933,6 +939,8 @@ public class NetClient
 						"\ny = " + y +
 						"\nteam mine = " + team_mine +
 						"\nid = " + id);
+				
+				client.handleMine(m.setMine(x, y, team_mine, id));
 			}
 		};
 
