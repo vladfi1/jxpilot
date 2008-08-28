@@ -15,7 +15,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	//Collections holding drawables
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
-	private DrawableHandler<Shot> shotHandler;
+	private DrawableHandler<FastShot> shotHandler;
 	private final int SHOTS_SIZE = 100;
 	private DrawableHandler<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
@@ -23,6 +23,10 @@ public class Client implements AbstractClient, ClientInputListener
 	private final int BALLS_SIZE = 10;
 	private DrawableHandler<Mine> mineHandler;
 	private final int MINES_SIZE = 20;
+	private DrawableHandler<Debris> debrisHandler;
+	private final int DEBRIS_SIZE = 100;
+	private DrawableHandler<Missile> missileHandler;
+	private final int MISSILE_SIZE = 20;
 	
 	/**
 	 * Our current position. Perhaps would be more efficient to be protected so as to allow direct access.
@@ -47,7 +51,7 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		drawableHandlers = new ArrayList<DrawableHandler<? extends ExtendedDrawable<?>>>();
 		
-		shotHandler = new DrawableHandler<Shot>(new Shot(this), SHOTS_SIZE);
+		shotHandler = new DrawableHandler<FastShot>(new FastShot(this), SHOTS_SIZE);
 		drawableHandlers.add(shotHandler);
 		
 		ballHandler = new DrawableHandler<Ball>(new Ball(), BALLS_SIZE);
@@ -58,6 +62,12 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		mineHandler = new DrawableHandler<Mine>(new Mine(), MINES_SIZE);
 		drawableHandlers.add(mineHandler);
+		
+		debrisHandler = new DrawableHandler<Debris>(new Debris(this), DEBRIS_SIZE);
+		drawableHandlers.add(debrisHandler);
+		
+		missileHandler = new DrawableHandler<Missile>(new Missile(), MISSILE_SIZE);
+		drawableHandlers.add(missileHandler);
 		
 		drawables.addAll(drawableHandlers);
 	}
@@ -159,7 +169,7 @@ public class Client implements AbstractClient, ClientInputListener
 		frame.activeRender();
 	}
 	
-	public void handleFastShot(Shot s)
+	public void handleFastShot(FastShot s)
 	{
 		shotHandler.addDrawable(s);
 		//in.position(in.position()+2*num);
@@ -184,6 +194,15 @@ public class Client implements AbstractClient, ClientInputListener
 	public void handleMine(Mine m)
 	{
 		mineHandler.addDrawable(m);
+	}
+	public void handleDebris(Debris d)
+	{
+		debrisHandler.addDrawable(d);
+	}
+	
+	public void handleMissile(Missile m)
+	{
+		missileHandler.addDrawable(m);
 	}
 	
 	//Client Input Listener methods

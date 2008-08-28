@@ -17,12 +17,13 @@ public interface AbstractClient
 	public void handleLeave(short id);
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
-	public void handleFastShot(Shot s);
+	public void handleFastShot(FastShot s);
 	public void handleBall(Ball b);
 	public void handleConnector(Connector c);
 	public void handleFuel(int num, int fuel);
 	public void handleMine(Mine m);
-	
+	public void handleDebris(Debris d);
+	public void handleMissile(Missile m);
 	
 	/**
      * Prints message in client window.

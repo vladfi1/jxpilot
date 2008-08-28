@@ -5,11 +5,19 @@ import static net.sf.jxpilot.test.UDPTest.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
 import static net.sf.jxpilot.test.Ack.*;
 
+/**
+ * Class to hold reliable data packets.
+ * Note that this class takes complete care of the reliable data stream, including
+ * dropping duplicate/out of order packets, copying reliable data, and sending acks(through a client).
+ * 
+ * @author vlad
+ *
+ */
 class ReliableData
 {
 	public static final int LENGTH = 1+2+4+4;
 	
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, NetClient client)
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, NetClient client)
 	{
 		//buf.rewind();
 		
@@ -48,11 +56,10 @@ class ReliableData
 			 */
 			
 			in.position(in.position()+data.len);
-			client.sendAck(out, Ack.ack.setAck(data));
+			client.sendAck(Ack.ack.setAck(data));
 			//System.out.println("Duplicate Data");
 			return DUPLICATE_DATA;
 		}
-		
 		
 		if (data.rel < offset) {
 			data.len -= (short)(offset - data.rel);
@@ -67,41 +74,49 @@ class ReliableData
 			System.out.println(data);
 		
 		data.incrementOffset();
-		client.sendAck(out, ack.setAck(data));
+		client.sendAck(ack.setAck(data));
 		
 		return NO_ERROR;
 	}
-
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, NetClient client, ByteBufferWrap reliableBuf)
+	/**
+	 * 
+	 * @param data The data to read into.
+	 * @param in The ByteBufferWrap to read from.
+	 * @param client The client to send ack to.
+	 * @param reliableBuf The ByteBufferWrap to copy the reliable data into.
+	 * @return An appropriate ReliableDataError.
+	 */
+	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, NetClient client, ByteBufferWrap reliableBuf)
 	{
-		ReliableDataError error = readReliableData(data, in, out, client);
+		ReliableDataError error = readReliableData(data, in, client);
 		
 		if (error == NO_ERROR)
 		{
 			//reliableBuf.put(in.array(), in.position(), data.getLen());
 			//in.position(in.position() + data.getLen());
 			
+			/*
 			for(int i =0;i<data.getLen();i++)
 			{
 				reliableBuf.putByte(in.getByte());
 			}
+			*/
+			
+			reliableBuf.putBytes(in);
 		}
 		
 		return error;
 	}
 	
-	/*
-	public static ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out, ByteBufferWrap reliableBuf)
+	public ReliableDataError readReliableData(ByteBufferWrap in, NetClient client)
 	{
-		receivePacket(in);
-		in.flip();
-		
-		ReliableDataError error = readReliableData(data, in, out);
-		reliableBuf.put(in);
-		
-		return error;
+		return readReliableData(this, in, client);
 	}
-	*/
+	
+	public ReliableDataError readReliableData(ByteBufferWrap in, NetClient client, ByteBufferWrap reliableBuf)
+	{
+		return readReliableData(this, in, client, reliableBuf);
+	}
 	
 	private static int offset=0;
 
@@ -136,7 +151,7 @@ class ReliableData
 
 	public String toString()
 	{
-		return "Reliable Data:\n"
+		return "\nReliable Data:\n"
 		+"pkt_type = " + String.format("%x", pkt_type)
 		+"\nlen = " + len
 		+"\nrel = " + rel

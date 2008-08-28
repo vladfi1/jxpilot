@@ -26,9 +26,9 @@ public class Mine implements ExtendedDrawable<Mine>
 	public Mine getNewInstance()
 	{return new Mine();}
 	
-	public Mine setDrawable(Mine other)
+	public void setDrawable(Mine other)
 	{
-		return this.setMine(other.x, other.y, other.team_mine, other.id);
+		this.setMine(other.x, other.y, other.team_mine, other.id);
 	}
 	
 	public void paintDrawable(Graphics2D g2d)

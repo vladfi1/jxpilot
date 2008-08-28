@@ -5,19 +5,12 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 
-/**
- * Simple class for storing a shot.
- * @author vlad
- */
-public class Shot implements ExtendedDrawable<Shot>
+public abstract class AbstractDebris<T extends AbstractDebris<T>>  implements ExtendedDrawable<T>
 {
 	//drawing info
-	public static final int SHOT_RADIUS = 2;
-	private static final Color TEAM_COLOR = Color.BLUE;
-	private static final Color ENEMY_COLOR = Color.WHITE;
-	private static final Ellipse2D shotShape = 
-		new Ellipse2D.Float(-SHOT_RADIUS,-SHOT_RADIUS,2*SHOT_RADIUS,2*SHOT_RADIUS);
-	
+	protected Color COLOR;
+	protected Ellipse2D debrisShape;
+
 	//methods/variables for dealing with areas
 	/**
 	 * 256 = 1+max value of an unsigned byte
@@ -43,50 +36,49 @@ public class Shot implements ExtendedDrawable<Shot>
 	}
 
 	
-	private int type;
+	protected int type;
 	/**
 	 * Unsigned byte.
 	 */
 	private short x,y;
-	private final AbstractClient client;
+	private AbstractClient client;
 	
 	/**
-	 * Use this if the Shot is only being used to pass information along.
+	 * Use this if the AbstractDebris is only being used to pass information along.
 	 */
-	public Shot()
+	public AbstractDebris()
 	{
 		client = null;
 	}
 	
 	/**
-	 * Use this if the shot is actually used for drawing.
+	 * Use this if the AbstractDebris is actually used for drawing.
 	 * @param client
 	 */
-	public Shot(AbstractClient client)
+	public AbstractDebris(AbstractClient client)
 	{
 		this.client = client;
 	}
 	
 	/**
-	 * Generates a new Shot, with a reference to the same client.
+	 * Used to instantiate subclasses so that they share the same client (since client is private).
+	 * @param other Another AbstractDebris.
 	 */
-	@Override
-	public Shot getNewInstance()
+	protected void setClient(AbstractDebris<T> other)
 	{
-		return new Shot(client);
+		client = other.client;
 	}
 	
-	public Shot setShot(int type, short x, short y)
+	public void setAbstractDebris(int type, short x, short y)
 	{
 		this.type = type;
 		this.x = x;
 		this.y = y;
-		return this;
 	}
 	
-	public Shot setDrawable(Shot other)
+	public void setDrawable(T other)
 	{
-		return setShot(other.type, other.x, other.y);
+		setAbstractDebris(other.type, other.x, other.y);
 	}
 	
 	public int getType(){return type;}
@@ -97,11 +89,11 @@ public class Shot implements ExtendedDrawable<Shot>
 	{
 		AffineTransform saved = g2d.getTransform();
 		
-		g2d.setColor(ENEMY_COLOR);
+		g2d.setColor(COLOR);
 		g2d.translate(x+client.getSelfX()+getXArea(type)*AREA_SIZE, y+client.getSelfY()+getYArea(type)*AREA_SIZE);
 		
-		g2d.fill(shotShape);
+		g2d.fill(debrisShape);
 		
 		g2d.setTransform(saved);
-	}		
+	}
 }

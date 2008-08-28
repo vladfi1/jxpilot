@@ -57,7 +57,9 @@ public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.Ar
 		}
 		else
 		{
-			this.add(starter.getNewInstance().setDrawable(drawable));
+			T temp = starter.getNewInstance();
+			temp.setDrawable(drawable);
+			this.add(temp);
 			//System.out.println("Increasing Drawables size!");
 		}
 		size++;

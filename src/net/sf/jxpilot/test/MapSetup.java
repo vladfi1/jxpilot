@@ -204,6 +204,7 @@ public class MapSetup implements java.io.Serializable
 		
 		map.setReading();
 		int remaining = map.remaining();
+		
 		for (int i =0;i<remaining;i++)
 		{
 			map_bytes[i] = map.getByte();
@@ -252,7 +253,7 @@ public class MapSetup implements java.io.Serializable
 				cmp--;
 			}
 			while (p < cmp) {
-				count = ByteBufferWrap.getUnsignedByte(map_bytes[cmp]);
+				count = Utilities.getUnsignedByte(map_bytes[cmp]);
 				cmp--;
 				
 				if (count < 2) {

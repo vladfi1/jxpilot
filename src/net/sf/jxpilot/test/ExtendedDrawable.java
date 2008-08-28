@@ -5,12 +5,11 @@ public interface ExtendedDrawable<T extends ExtendedDrawable<T>> extends Drawabl
 	/**
 	 * Sets this ExtendedDrawable have the same state as other.
 	 * @param other ExtendedDrawable.
-	 * @return This ExtendedDrawable.
 	 */
-	public abstract T setDrawable(T other);
+	public abstract void setDrawable(T other);
 	
 	/**
 	 * @return A new instance of this class.
 	 */
-	public T getNewInstance();
+	public abstract T getNewInstance();
 }

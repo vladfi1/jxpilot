@@ -3,7 +3,6 @@ package net.sf.jxpilot.test;
 import static net.sf.jxpilot.test.UDPTest.PRINT_PACKETS;
 import static net.sf.jxpilot.test.Ack.putAck;
 import static net.sf.jxpilot.test.Packet.*;
-import static net.sf.jxpilot.test.ReliableData.readReliableData;
 import static net.sf.jxpilot.test.ReplyData.readReplyData;
 
 import java.io.IOException;
@@ -11,9 +10,9 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.util.*;
+
 public class NetClient
 {
-	
 	private static final Random rnd = new Random();
 	
 	/**
@@ -67,10 +66,10 @@ public class NetClient
 	private int last_keyboard_change=0;
 	
 	/**
-	 * Used for sending acknowledgements.
+	 * Keeps track last frame update number.
+	 * This is also used for sending acknowledgements.
 	 */
 	private int last_loops;
-	
 	private volatile boolean quit = false;
 	
 	//for measurement
@@ -95,11 +94,11 @@ public class NetClient
 				in.setReading();
 				if(PRINT_PACKETS)
 				{
-					System.out.println(readReliableData(reliable, in, out, NetClient.this, reliableBuf));
+					System.out.println(reliable.readReliableData(in, NetClient.this, reliableBuf));
 				}
 				else
 				{
-					readReliableData(reliable, in, out, NetClient.this, reliableBuf);
+					reliable.readReliableData(in, NetClient.this, reliableBuf);
 				}
 				//in.clear();
 			}
@@ -158,6 +157,16 @@ public class NetClient
 
 				numFrames++;
 				
+				//packet is duplicate or out of order
+				if (last_loops >= loops)
+				{
+					in.clear();
+					return;
+				}
+				
+				last_loops = loops;
+				
+				
 				if(PRINT_PACKETS)System.out.println("\nStart Packet :" +
 						"\ntype = " + type +
 						"\nloops = " + loops +
@@ -165,22 +174,6 @@ public class NetClient
 				client.handleStart(loops);
 			}
 			
-			/**
-			 * Drops all frame data in a packet.
-			 * @param in The ByteBufferWrap containing the data.
-			 */
-			/*
-			private void dropPacket(ByteBufferWrap in)
-			{
-				in.position(in.position()+LENGTH);
-				
-				do
-				{
-					
-					
-				}
-			}
-			*/
 			
 			/*
 				int		n;
@@ -413,6 +406,8 @@ public class NetClient
 
 		PacketReader debrisReader = new PacketReader()
 		{
+			private Debris d = new Debris();
+			
 			public void readPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				//if(in.remaining()<2) return;
@@ -421,15 +416,23 @@ public class NetClient
 				int num = in.getUnsignedByte();
 
 
-				if(PRINT_PACKETS)System.out.println("\nDebris Packet" +
+				if(PRINT_PACKETS)
+					System.out.println("\nDebris Packet" +
 						"\ntype = " + type +
 						"\nnum = " + num);
-				in.position(in.position()+2*num);
+				
+				for (int i = 0;i<num;i++)
+				{
+					d.setAbstractDebris(type-DEBRIS_TYPES, in.getUnsignedByte(), in.getUnsignedByte());
+					client.handleDebris(d);
+				}
+				
+				//in.position(in.position()+2*num);
 
 			}
 		};
 
-		int pkt_debris = ByteBufferWrap.getUnsignedByte(PKT_DEBRIS);
+		int pkt_debris = Utilities.getUnsignedByte(PKT_DEBRIS);
 
 		for (int i = 0;i<DEBRIS_TYPES;i++)
 		{
@@ -665,7 +668,7 @@ public class NetClient
 
 		readers[PKT_FASTSHOT] = new PacketReader()
 		{
-			private Shot s = new Shot();
+			private FastShot s = new FastShot();
 			
 			public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
 			{
@@ -687,7 +690,8 @@ public class NetClient
 				
 				for(int i = 0;i<num;i++)
 				{
-					client.handleFastShot(s.setShot(type, in.getUnsignedByte(), in.getUnsignedByte()));
+					s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte());
+					client.handleFastShot(s);
 				}
 		}
 			/*
@@ -960,7 +964,12 @@ public class NetClient
 				if(PRINT_PACKETS)System.out.println("\nCannon Packet\ntype = " + type + 
 						"\nnum = " + num +
 						"\ndead time = " + dead_time);
+				
+				out.putByte(PKT_ACK_CANNON);
+				out.putInt(last_loops);
+				out.putShort((short)num);
 			}
+			
 		};
 		
 		readers[PKT_FUEL] = new PacketReader()
@@ -978,29 +987,37 @@ public class NetClient
 										"\nfuel = " + fuel);
 				}
 				
+				out.putByte(PKT_ACK_FUEL);
+				out.putInt(last_loops);
+				out.putShort((short)num);
+				
 				client.handleFuel(num, fuel);
 			}
+		};
+		
+		readers[PKT_MISSILE] = new PacketReader()
+		{
+			private Missile m = new Missile();
 			
-			/*
-			 * int Receive_fuel(void)
-				{
-					int			n;
-					unsigned short	num, fuel;
-					u_byte		ch;
+			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				short x = in.getShort();
+				short y = in.getShort();
+				short len = in.getUnsignedByte();
+				short dir = in.getUnsignedByte();
 				
-					if ((n = Packet_scanf(&rbuf, "%c%hu%hu", &ch, &num, &fuel)) <= 0) {
-						return n;
-					}
-					if ((n = Handle_fuel(num, fuel << FUEL_SCALE_BITS)) == -1) {
-						return -1;
-					}
-					if (wbuf.len < MAX_MAP_ACK_LEN) {
-						Packet_printf(&wbuf, "%c%ld%hu", PKT_ACK_FUEL, last_loops, num);
-					}
-					return 1;
+				if(PRINT_PACKETS)
+				{
+					System.out.println("\nMissile Packet\ntype = " + type +
+										"\nx = " + x +
+										"\ny = " + y +
+										"\nlen = " + len +
+										"\ndir = " + dir);
 				}
-
-			 */
+				
+				client.handleMissile(m.setMissile(x, y, len, dir));
+			}
 		};
 	}
 
@@ -1071,10 +1088,17 @@ public class NetClient
 		ReliableDataError result=null;
 		while (result!=ReliableDataError.NO_ERROR)
 		{
-			result = getReliableData(reliable, in, out);
+			result = getReliableData(reliable, in);
 			//System.out.println(result);
+			
+			if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
+			{
+				sendPacket(out);
+			}
 		}
-
+		
+		
+		
 		netSetup(in, map, setup, reliable);
 
 		//map.flip();
@@ -1101,6 +1125,7 @@ public class NetClient
 	
 	private void inputLoop()
 	{
+		
 		try
 		{
 			channel.configureBlocking(true);
@@ -1119,11 +1144,11 @@ public class NetClient
 			in.clear();
 			receivePacket(in);
 			
-			currentFrameTime = System.nanoTime();
 			//skips packet if FPS is too high
+			currentFrameTime = System.nanoTime();
 			if (currentFrameTime-lastFrameTime < min_interval)
 			{
-				continue;
+				//continue;
 			}
 			else
 			{
@@ -1134,7 +1159,9 @@ public class NetClient
 
 			//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
 			//keyboard.switchBit(Keys.KEY_THRUST);
-			sendKeyboard(out, keyboard);
+			putKeyboard(out, keyboard);
+			sendPacket(out);
+			out.clear();
 		}
 	}
 	
@@ -1171,6 +1198,10 @@ public class NetClient
 		}
 	}
 	
+	/**
+	 * Note that this method clears buf.
+	 * @param buf The buffer in which the input should be received.
+	 */
 	private void receivePacket(ByteBufferWrap buf)
 	{
 		buf.clear();
@@ -1189,12 +1220,19 @@ public class NetClient
 		
 	}
 	
+	/**
+	 * Note that this method clears buf.
+	 * @param buf The buffer from which the output should be sent.
+	 */
 	private void sendPacket(ByteBufferWrap buf)
 	{
+		if (buf.remaining() <= 0) return;
+		
 		try
 		{
 			buf.sendPacket(channel, server_address);	
 			numPackets++;
+			buf.clear();
 		}
 		catch(IOException e)
 		{
@@ -1227,23 +1265,16 @@ public class NetClient
 		}
 	}
 
-	public void sendAck(ByteBufferWrap buf, Ack ack)
+	private void sendAck(ByteBufferWrap buf, Ack ack)
 	{
-		buf.clear();
 		putAck(buf, ack);
-		try
-		{
-			//buf.flip();
-			buf.sendPacket(channel, server_address);
-			if(PRINT_PACKETS)System.out.println("\n"+ack);
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-		}
+		if(PRINT_PACKETS)System.out.println("\n"+ack);
 	}
 	
-	
+	public void sendAck(Ack ack)
+	{
+		sendAck(out, ack);
+	}
 	
 	private  void putPower(ByteBufferWrap buf, short power)
 	{
@@ -1306,7 +1337,7 @@ public class NetClient
 	 * turn resistance, display, and max fps request.
 	 * 
 	 */
-	private  void netStart(ByteBufferWrap out)
+	private void netStart(ByteBufferWrap out)
 	{
 		out.clear();
 		
@@ -1330,12 +1361,13 @@ public class NetClient
 	}
 	
 	
-	private  ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in, ByteBufferWrap out)
+	private  ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in)
 	{
+		in.clear();
 		receivePacket(in);
 		//in.flip();
 		
-		return readReliableData(data, in, out, this);
+		return data.readReliableData(in, this);
 	}
 	
 	private ReplyMessage getReplyMessage(ByteBufferWrap buf, ReplyMessage message)
@@ -1354,12 +1386,15 @@ public class NetClient
 		return remaining;
 	}
 	
-	private  int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable)
+	private int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable)
 	{
-		ReliableDataError error = getReliableData(reliable, in, out);
+		ReliableDataError error = getReliableData(reliable, in);
 		
 		if (error == ReliableDataError.NO_ERROR)
+		{
+			sendPacket(out);
 			return readMapPacket(in, map, reliable);
+		}
 		
 		return -1;
 		
@@ -1378,11 +1413,15 @@ public class NetClient
 	
 	private  int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
 	{
+		ReliableDataError error = getReliableData(reliable, in);
 		
-		while(getReliableData(reliable, in, out)!=ReliableDataError.NO_ERROR)
+		while(error!=ReliableDataError.NO_ERROR)
 		{
-			System.out.println("Didn't get reliable data when waiting for map");
+			System.out.println("Didn't get reliable data when waiting for map\n" + error + "\n" + reliable);
+			error = getReliableData(reliable, in);
 		}
+		
+		sendPacket(out);
 		
 		return readFirstMapPacket(in, map, setup, reliable);		
 	}
@@ -1517,7 +1556,7 @@ public class NetClient
 	
 	private interface PacketReader
 	{
-		public void readPacket(ByteBufferWrap buf, AbstractClient client) throws PacketReadException;	
+		public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
 		
 		static final ReliableReadException reliableReadException = new ReliableReadException();
 	}	

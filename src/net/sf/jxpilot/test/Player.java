@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.Utilities.*;
 import java.awt.*;
 import java.awt.geom.*;
 
@@ -82,7 +83,6 @@ public class Player implements Drawable
 		AffineTransform saved = g2d.getTransform();
 		
 		g2d.setColor(SHIP_COLOR);
-		//g2d.rotate(heading, x, y);
 		g2d.translate(x, y);
 		
 		FontMetrics fm = g2d.getFontMetrics();
@@ -105,13 +105,5 @@ public class Player implements Drawable
 		//g2d.rotate(-heading, -x, -y);
 		g2d.setTransform(saved);
 	}
-	
-	/**
-	 * @param heading The angle in 128 degree mode.
-	 * @return The angle in radian mode.
-	 */
-	public static double getAngleFrom128(int heading)
-	{
-		return (double)heading * Math.PI/64.0;
-	}
+
 }
