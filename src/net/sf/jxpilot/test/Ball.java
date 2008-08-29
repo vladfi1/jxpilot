@@ -19,6 +19,23 @@ public class Ball implements ExtendedDrawable<Ball>
 	
 	private short x,y;
 	private short id;
+	private AbstractClient client;
+	private Connector connector;
+	
+	private Ball(){}
+	public Ball(AbstractClient client)
+	{
+		this.client = client;
+		connector = new Connector();
+	}
+	
+	/**
+	 * @return A new ball not to be used for drawing.
+	 */
+	public static Ball createHolder()
+	{
+		return new Ball();
+	}
 	
 	public Ball setBall(short x, short y, short id)
 	{
@@ -35,11 +52,17 @@ public class Ball implements ExtendedDrawable<Ball>
 	
 	public Ball getNewInstance()
 	{
-		return new Ball();
+		return new Ball(client);
 	}
 	
 	public short getX(){return x;}
 	public short getY(){return y;}
+	
+	private void setConnector()
+	{
+		Player p = client.getPlayer(id);
+		connector.setConnector(x, y, (short)p.getX(), (short)p.getY(), (byte)0);
+	}
 	
 	public void paintDrawable(Graphics2D g2d)
 	{
@@ -51,5 +74,12 @@ public class Ball implements ExtendedDrawable<Ball>
 		g2d.fill(BallShape);
 		
 		g2d.setTransform(saved);
+		
+
+		if (id>=0)
+		{
+			setConnector();
+			connector.paintDrawable(g2d);
+		}
 	}
 }

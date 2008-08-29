@@ -612,7 +612,7 @@ public class NetClient
 
 		readers[PKT_BALL] = new PacketProcessor()
 		{
-			private Ball b = new Ball();
+			private Ball b = Ball.createHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -621,7 +621,8 @@ public class NetClient
 				short y = in.getShort();
 				short id = in.getShort();
 
-				if(PRINT_PACKETS)System.out.println("\nBall Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nBall Packet\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nid = " + id);

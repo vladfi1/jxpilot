@@ -304,6 +304,7 @@ public class JXPilotFrame extends JFrame
 		keyPreferences.put(KeyEvent.VK_H, Keys.KEY_CHANGE_HOME);
 		keyPreferences.put(KeyEvent.VK_D, Keys.KEY_DROP_BALL);
 		keyPreferences.put(KeyEvent.VK_PAUSE, Keys.KEY_PAUSE);
+		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
 	}
 	
 	public void setDrawables(Vector<Collection<? extends Drawable>> d)

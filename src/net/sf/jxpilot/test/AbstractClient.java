@@ -41,4 +41,6 @@ public interface AbstractClient
      * Returns current view position y value.
      */
     public short getSelfY();
+    
+    public Player getPlayer(short id);
 }

@@ -40,6 +40,16 @@ public class Client implements AbstractClient, ClientInputListener
 	public short getSelfX(){return selfX;}
 	public short getSelfY(){return selfY;}
 	
+	/**
+	 * The id of the player we are watching, or -1 if we aren't dead.
+	 */
+	private int eyesId = -1;
+	
+	public Player getPlayer(short id)
+	{
+		return playerMap.get(id);
+	}
+	
 	public Client()
 	{
 		netClient = new NetClient(this);
@@ -58,7 +68,7 @@ public class Client implements AbstractClient, ClientInputListener
 		shotHandler = new DrawableHandler<FastShot>(new FastShot(this), SHOTS_SIZE);
 		drawableHandlers.add(shotHandler);
 		
-		ballHandler = new DrawableHandler<Ball>(new Ball(), BALLS_SIZE);
+		ballHandler = new DrawableHandler<Ball>(new Ball(this), BALLS_SIZE);
 		drawableHandlers.add(ballHandler);
 		
 		connectorHandler = new DrawableHandler<Connector>(new Connector(), CONNECTORS_SIZE);
@@ -94,7 +104,13 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	private void setFrameView()
 	{
+		if (eyesId == -1)
 		frame.setView((double)selfX/MapBlock.BLOCK_SIZE, (double)selfY/MapBlock.BLOCK_SIZE);
+		else
+		{
+			Player p = playerMap.get(eyesId);
+			frame.setView(p.getX()/MapBlock.BLOCK_SIZE, p.getY()/MapBlock.BLOCK_SIZE);
+		}
 	}
 	
 	public void handleSelf(short x, short y, short vx, short vy, byte heading,
@@ -104,10 +120,11 @@ public class Client implements AbstractClient, ClientInputListener
 			short ext_view_width, short ext_view_height,
 			byte debris_colors, byte stat, byte autopilot_light)
 	{
+		eyesId = -1;
 		selfX = x;
 		selfY = y;
 		//shots.setSelfPosition(x, y);
-		setFrameView();
+		//setFrameView();
 	}
 	
 	public void handleShip(short x, short y, short id, byte dir,
@@ -150,6 +167,11 @@ public class Client implements AbstractClient, ClientInputListener
 		clearHandlers();
 	}
 	
+	public void handleEyes(int id)
+	{
+		eyesId = id;
+	}
+	
 	/**
 	 * Clears all in-game objects so that they are refreshed each frame.
 	 */
@@ -160,8 +182,7 @@ public class Client implements AbstractClient, ClientInputListener
 			p.setActive(false);
 		}
 		
-		//shots.clearShots();
-		
+		//shots.clearShots();		
 		for (DrawableHandler<?> d : drawableHandlers)
 		{
 			d.clearDrawables();
@@ -170,6 +191,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handleEnd(int loops)
 	{
+		setFrameView();
 		frame.activeRender();
 	}
 	
