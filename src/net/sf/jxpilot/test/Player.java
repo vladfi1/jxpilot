@@ -90,9 +90,11 @@ public class Player implements Drawable
 		Rectangle2D bounds = fm.getStringBounds(nick, g2d);
 		
 		//need to flip g2d so nick comes out ok
-		g2d.scale(1, -1);
-		g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
-		g2d.scale(1, -1);
+		//g2d.scale(1, -1);
+		//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
+		//g2d.scale(1, -1);
+		
+		Utilities.drawFlippedString(g2d, nick, (float)-bounds.getWidth()/2, -((float)bounds.getHeight()/2 +SHIP_RADIUS));
 		
 		if (shielded)
 		{

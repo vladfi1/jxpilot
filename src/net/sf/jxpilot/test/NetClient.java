@@ -887,11 +887,12 @@ public class NetClient
 					int y = in.getUnsignedShort();
 					String message = in.getString();
 
-					if(PRINT_PACKETS)System.out.println("\nScore Object Packet\ntype = " + type +
+					//if(PRINT_PACKETS)
+						System.out.println("\nScore Object Packet\ntype = " + type +
 							"\nscore = " + score +
 							"\nx = " + x +
 							"\ny = " + y +
-							"message: " + message);
+							"\nmessage: " + message);
 				}
 				catch (StringReadException e)
 				{
