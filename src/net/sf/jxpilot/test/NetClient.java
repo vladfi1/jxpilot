@@ -58,7 +58,7 @@ public class NetClient
 	private ByteBufferWrap map = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private ByteBufferWrap reliableBuf = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private MapSetup setup = new MapSetup();
-	private final PacketReader[] readers = new PacketReader[256];
+	private final PacketProcessor[] readers = new PacketProcessor[256];
 	private ReplyData reply = new ReplyData();
 	private ReliableData reliable = new ReliableData();
 	private ReplyMessage message = new ReplyMessage();
@@ -87,9 +87,9 @@ public class NetClient
 		//sets function to handle packets
 		
 		//have to be careful here, not all the reliable data may be in packet
-		readers[PKT_RELIABLE] = new PacketReader()
+		readers[PKT_RELIABLE] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				in.setReading();
 				if(PRINT_PACKETS)
@@ -104,9 +104,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_REPLY] = new PacketReader()
+		readers[PKT_REPLY] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<ReplyData.LENGTH)
 				{
@@ -124,9 +124,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_QUIT] = new PacketReader()
+		readers[PKT_QUIT] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				byte type = in.getByte();
 				try
@@ -144,11 +144,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_START] = new PacketReader()
+		readers[PKT_START] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 4 + 4;//9
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				
 				byte type = in.getByte();
@@ -173,7 +173,6 @@ public class NetClient
 						"\nkey ack = " + key_ack);
 				client.handleStart(loops);
 			}
-			
 			
 			/*
 				int		n;
@@ -218,9 +217,9 @@ public class NetClient
 			 */
 		};
 
-		readers[PKT_PLAYER] = new PacketReader()
+		readers[PKT_PLAYER] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				int pos = in.position();
 				try
@@ -291,11 +290,11 @@ public class NetClient
 			 */
 		};
 
-		readers[PKT_SCORE] = new PacketReader()
+		readers[PKT_SCORE] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1+2+2+2+1;
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH)
 				{
@@ -353,11 +352,11 @@ public class NetClient
 			 */
 		};
 
-		readers[PKT_BASE] = new PacketReader()
+		readers[PKT_BASE] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 4;//7
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH)
 				{
@@ -375,9 +374,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_MESSAGE] = new PacketReader()
+		readers[PKT_MESSAGE] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				int pos = in.position();
 
@@ -404,11 +403,11 @@ public class NetClient
 		};
 
 
-		PacketReader debrisReader = new PacketReader()
+		PacketProcessor debrisReader = new PacketProcessor()
 		{
-			private Debris d = new Debris();
+			private Debris d = Debris.createHolder();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				//if(in.remaining()<2) return;
 
@@ -460,9 +459,9 @@ public class NetClient
 			}
 		 */
 
-		readers[PKT_SELF_ITEMS] = new PacketReader()
+		readers[PKT_SELF_ITEMS] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int mask = in.getInt();
@@ -517,13 +516,13 @@ public class NetClient
 			}
 		 */
 
-		readers[PKT_SELF] = new PacketReader()
+		readers[PKT_SELF] = new PacketProcessor()
 		{
 
 			public static final int LENGTH = 
 				(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				if (in.remaining()<LENGTH)
 				{
@@ -574,9 +573,9 @@ public class NetClient
 		};
 
 
-		readers[PKT_MODIFIERS] = new PacketReader()
+		readers[PKT_MODIFIERS] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 
 				int pos = in.position();
@@ -597,9 +596,9 @@ public class NetClient
 		};
 
 
-		readers[PKT_END] = new PacketReader()
+		readers[PKT_END] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int loops = in.getInt();
@@ -611,11 +610,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_BALL] = new PacketReader()
+		readers[PKT_BALL] = new PacketProcessor()
 		{
 			private Ball b = new Ball();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x = in.getShort();
@@ -631,11 +630,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_SHIP] = new PacketReader()
+		readers[PKT_SHIP] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x = in.getShort();
@@ -666,11 +665,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_FASTSHOT] = new PacketReader()
+		readers[PKT_FASTSHOT] = new PacketProcessor()
 		{
-			private FastShot s = new FastShot();
+			private FastShot s = FastShot.createHolder();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
 			{
 				byte pkt = in.getByte();
 				byte type = in.getByte();
@@ -719,11 +718,11 @@ public class NetClient
 
 		};
 
-		readers[PKT_ITEM] = new PacketReader()
+		readers[PKT_ITEM] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 2 + 1;//6
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte pkt = in.getByte();
 				short x = in.getShort();
@@ -738,9 +737,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_FASTRADAR] = new PacketReader()
+		readers[PKT_FASTRADAR] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int n = (in.getByte() & 0xFF);
@@ -773,9 +772,9 @@ public class NetClient
 
 		};
 
-		readers[PKT_PAUSED] = new PacketReader()
+		readers[PKT_PAUSED] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x = in.getShort();
@@ -789,9 +788,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_WRECKAGE] = new PacketReader()
+		readers[PKT_WRECKAGE] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x= in.getShort();
@@ -810,11 +809,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_WAR] = new PacketReader()
+		readers[PKT_WAR] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 2;//5
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 
 				if (in.remaining()<LENGTH) throw reliableReadException;
@@ -830,11 +829,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_CONNECTOR] = new PacketReader()
+		readers[PKT_CONNECTOR] = new PacketProcessor()
 		{
 			private Connector c = new Connector();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x0 = in.getShort();
@@ -854,11 +853,11 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_LEAVE] = new PacketReader()
+		readers[PKT_LEAVE] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2;//3
 
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH) throw reliableReadException;
 
@@ -872,10 +871,10 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_SCORE_OBJECT] = new PacketReader()
+		readers[PKT_SCORE_OBJECT] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
-			public void readPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH) throw reliableReadException;
 
@@ -931,11 +930,11 @@ public class NetClient
 			 */
 		};
 
-		readers[PKT_MINE] = new PacketReader()
+		readers[PKT_MINE] = new PacketProcessor()
 		{
 			private Mine m = new Mine();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x = in.getShort();
@@ -953,9 +952,9 @@ public class NetClient
 			}
 		};
 
-		readers[PKT_CANNON] = new PacketReader()
+		readers[PKT_CANNON] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int num = in.getUnsignedShort();
@@ -972,9 +971,9 @@ public class NetClient
 			
 		};
 		
-		readers[PKT_FUEL] = new PacketReader()
+		readers[PKT_FUEL] = new PacketProcessor()
 		{
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int num = in.getUnsignedShort();
@@ -995,11 +994,11 @@ public class NetClient
 			}
 		};
 		
-		readers[PKT_MISSILE] = new PacketReader()
+		readers[PKT_MISSILE] = new PacketProcessor()
 		{
 			private Missile m = new Missile();
 			
-			public void readPacket(ByteBufferWrap in, AbstractClient client)
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				short x = in.getShort();
@@ -1029,8 +1028,9 @@ public class NetClient
 
 			channel = DatagramChannel.open();
 			socket = channel.socket();
-			//socket.bind();
-
+			//socket.connect(server_address);
+			channel.connect(server_address);
+			
 			System.out.println(socket.getLocalPort());
 		}
 		catch(IOException e)
@@ -1080,8 +1080,18 @@ public class NetClient
 		int server_port = message.getValue();
 		System.out.println("New server port: "+server_port);
 
-		server_address = new InetSocketAddress(serverIP, server_port);
-
+		try
+		{
+			server_address = new InetSocketAddress(serverIP, server_port);
+			channel.disconnect();
+			channel.connect(server_address);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
 		System.out.println("Sending Verify");
 		sendVerify(out, REAL_NAME, NICK);
 
@@ -1096,8 +1106,6 @@ public class NetClient
 				sendPacket(out);
 			}
 		}
-		
-		
 		
 		netSetup(in, map, setup, reliable);
 
@@ -1128,32 +1136,35 @@ public class NetClient
 		
 		try
 		{
-			channel.configureBlocking(true);
+			channel.configureBlocking(false);
 		}
 		catch(IOException e){
 			e.printStackTrace();
 		}
 		
-		long lastFrameTime = 0;
-		long min_interval = 1000000000/MAX_FPS;
-		long currentFrameTime;
+		//long lastFrameTime = 0;
+		//long min_interval = 1000000000/MAX_FPS;
+		//long currentFrameTime;
 		
 		while(!quit)
 		{
 			
-			in.clear();
-			receivePacket(in);
+			/*
+			readPacket(in);
 			
 			//skips packet if FPS is too high
 			currentFrameTime = System.nanoTime();
 			if (currentFrameTime-lastFrameTime < min_interval)
 			{
-				//continue;
+				continue;
 			}
 			else
 			{
 				lastFrameTime = currentFrameTime;
 			}
+			*/
+			
+			readLatestPacket(in);
 			
 			netPacket(in, reliableBuf);
 
@@ -1165,6 +1176,22 @@ public class NetClient
 		}
 	}
 	
+	private ByteBufferWrap temp = new ByteBufferWrap(MAX_PACKET_SIZE);
+	/**
+	 * Reads the last packet sent into in.
+	 * @param in The ByteBufferWrap in which the packet is read.
+	 */
+	private void readLatestPacket(ByteBufferWrap in)
+	{
+		do
+		{
+			temp.clear();
+			temp.putBytes(in);
+		}while(readPacket(in)>0);
+		
+		in.clear();
+		in.putBytes(temp);
+	}
 	
 	public void putJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team)
 	{
@@ -1201,23 +1228,25 @@ public class NetClient
 	/**
 	 * Note that this method clears buf.
 	 * @param buf The buffer in which the input should be received.
+	 * @return The number of bytes read, or -1 if no packets available.
 	 */
-	private void receivePacket(ByteBufferWrap buf)
+	private int readPacket(ByteBufferWrap buf)
 	{
 		buf.clear();
 		try
 		{
-			buf.receivePacket(channel);
+			int read = buf.readPacket(channel);
 			numPackets++;
 			numPacketsReceived++;
-			System.out.println("\nGot Packet-number: " + numPackets + ", " + buf.position() + " bytes.");
-			//System.out.println("\nBuf received " + buf.position());
+			if (PRINT_PACKETS)
+				System.out.println("\nGot Packet-number: " + numPackets + ", " + buf.position() + " bytes.");
+			return read;
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
+			return 0;
 		}
-		
 	}
 	
 	/**
@@ -1364,7 +1393,7 @@ public class NetClient
 	private  ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in)
 	{
 		in.clear();
-		receivePacket(in);
+		readPacket(in);
 		//in.flip();
 		
 		return data.readReliableData(in, this);
@@ -1372,7 +1401,7 @@ public class NetClient
 	
 	private ReplyMessage getReplyMessage(ByteBufferWrap buf, ReplyMessage message)
 	{
-		receivePacket(buf);
+		readPacket(buf);
 		//buf.flip();
 		return ReplyMessage.readReplyMessage(buf, message);
 	}
@@ -1499,7 +1528,7 @@ public class NetClient
 			{	
 				try
 				{
-					readers[type].readPacket(in, client);
+					readers[type].processPacket(in, client);
 				}
 				catch(PacketReadException e)
 				{
@@ -1527,7 +1556,7 @@ public class NetClient
 				int pos = reliableBuf.position();
 				try
 				{
-					readers[type].readPacket(reliableBuf, client);
+					readers[type].processPacket(reliableBuf, client);
 				}
 				catch (ReliableReadException e)
 				{
@@ -1554,14 +1583,14 @@ public class NetClient
 		}
 	}
 	
-	private interface PacketReader
+	private interface PacketProcessor
 	{
-		public void readPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
 		
 		static final ReliableReadException reliableReadException = new ReliableReadException();
-	}	
+	}
 	
-	
+
 	//public send methods for Client
 	
 	/**
@@ -1590,6 +1619,9 @@ public class NetClient
 							"Average fps = " + (double)numFrames/runTime); 
 	}
 	
+	/**
+	 * Stops input loop and sends quit packets.
+	 */
 	public void quit()
 	{
 		quit = true;

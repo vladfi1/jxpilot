@@ -24,7 +24,7 @@ public class FastShot extends AbstractDebris<FastShot>
 		super.debrisShape = shotShape;
 	}
 	
-	public FastShot()
+	private FastShot()
 	{
 		setFastShot();
 	}

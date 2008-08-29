@@ -20,8 +20,6 @@ public class UDPTest {
 	 */
 	public static final boolean PRINT_RELIABLE = false;
 	
-	public static final int MAX_PACKET_SIZE = 65507;
-	public static final int MAGIC =0x4401F4ED;
 	public static final short SERVER_MAIN_PORT = 15345;
 	//public static final short CLIENT_PORT = 15345;
 	
@@ -30,7 +28,7 @@ public class UDPTest {
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String BURKEN_ADDRESS = "83.168.206.7";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = BURKEN_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = STROWGER_ADDRESS;
 	
 	/**
      * JXPilot's windows icon.

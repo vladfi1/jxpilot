@@ -7,9 +7,8 @@ import java.net.*;
 
 /**
  * Wrapper class that handles buffer flips automatically. It does not actually extend ByteBuffer since
- * ByteBuffer has only private methods.
+ * ByteBuffer has only private methods/constructors.
  * @author vlad
- *
  */
 
 public class ByteBufferWrap
@@ -23,7 +22,6 @@ public class ByteBufferWrap
 	public ByteBufferWrap(int capacity)
 	{
 		buffer = ByteBuffer.allocate(capacity);
-
 	}
 	
 	public boolean isWriting(){return writing;}
@@ -62,11 +60,13 @@ public class ByteBufferWrap
 	 * @param channel The UDP channel to read from.
 	 * @return The number of bytes read.
 	 * @throws IOException if channel.read throws an IOException.
+	 * @return The number of bytes read (possibly 0) or -1 if no packets available
+	 * 			and the channel is in non-blocking mode.
 	 */
-	public void receivePacket(DatagramChannel channel) throws IOException
+	public int readPacket(DatagramChannel channel) throws IOException
 	{
-		setWriting();	
-		channel.receive(buffer);
+		setWriting();
+		return channel.read(buffer);
 	}
 	
 	public void sendPacket(DatagramChannel channel, SocketAddress address) throws IOException

@@ -1,5 +1,9 @@
 package net.sf.jxpilot.test;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.util.*;
 
 public class Client implements AbstractClient, ClientInputListener
@@ -16,7 +20,7 @@ public class Client implements AbstractClient, ClientInputListener
 	//Collections holding drawables
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
 	private DrawableHandler<FastShot> shotHandler;
-	private final int SHOTS_SIZE = 100;
+	private final int SHOTS_SIZE = 300;
 	private DrawableHandler<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
 	private DrawableHandler<Ball> ballHandler;
@@ -24,7 +28,7 @@ public class Client implements AbstractClient, ClientInputListener
 	private DrawableHandler<Mine> mineHandler;
 	private final int MINES_SIZE = 20;
 	private DrawableHandler<Debris> debrisHandler;
-	private final int DEBRIS_SIZE = 100;
+	private final int DEBRIS_SIZE = 200;
 	private DrawableHandler<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
 	
