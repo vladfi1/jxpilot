@@ -16,4 +16,10 @@ public interface ClientInputListener
 	 * @param value Whether or not the key is pressed.
 	 */
 	public void setKey(int key, boolean value);
+	
+	/**
+	 * Signals that the mouse pointer has moved.
+	 * @param amount by which pointer has moved.
+	 */
+	public void movePointer(short amount);
 }

@@ -217,6 +217,14 @@ public class Client implements AbstractClient, ClientInputListener
 		
 	}
 	
+    /**
+     * @see net.sf.jxpilot.test.AbstractClient#handleMessage(java.lang.String)
+     */
+    @Override
+    public void handleMessage(String message) {
+        frame.getMessagePool().publishMessage(message);
+    }
+	
 	public void handleMine(Mine m)
 	{
 		mineHandler.addDrawable(m);
@@ -246,12 +254,9 @@ public class Client implements AbstractClient, ClientInputListener
 			keyboard.setBit(key, value);
 		}
 	}
-
-    /**
-     * @see net.sf.jxpilot.test.AbstractClient#handleMessage(java.lang.String)
-     */
-    @Override
-    public void handleMessage(String message) {
-        frame.getMessagePool().publishMessage(message);
-    }
+	
+	public void movePointer(short amount)
+	{
+		netClient.movePointer(amount);
+	}
 }

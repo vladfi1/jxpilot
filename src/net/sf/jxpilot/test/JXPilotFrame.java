@@ -12,18 +12,29 @@ import static net.sf.jxpilot.MathFunctions.*;
 public class JXPilotFrame extends JFrame
 {
 
+	/**
+	 * Whether or not to try to recenter the mouse after every movement.
+	 */
+	public static final boolean MOUSE_RECENTERING = false;
+	
     /**
-	 * Whether the MapFrame uses Full Screen Exclusive Mode.
+	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
 	private boolean FSEM = true;
 
+	/**
+	 * Whether or not the mouse should be used to control user input.
+	 */
+	private boolean mouseControl = false;
+	
 	private AffineTransform identity = new AffineTransform();
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
 
-	private Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	private Toolkit toolkit = Toolkit.getDefaultToolkit();
+	private Dimension screenSize = toolkit.getScreenSize();
 	
 	private ClientInputListener clientInputListener;
 	
@@ -35,7 +46,7 @@ public class JXPilotFrame extends JFrame
 	 * center of viewing screen, in blocks
 	 */
 	private double viewX, viewY;
-
+	
 	public static final int defaultViewSize = 27;
 	
 	/**
@@ -59,26 +70,37 @@ public class JXPilotFrame extends JFrame
 	 * Messages to draw.
 	 */
 	private MessagePool messagePool = null;
-
-	/*
-	private static final int NUM_KEYS = KeyEvent.KEY_LAST-KeyEvent.KEY_FIRST+1; 
 	
-	private static int getKeyIndex(int key)
-	{
-		return key-KeyEvent.KEY_FIRST;
-	}
+	/**
+	 * Maps local keyboard to abstract XPilot keyboard which is sent to server.
+	 * Note that each actual key may represent multiple abstract XPilot keys.
+	 */
+	private HashMap<Integer, Byte[]> keyPreferences;
 	
-	private byte[] keyPreferences = new byte[NUM_KEYS];
-	*/
+	/**
+	 * Maps mouse buttons to abstract XPilot keyboard which is sent to server.
+	 */
+	private HashMap<Integer, Byte[]> mousePreferences;
 	
-	private HashMap<Integer, Byte> keyPreferences;
+	/**
+	 * Maps keyboard to various user options.
+	 */
+	private HashMap<Integer, UserOption> userPreferences;
+	
+	/**
+	 * Maps user options to the actual OptionHandlers.
+	 */
+	private EnumMap<UserOption, OptionHandler> optionHandlers;
+	
 	
 	public JXPilotFrame(BlockMap blockMap, ClientInputListener l)
 	{	
 		clientInputListener = l;
 		
 		defaultKeyInit();
-		
+		defaultMouseInit();
+		defaultUserInit();
+		optionsInit();
 		//this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -131,7 +153,7 @@ public class JXPilotFrame extends JFrame
 			
 			public void keyPressed(KeyEvent e)
 			{
-				
+				/*
 				switch (e.getKeyCode())
 				{
 				
@@ -157,15 +179,22 @@ public class JXPilotFrame extends JFrame
 					clientInputListener.quit();
 					break;
 				}
-				
-				//repaint();
-				//activeRender();
+				*/
 				
 				int key = e.getKeyCode();
 				
+				if (userPreferences.containsKey(key))
+				{
+					optionHandlers.get(userPreferences.get(key)).fireOption();
+					
+					//prevents user options from toggling XPilot commands
+					return;
+				}
+				
 				if (keyPreferences.containsKey(key))
 				{
-					clientInputListener.setKey(keyPreferences.get(key), true);
+					for (byte b : keyPreferences.get(key))
+					clientInputListener.setKey(b, true);
 				}
 			}
 
@@ -175,34 +204,219 @@ public class JXPilotFrame extends JFrame
 				
 				if (keyPreferences.containsKey(key))
 				{
-					clientInputListener.setKey(keyPreferences.get(key), false);
+					for (byte b : keyPreferences.get(key))
+					clientInputListener.setKey(b, false);
+				}
+			}		
+		});
+
+		this.addMouseListener(new MouseAdapter()
+		{
+			
+			public void mousePressed(MouseEvent e)
+			{
+				if (!mouseControl) return;
+				
+				int button = e.getButton();
+				if (mousePreferences.containsKey(button))
+				{
+					for(byte b : mousePreferences.get(button))
+					{
+						clientInputListener.setKey(b, true);
+					}
 				}
 			}
 			
+			public void mouseReleased(MouseEvent e)
+			{
+				if (!mouseControl) return;
+				
+				int button = e.getButton();
+				if (mousePreferences.containsKey(button))
+				{
+					for(byte b : mousePreferences.get(button))
+					{
+						clientInputListener.setKey(b, false);
+					}
+				}			
+			}
 		});
 		
-		this.addWindowListener(new WindowAdapter()
+		this.addMouseMotionListener(new MouseMotionHandler());
+	}
+	
+	/**
+	 * Class that handles MouseMovement. It sends movement to the server so the ship can turn.
+	 * It also attempts to move the mouse pointer back to the center of the screen, if allowed by the system.
+	 * @author vlad
+	 */
+	private class MouseMotionHandler extends MouseMotionAdapter
+	{
+
+		private Robot robot;
+		private int mouseX;
+		private boolean robotMovement;
+		private int centerX = screenSize.width/2,
+					centerY = screenSize.height/2;
+		
+		public MouseMotionHandler()
 		{
+			if (MOUSE_RECENTERING)
+			try
+			{
+				robot = new Robot();
+				this.movePointerBack();
+				//mouseX = screenSize.width/2;
+			}
+			catch(AWTException e)
+			{
+				System.out.println("Can't control mouse movements :(");
+				robot = null;
+			}
+		}
+		
+		public void mouseMoved(MouseEvent e)
+		{
+			if (!mouseControl) return;
 			
-			public void windowActivated(WindowEvent e){}
-			public void windowOpened(WindowEvent e){}
-				
-			public void windowClosed(WindowEvent e)
+			
+			//if (!robotMovement) 
+				handleMove(e);
+		}
+		
+		public void mouseDragged(MouseEvent e)
+		{
+			if (!mouseControl) return;
+			
+			//if (!robotMovement) 
+				handleMove(e);
+		}
+		
+		
+		private void handleMove(MouseEvent e)
+		{
+			if (MOUSE_RECENTERING)
+			// this event is from re-centering the mouse - ignore it
+		    if (robotMovement && centerX == e.getX()
+		        && centerY == e.getY()) {
+		    	robotMovement = false;
+		    }
+		    else
+		    {
+				clientInputListener.movePointer((short)((e.getX()-mouseX)));
+				//mouseX = e.getX();
+				if(robot!=null)
+					movePointerBack();
+				else
+				{
+					mouseX = e.getX();				
+				}
+		    }
+			else
 			{
-				//close = true;
-				//clientInputListener.quit();
+				clientInputListener.movePointer((short)((e.getX()-mouseX)));
+				mouseX = e.getX();
 			}
-
-			public void windowClosing(WindowEvent e)
+		}
+		
+		private void movePointerBack()
+		{
+			robotMovement = true;
+			robot.mouseMove(screenSize.width/2,screenSize.height/2);
+			mouseX = screenSize.width/2;
+			//robotMovement = false;
+		}
+	}
+	
+	private Image blankImage = toolkit.createImage(new byte[]{0});
+	private Cursor noCursor = toolkit.createCustomCursor(blankImage, new Point(1,1), "No Cursor");
+	
+	private void hideCursor()
+	{
+		setCursor(noCursor);
+	}
+	
+	private void showCursor()
+	{
+		this.setCursor(Cursor.getDefaultCursor());
+	}
+	
+	/**
+	 * sets default mouse actions
+	 */
+	
+	private void defaultMouseInit()
+	{
+		mousePreferences = new HashMap<Integer, Byte[]>();
+		
+		mousePreferences.put(MouseEvent.BUTTON1, new Byte[]{Keys.KEY_FIRE_SHOT});
+		mousePreferences.put(MouseEvent.BUTTON3, new Byte[]{Keys.KEY_THRUST});
+	}
+	
+	//keyboard stuff
+	/**
+	 * sets default keys 
+	 */
+	private void defaultKeyInit()
+	{
+		keyPreferences = new HashMap<Integer, Byte[]>();
+		
+		keyPreferences.put(KeyEvent.VK_ENTER,	new Byte[] {Keys.KEY_FIRE_SHOT});
+		keyPreferences.put(KeyEvent.VK_A, 		new Byte[] {Keys.KEY_TURN_LEFT});
+		keyPreferences.put(KeyEvent.VK_S, 		new Byte[] {Keys.KEY_TURN_RIGHT});
+		keyPreferences.put(KeyEvent.VK_SHIFT, 	new Byte[] {Keys.KEY_THRUST});
+		keyPreferences.put(KeyEvent.VK_CONTROL, new Byte[] {Keys.KEY_CONNECTOR});
+		keyPreferences.put(KeyEvent.VK_H, 		new Byte[] {Keys.KEY_CHANGE_HOME});
+		keyPreferences.put(KeyEvent.VK_D, 		new Byte[] {Keys.KEY_DROP_BALL});
+		keyPreferences.put(KeyEvent.VK_PAUSE, 	new Byte[] {Keys.KEY_PAUSE});
+		keyPreferences.put(KeyEvent.VK_M,		new Byte[] {Keys.KEY_TALK} );
+		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
+	}
+	
+	private void optionsInit()
+	{
+		optionHandlers = new EnumMap<UserOption, OptionHandler>(UserOption.class);
+		
+		optionHandlers.put(UserOption.QUIT, new OptionHandler()
+		{
+			public void fireOption()
 			{
-				//clientInputListener.quit();
-				//close = true;
+				clientInputListener.quit();
 			}
-
+		});
+		
+		optionHandlers.put(UserOption.TOGGLE_MOUSE_CONTROL, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				if (mouseControl)
+				{
+					showCursor();
+					mouseControl = false;
+				}
+				else
+				{
+					hideCursor();
+					mouseControl = true;	
+				}
+			}
 		});
 	}
 	
-	private static final int NUM_BUFFERS = 2;
+	private interface OptionHandler{
+		public void fireOption();
+	}
+
+	private void defaultUserInit()
+	{
+		userPreferences = new HashMap<Integer, UserOption>();
+		
+		userPreferences.put(KeyEvent.VK_ESCAPE, UserOption.QUIT);
+		userPreferences.put(KeyEvent.VK_K, UserOption.TOGGLE_MOUSE_CONTROL);	
+	}
+	
+	//graphics stuff
+	private final int NUM_BUFFERS = 2;
 	private GraphicsDevice gd;
 	private Graphics2D screenG2D;
 	private BufferStrategy bufferStrategy;
@@ -267,6 +481,9 @@ public class JXPilotFrame extends JFrame
 		gd.setFullScreenWindow(null);
 	}
 	
+	/**
+	 * Restores screen and disposes of this frame.
+	 */
 	public void finish()
 	{
 		if (FSEM)
@@ -288,25 +505,7 @@ public class JXPilotFrame extends JFrame
 		worldG2D = worldBuffer.createGraphics();
 		worldG2D.setTransform(flippedTransform);
 	}
-	
-	/**
-	 * sets default keys 
-	 */
-	private void defaultKeyInit()
-	{
-		keyPreferences = new HashMap<Integer, Byte>();
-		
-		keyPreferences.put(KeyEvent.VK_ENTER, Keys.KEY_FIRE_SHOT);
-		keyPreferences.put(KeyEvent.VK_A, Keys.KEY_TURN_LEFT);
-		keyPreferences.put(KeyEvent.VK_S, Keys.KEY_TURN_RIGHT);
-		keyPreferences.put(KeyEvent.VK_SHIFT, Keys.KEY_THRUST);
-		keyPreferences.put(KeyEvent.VK_CONTROL, Keys.KEY_CONNECTOR);
-		keyPreferences.put(KeyEvent.VK_H, Keys.KEY_CHANGE_HOME);
-		keyPreferences.put(KeyEvent.VK_D, Keys.KEY_DROP_BALL);
-		keyPreferences.put(KeyEvent.VK_PAUSE, Keys.KEY_PAUSE);
-		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
-	}
-	
+
 	public void setDrawables(Vector<Collection<? extends Drawable>> d)
 	{
 		drawables = d;

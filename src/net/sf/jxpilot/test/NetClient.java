@@ -72,6 +72,11 @@ public class NetClient
 	private int last_loops;
 	private volatile boolean quit = false;
 	
+	/**
+	 * keeps track of how far pointer has moved since the last frame update.
+	 */
+	private volatile short pointer_move_amount = 0;
+	
 	//for measurement
 	private long numPackets = 0;
 	private long numPacketsReceived = 0;
@@ -79,6 +84,7 @@ public class NetClient
 	private long startTime;
 	
 	private AbstractClient client;	
+	
 	
 	public NetClient(AbstractClient client)
 	{
@@ -1169,9 +1175,8 @@ public class NetClient
 			readLatestPacket(in);
 			
 			netPacket(in, reliableBuf);
-
-			//keyboard.switchBit(Keys.KEY_FIRE_SHOT);
-			//keyboard.switchBit(Keys.KEY_THRUST);
+			
+			putPointerMove(out);
 			putKeyboard(out, keyboard);
 			sendPacket(out);
 			out.clear();
@@ -1458,21 +1463,30 @@ public class NetClient
 	}
 	
 	private void putKeyboard(ByteBufferWrap buf, BitVector keyboard)
-	{
+	{		
 		buf.putByte(PKT_KEYBOARD);
 		buf.putInt(last_keyboard_change);
-		buf.putBytes(keyboard.getBytes());
+		
+		synchronized(keyboard)
+		{	
+			buf.putBytes(keyboard.getBytes());
+		}
+		
 		last_keyboard_change++;
 	}
 	
-	private void sendKeyboard(ByteBufferWrap out, BitVector keyboard)
+	public void movePointer(short amount)
 	{
-		synchronized(keyboard)
+		pointer_move_amount += amount;
+	}
+	
+	private void putPointerMove(ByteBufferWrap buf)
+	{
+		if(pointer_move_amount!=0)
 		{
-			out.clear();
-			putKeyboard(out, keyboard);
-			//out.flip();
-			sendPacket(out);
+			buf.putByte(PKT_POINTER_MOVE);
+			buf.putShort(pointer_move_amount);
+			pointer_move_amount = 0;
 		}
 	}
 	
@@ -1488,7 +1502,7 @@ public class NetClient
 	 * Uncompresses the map if necessary.
 	 * 
 	 */
-	private  void netSetup(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
+	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
 	{
 		int i = getFirstMapPacket(in, map, setup, reliable);
 		System.out.println(setup);
