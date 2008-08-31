@@ -32,7 +32,7 @@ public class NetClient
 	public static final String NICK = "test"+rnd.nextInt(1024);
 	public static final String HOST = "java";
 	public static final short POWER = 55;
-	public static final short TURN_SPEED = 4;
+	public static final short TURN_SPEED = 10;
 	public static final short TURN_RESISTANCE = 0;
 	public static final byte MAX_FPS = (byte)20;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};

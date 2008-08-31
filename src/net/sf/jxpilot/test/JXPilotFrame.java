@@ -11,7 +11,6 @@ import static net.sf.jxpilot.MathFunctions.*;
 
 public class JXPilotFrame extends JFrame
 {
-
 	/**
 	 * Whether or not to try to recenter the mouse after every movement.
 	 */
