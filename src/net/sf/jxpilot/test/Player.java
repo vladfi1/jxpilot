@@ -23,14 +23,13 @@ public class Player implements Drawable
 	 * Whether or not to draw the ship.
 	 */
 	private boolean active=false;
-	private int x, y, heading;
+	private short x, y, heading;
 	private Ellipse2D shield;
 	private boolean shielded=false,
 					cloaked=false,
 					emergency_shield=false,
 					phased=false,
 					deflector=false;
-	
 	
 	public Player(short id, short my_team, short my_char, String nick, String real, String host, ShipShape shape)
 	{
@@ -57,14 +56,14 @@ public class Player implements Drawable
 	
 	//ship data
 	public Polygon getShape(){return ship_shape.getShape();}
-	public int getX(){return x;}
-	public int getY(){return y;}
+	public short getX(){return x;}
+	public short getY(){return y;}
 	public int getHeading(){return heading;}
 	public void setActive(boolean b){active = b;}
 	public boolean isActive(){return active;}
 	
 
-	public void setShip(int x, int y, int heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
+	public void setShip(short x, short y, short heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
 	{
 		this.x = x;
 		this.y =y;
@@ -85,8 +84,7 @@ public class Player implements Drawable
 		g2d.setColor(SHIP_COLOR);
 		g2d.translate(x, y);
 		
-		FontMetrics fm = g2d.getFontMetrics();
-		
+		FontMetrics fm = g2d.getFontMetrics();		
 		Rectangle2D bounds = fm.getStringBounds(nick, g2d);
 		
 		//need to flip g2d so nick comes out ok

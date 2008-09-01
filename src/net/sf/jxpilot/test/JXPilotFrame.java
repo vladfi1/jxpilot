@@ -14,7 +14,7 @@ public class JXPilotFrame extends JFrame
 	/**
 	 * Whether or not to try to recenter the mouse after every movement.
 	 */
-	public static final boolean MOUSE_RECENTERING = false;
+	public static final boolean MOUSE_RECENTERING = true;
 	
     /**
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
@@ -36,6 +36,8 @@ public class JXPilotFrame extends JFrame
 	private Dimension screenSize = toolkit.getScreenSize();
 	
 	private ClientInputListener clientInputListener;
+	
+	private GameWorld world;
 	
 	private BlockMap blockMap;
 	private MapSetup setup;
@@ -92,7 +94,7 @@ public class JXPilotFrame extends JFrame
 	private EnumMap<UserOption, OptionHandler> optionHandlers;
 	
 	
-	public JXPilotFrame(BlockMap blockMap, ClientInputListener l)
+	public JXPilotFrame(GameWorld world, ClientInputListener l)
 	{	
 		clientInputListener = l;
 		
@@ -106,7 +108,10 @@ public class JXPilotFrame extends JFrame
 		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		
-		this.blockMap = blockMap;
+		this.world = world;
+		
+		this.blockMap = world.getMap();
+		
 		setup = blockMap.getSetup();
 		blocks = blockMap.getBlocks();
 		
@@ -573,10 +578,10 @@ public class JXPilotFrame extends JFrame
 	
 	
 	private AffineTransform translated = new AffineTransform();
-
 	private void renderGame(Graphics2D screenG2D)
 	{
 		//paintWorld();
+		setViewPosition();
 		setTransform();
 		//paintWorldGraphics();
 		
@@ -602,6 +607,11 @@ public class JXPilotFrame extends JFrame
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);
 	}
 
+	private void setViewPosition()
+	{
+		this.setView((double)world.getSelfX()/MapBlock.BLOCK_SIZE, (double)world.getSelfY()/MapBlock.BLOCK_SIZE);
+	}
+	
 	private BufferedImage createMapBuffer()
 	{
 		BufferedImage temp;

@@ -26,7 +26,7 @@ public class Connector implements ExtendedDrawable<Connector>
 	public Connector getNewInstance()
 	{return new Connector();}
 	
-	public void setDrawable(Connector other)
+	public void set(Connector other)
 	{
 		setConnector(other.x0, other.y0, other.x1, other.y1, other.tractor);
 	}

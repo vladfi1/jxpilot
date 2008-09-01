@@ -20,7 +20,7 @@ public class ScoreObject implements ExtendedDrawable<ScoreObject>
 		return this;
 	}
 	
-	public void setDrawable(ScoreObject other)
+	public void set(ScoreObject other)
 	{
 		setScoreObject(other.score, other.x, other.y, other.message);
 	}
@@ -35,7 +35,7 @@ public class ScoreObject implements ExtendedDrawable<ScoreObject>
 		AffineTransform saved = g2d.getTransform();
 		
 		g2d.setColor(SCORE_OBJECT_COLOR);
-		g2d.translate(x, y);
+		g2d.translate(x*MapBlock.BLOCK_SIZE, y*MapBlock.BLOCK_SIZE);
 		
 		Utilities.drawFlippedString(g2d, String.valueOf(score), x, y);
 		FontMetrics fm = g2d.getFontMetrics();

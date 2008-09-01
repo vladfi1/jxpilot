@@ -3,7 +3,6 @@ package net.sf.jxpilot.test;
 /**
  * Represents a block-based xpilot map.
  * @author vlad
- *
  */
 public class BlockMap implements java.io.Serializable
 {
@@ -28,6 +27,7 @@ public class BlockMap implements java.io.Serializable
 	
 	public MapBlock[][] getBlocks(){return blocks;}
 	public MapSetup getSetup(){return setup;}
+	public MapBlock getBlock(short x, short y){return blocks[x][y];}
 	
 	public String toString()
 	{

@@ -1,5 +1,11 @@
 package net.sf.jxpilot.test;
 
+/**
+ * Class to hold ExtendedDrawables without constantly creating new instances. Might be better implemented as a LinkedList.
+ * @author vlad
+ *
+ * @param <T>
+ */
 public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.ArrayList<T>
 {
 	/**
@@ -16,6 +22,8 @@ public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.Ar
 	public DrawableHandler(T starter, int start_size)
 	{
 		super(start_size);
+		
+		//super();
 		this.starter = starter;
 		for (int i = 0;i<start_size;i++)
 		{
@@ -29,6 +37,7 @@ public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.Ar
 	 * 
 	 * @override size() in ArrayList
 	 */
+	@Override
 	public int size()
 	{
 		return size;
@@ -43,25 +52,53 @@ public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.Ar
 		size = 0;
 	}
 	
+	
+	/**
+	 * Simply calls clearDrawables(). Overrides clear() in ArrayList.
+	 */
+	@Override
+	public void clear()
+	{
+		clearDrawables();
+	}
+	
 	/**
 	 * Adds a Drawable to this DrawableHolder.
-
-	 * @param x The x position of the Drawable.
-	 * @param y The y position of the Drawable.
 	 */
+	
 	public void addDrawable(T drawable)
 	{
 		if (size < super.size())
 		{
-			this.get(size).setDrawable(drawable);
+			this.get(size).set(drawable);
 		}
 		else
 		{
 			T temp = starter.getNewInstance();
-			temp.setDrawable(drawable);
+			temp.set(drawable);
 			this.add(temp);
 			System.out.println("Increasing Drawables size to " + (size+1));
 		}
 		size++;
-	}	
+	}
+	
+	
+	/**
+	 * Adds a Drawable to this DrawableHolder.
+	 */
+	public void addDrawable(Holder<? super T>  drawable)
+	{
+		if (size < super.size())
+		{
+			drawable.set(this.get(size));
+		}
+		else
+		{
+			T temp = starter.getNewInstance();
+			drawable.set(temp);
+			this.add(temp);
+			System.out.println("Increasing Drawables size to " + (size+1));
+		}
+		size++;
+	}
 }

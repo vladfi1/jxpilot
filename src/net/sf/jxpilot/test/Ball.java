@@ -45,7 +45,7 @@ public class Ball implements ExtendedDrawable<Ball>
 		return this;
 	}
 	
-	public void setDrawable(Ball other)
+	public void set(Ball other)
 	{
 		setBall(other.x, other.y, other.id);
 	}

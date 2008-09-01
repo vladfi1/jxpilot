@@ -47,7 +47,7 @@ public class FastShot extends AbstractDebris<FastShot>
 		return temp;
 	}
 	
-	public void setDrawable(FastShot other)
+	public void set(FastShot other)
 	{
 		super.setDrawable(other);
 	}

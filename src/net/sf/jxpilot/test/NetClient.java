@@ -50,12 +50,17 @@ public class NetClient
 	 */
 	public static final int MAX_PACKET_SIZE = 4096;
 	
+	/**
+	 * Largest possible map size = 2^16.
+	 */
+	public static final int MAX_MAP_SIZE = 65536;
+	
 	private InetSocketAddress server_address;
 	private DatagramSocket socket;
 	private DatagramChannel channel;
 	private ByteBufferWrap out = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private ByteBufferWrap in = new ByteBufferWrap(MAX_PACKET_SIZE);
-	private ByteBufferWrap map = new ByteBufferWrap(MAX_PACKET_SIZE);
+	private ByteBufferWrap map = new ByteBufferWrap(MAX_MAP_SIZE);
 	private ByteBufferWrap reliableBuf = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private MapSetup setup = new MapSetup();
 	private final PacketProcessor[] readers = new PacketProcessor[256];
@@ -250,7 +255,7 @@ public class NetClient
 							"\nhost = " + host +
 							"\nship = " + shape);
 
-					client.handlePlayer(id, myTeam, myChar, name, real, host, shape);
+					client.handlePlayer(new Player(id, myTeam, myChar, name, real, host, shape));
 				}
 				catch(StringReadException e)
 				{
@@ -411,7 +416,7 @@ public class NetClient
 
 		PacketProcessor debrisReader = new PacketProcessor()
 		{
-			private Debris d = Debris.createHolder();
+			private AbstractDebrisHolder d = new AbstractDebrisHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -428,8 +433,7 @@ public class NetClient
 				
 				for (int i = 0;i<num;i++)
 				{
-					d.setAbstractDebris(type-DEBRIS_TYPES, in.getUnsignedByte(), in.getUnsignedByte());
-					client.handleDebris(d);
+					client.handleDebris(d.setAbstractDebris(type-DEBRIS_TYPES, in.getUnsignedByte(), in.getUnsignedByte()));
 				}
 				
 				//in.position(in.position()+2*num);
@@ -618,7 +622,7 @@ public class NetClient
 
 		readers[PKT_BALL] = new PacketProcessor()
 		{
-			private Ball b = Ball.createHolder();
+			private BallHolder b = new BallHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -674,7 +678,7 @@ public class NetClient
 
 		readers[PKT_FASTSHOT] = new PacketProcessor()
 		{
-			private FastShot s = FastShot.createHolder();
+			private AbstractDebrisHolder s = new AbstractDebrisHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
 			{
@@ -690,39 +694,16 @@ public class NetClient
 
 				//in.position(in.position()+2*num);
 
-				if(PRINT_PACKETS)System.out.println("\nFastShot Packet\npkt = " + pkt +
-						"\ntype = " + type +
-						"\nnum = " + num);
+				if(PRINT_PACKETS)
+					System.out.println("\nFastShot Packet\npkt = " + pkt +
+										"\ntype = " + type +
+										"\nnum = " + num);
 				
 				for(int i = 0;i<num;i++)
 				{
-					s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte());
-					client.handleFastShot(s);
+					client.handleFastShot(s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte()));
 				}
-		}
-			/*
-				int Receive_fastshot(void)
-				{
-					int			n, r, type;
-
-					rbuf.ptr++;	// skip PKT_FASTSHOT packet id
-
-					if (rbuf.ptr - rbuf.buf + 2 >= rbuf.len) {
-						return 0;
-					}
-					type = (*rbuf.ptr++ & 0xFF);
-					n = (*rbuf.ptr++ & 0xFF);
-					if (rbuf.ptr - rbuf.buf + (n * 2) > rbuf.len) {
-						return 0;
-					}
-					r = Handle_fastshot(type, (u_byte*)rbuf.ptr, n);
-					rbuf.ptr += n * 2;
-
-					return (r == -1) ? -1 : 1;
-				}
-
-			 */
-
+			}
 		};
 
 		readers[PKT_ITEM] = new PacketProcessor()
@@ -838,7 +819,7 @@ public class NetClient
 
 		readers[PKT_CONNECTOR] = new PacketProcessor()
 		{
-			private Connector c = new Connector();
+			private ConnectorHolder c = new ConnectorHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -849,7 +830,8 @@ public class NetClient
 				short y1 = in.getShort();
 				byte tractor = in.getByte();
 
-				if(PRINT_PACKETS)System.out.println("\nConnector Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+						System.out.println("\nConnector Packet\ntype = " + type +
 						"\nx0 = " + x0 +
 						"\ny0 = " + y0 +
 						"\nx1 = " + x1 +
@@ -940,7 +922,7 @@ public class NetClient
 
 		readers[PKT_MINE] = new PacketProcessor()
 		{
-			private Mine m = new Mine();
+			private MineHolder m = new MineHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -1004,7 +986,7 @@ public class NetClient
 		
 		readers[PKT_MISSILE] = new PacketProcessor()
 		{
-			private Missile m = new Missile();
+			private MissileHolder m = new MissileHolder();
 			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
@@ -1024,6 +1006,63 @@ public class NetClient
 				}
 				
 				client.handleMissile(m.setMissile(x, y, len, dir));
+			}
+		};
+		
+		readers[PKT_DAMAGED] = new PacketProcessor()
+		{
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				short damaged = in.getUnsignedByte();
+				
+				if (PRINT_PACKETS)
+				{
+					System.out.println("\nDamaged Packet\ntype = " + type +
+										"\ndamaged = " + damaged);
+				}
+			}
+		};
+		
+		readers[PKT_LASER] = new PacketProcessor()
+		{
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				
+				byte color = in.getByte();
+				short x = in.getShort();
+				short y = in.getShort();
+				short len = in.getShort();
+				short dir = in.getUnsignedByte();
+				
+				if(PRINT_PACKETS)
+				{
+					System.out.println("\nLaser Packet\ntype = " + type +
+										"\nx = " + x +
+										"\ny = " + y +
+										"\nlen = " + len +
+										"\ndir = " + dir);
+				}
+			}
+		};
+		
+		readers[PKT_ECM] = new PacketProcessor()
+		{
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				short x = in.getShort();
+				short y = in.getShort();
+				short size = in.getShort();
+				
+				if (PRINT_PACKETS)
+				{
+					System.out.println("\nECM Packet\ntype = " + type +
+										"\nx = " + x +
+										"\ny = " + y +
+										"\nsize = " + size);
+				}
 			}
 		};
 	}
@@ -1144,7 +1183,7 @@ public class NetClient
 		
 		try
 		{
-			channel.configureBlocking(false);
+			channel.configureBlocking(true);
 		}
 		catch(IOException e){
 			e.printStackTrace();
@@ -1160,6 +1199,7 @@ public class NetClient
 			/*
 			readPacket(in);
 			
+			
 			//skips packet if FPS is too high
 			currentFrameTime = System.nanoTime();
 			if (currentFrameTime-lastFrameTime < min_interval)
@@ -1172,6 +1212,7 @@ public class NetClient
 			}
 			*/
 			
+			//readPacket(in);
 			readLatestPacket(in);
 			
 			netPacket(in, reliableBuf);
@@ -1190,6 +1231,26 @@ public class NetClient
 	 */
 	private void readLatestPacket(ByteBufferWrap in)
 	{
+		try
+		{
+			channel.configureBlocking(true);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		readPacket(in);
+		
+		try
+		{
+			channel.configureBlocking(false);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		
 		do
 		{
 			temp.clear();

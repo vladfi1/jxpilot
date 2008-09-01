@@ -40,7 +40,7 @@ public class Debris extends AbstractDebris<Debris>
 		return temp;
 	}
 	
-	public void setDrawable(Debris other)
+	public void set(Debris other)
 	{
 		super.setDrawable(other);
 	}

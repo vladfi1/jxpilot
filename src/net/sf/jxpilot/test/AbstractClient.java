@@ -12,18 +12,18 @@ public interface AbstractClient
 	public void handleShip(short x, short y, short id, byte dir,
 				boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector);
 
-	public void handlePlayer(short id, short myTeam, short myChar, String name, String real, String host, ShipShape ship);
+	public void handlePlayer(Player p);
 	public void handleRadar(int x, int y, int size);
 	public void handleLeave(short id);
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
-	public void handleFastShot(FastShot s);
-	public void handleBall(Ball b);
-	public void handleConnector(Connector c);
+	public void handleFastShot(AbstractDebrisHolder shot);
+	public void handleBall(BallHolder b);
+	public void handleConnector(ConnectorHolder c);
 	public void handleFuel(int num, int fuel);
-	public void handleMine(Mine m);
-	public void handleDebris(Debris d);
-	public void handleMissile(Missile m);
+	public void handleMine(MineHolder m);
+	public void handleDebris(AbstractDebrisHolder d);
+	public void handleMissile(MissileHolder m);
 	
 	/**
      * Prints message in client window.

@@ -26,7 +26,7 @@ public class Missile implements ExtendedDrawable<Missile>
 	public Missile getNewInstance()
 	{return new Missile();}
 	
-	public void setDrawable(Missile other)
+	public void set(Missile other)
 	{
 		setMissile(other.x, other.y, other.len, other.dir);
 	}
