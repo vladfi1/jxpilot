@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.Utilities.getAngleFrom128;
 import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
@@ -23,6 +24,8 @@ public class GameWorld {
 	 * Map holding the players by id number.
 	 */
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
+	private DrawableHandler<Ship> shipHandler;
+	private final int SHIPS_SIZE = 10;
 	private DrawableHandler<FastShot> shotHandler;
 	private final int SHOTS_SIZE = 300;
 	private DrawableHandler<Connector> connectorHandler;
@@ -47,13 +50,15 @@ public class GameWorld {
 		this.setup = map.getSetup();
 		
 		drawables = new Vector<Collection<? extends Drawable>>();
-		drawables.add(playerMap.values());
 		initDrawableHandlers();
 	}
 	
 	private void initDrawableHandlers()
 	{
 		drawableHandlers = new ArrayList<DrawableHandler<? extends ExtendedDrawable<?>>>();
+		
+		shipHandler = new DrawableHandler<Ship>(new Ship(), SHIPS_SIZE);
+		drawableHandlers.add(shipHandler);
 		
 		shotHandler = new DrawableHandler<FastShot>(new FastShot(), SHOTS_SIZE);
 		drawableHandlers.add(shotHandler);
@@ -86,6 +91,22 @@ public class GameWorld {
 		viewY = y;
 	}
 	
+	public void setViewPosition(short eyesId)
+	{
+		Player p = getPlayer(eyesId);
+		
+		if (p==null)
+		{
+			System.out.println("\nNo player matches id = " + eyesId);
+		}
+		else
+		{
+			viewX = p.getShip().getX();
+			viewY = p.getShip().getY();
+		}
+	}
+	
+	public DrawableHandler<Ship> getShipHandler(){return shipHandler;}
 	public DrawableHandler<Ball> getBallHandler(){return ballHandler;}
 	public DrawableHandler<Connector> getConnectorHandler(){return connectorHandler;}
 	public DrawableHandler<Mine> getMineHandler(){return mineHandler;}
@@ -112,20 +133,20 @@ public class GameWorld {
 	{
 		return playerMap.remove(p.getId());
 	}
-	public void handleShip(short x, short y, short id, byte dir,
-			boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
+	
+	public void addShip(ShipHolder s)
 	{
-		Player p = playerMap.get(id);
+		Player p = getPlayer(s.getId());
 		
 		if (p==null)
 		{
-			System.out.println("********No ship matches id = " + id + "*********");
+			System.out.println("No player matches id = " + s.getId());
+			return;
 		}
-		else
-		{
-			p.setShip(x, y, dir, shield, cloak, emergency_shield, phased, deflector);
-			p.setActive(true);
-		}
+		
+		p.setShip(s);
+		
+		shipHandler.addDrawable(s);
 	}	
 	
 	public void addBall(BallHolder ball)
@@ -178,6 +199,64 @@ public class GameWorld {
 	}
 	
 	//inner Drawable classes	
+	protected class Ship extends ShipHolder implements ExtendedDrawable<Ship>
+	{
+		public static final int SHIP_RADIUS = 16;
+		private  final Color SHIP_COLOR = Color.WHITE;
+		
+		private Ellipse2D shieldShape;		
+		
+		public Ship()
+		{
+			shieldShape = new Ellipse2D.Float();
+			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
+		}
+		
+		public Ship getNewInstance()
+		{
+			return new Ship();
+		}
+		
+		public void set(Ship other)
+		{
+			super.set(other);
+		}
+		
+		public void paintDrawable(Graphics2D g2d)
+		{
+			Player p = getPlayer(id);
+			
+			if (p==null)
+			{
+				System.out.println("No player matches id = " + id);
+			}
+			
+			AffineTransform saved = g2d.getTransform();
+			
+			g2d.setColor(SHIP_COLOR);
+			g2d.translate(x, y);
+			
+			//need to flip g2d so nick comes out ok
+			//g2d.scale(1, -1);
+			//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
+			//g2d.scale(1, -1);
+			
+			Utilities.drawAdjustedString(g2d, p.getNick(), 0, -SHIP_RADIUS);
+			
+			if (shield)
+			{
+				g2d.draw(shieldShape);
+			}
+			
+			g2d.rotate(getAngleFrom128(heading));
+			g2d.draw(p.getShape());
+			//g2d.rotate(-heading);
+			//g2d.translate(-x,-y);
+			//g2d.rotate(-heading, -x, -y);
+			g2d.setTransform(saved);
+		}
+	}
+	
 	public class Ball extends BallHolder implements ExtendedDrawable<Ball>
 	{
 		public static final int Ball_RADIUS = 10;
@@ -211,7 +290,7 @@ public class GameWorld {
 			Player p = getPlayer(id);
 			if (p==null) return false;
 			
-			connector.setConnector(x, y, (short)p.getX(), (short)p.getY(), (byte)0);
+			connector.setConnector(x, y, (short)p.getShip().getX(), (short)p.getShip().getY(), (byte)0);
 			
 			return true;
 		}
@@ -277,6 +356,8 @@ public class GameWorld {
 	
 	public class Mine extends MineHolder implements ExtendedDrawable<Mine>
 	{	
+		public static final String EXPIRED_MINE_NAME = "Expired";
+		
 		private final Color MINE_COLOR = Color.CYAN;
 		public static final int X_RADIUS = 10, Y_RADIUS = 5;
 		private final Ellipse2D.Float mineShape= new Ellipse2D.Float(-X_RADIUS, -Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);
@@ -289,6 +370,18 @@ public class GameWorld {
 			super.set(other);
 		}
 		
+		private String getMineName()
+		{
+			if (id==EXPIRED_MINE_ID) return EXPIRED_MINE_NAME;
+			
+			Player p = getPlayer(id);
+			
+			if (p==null)
+				return null;
+			
+			return p.getNick();
+		}
+		
 		public void paintDrawable(Graphics2D g2d)
 		{
 			AffineTransform saved = g2d.getTransform();
@@ -296,6 +389,12 @@ public class GameWorld {
 			g2d.setColor(MINE_COLOR);
 			g2d.translate(x, y);
 			g2d.fill(mineShape);
+			
+			String s = getMineName();
+			if (s!=null)
+			{
+				Utilities.drawAdjustedString(g2d, s, 0, -Y_RADIUS);
+			}
 			
 			g2d.setTransform(saved);
 		}

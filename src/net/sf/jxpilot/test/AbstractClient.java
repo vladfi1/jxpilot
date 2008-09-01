@@ -9,9 +9,8 @@ public interface AbstractClient
 							byte currentTank, short fuelSum, short fuelMax,
 							short ext_view_width, short ext_view_height,
 							byte debris_colors, byte stat, byte autopilot_light);
-	public void handleShip(short x, short y, short id, byte dir,
-				boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector);
-
+	
+	public void handleShip(ShipHolder s);
 	public void handlePlayer(Player p);
 	public void handleRadar(int x, int y, int size);
 	public void handleLeave(short id);

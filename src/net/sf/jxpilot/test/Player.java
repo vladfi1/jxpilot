@@ -5,11 +5,16 @@ import java.awt.*;
 import java.awt.geom.*;
 
 /**
- * Holds all Player information including ship data.
+ * Holds all Player information.
  * @author vlad
  */
-public class Player implements Drawable
+public class Player
 {
+	/**
+	 * This id indicates that the player does not exist.
+	 */
+	public static final short NO_ID = -1;
+	
 	public static final int SHIP_RADIUS = 16;
 	public static final Color SHIP_COLOR = Color.WHITE;
 	
@@ -23,14 +28,10 @@ public class Player implements Drawable
 	 * Whether or not to draw the ship.
 	 */
 	private boolean active=false;
-	private short x, y, heading;
 	private Ellipse2D shield;
-	private boolean shielded=false,
-					cloaked=false,
-					emergency_shield=false,
-					phased=false,
-					deflector=false;
 	
+	private ShipHolder ship;
+
 	public Player(short id, short my_team, short my_char, String nick, String real, String host, ShipShape shape)
 	{
 		this.id = id;
@@ -43,6 +44,8 @@ public class Player implements Drawable
 		
 		shield = new Ellipse2D.Float();
 		shield.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
+		
+		ship = new ShipHolder();
 	}
 	
 	//player data
@@ -53,57 +56,17 @@ public class Player implements Drawable
 	public String getReal(){return real;}
 	public String getHost(){return host;}
 	public ShipShape getShipShape(){return ship_shape;}
-	
+
 	//ship data
 	public Polygon getShape(){return ship_shape.getShape();}
-	public short getX(){return x;}
-	public short getY(){return y;}
-	public int getHeading(){return heading;}
 	public void setActive(boolean b){active = b;}
 	public boolean isActive(){return active;}
+	public ShipHolder getShip(){return ship;}
 	
-
-	public void setShip(short x, short y, short heading, boolean shield, boolean cloak, boolean emergency_shield, boolean phased, boolean deflector)
-	{
-		this.x = x;
-		this.y =y;
-		this.heading = heading;
-		this.shielded=shield;
-		this.cloaked=cloak;
-		this.emergency_shield=emergency_shield;
-		this.phased=phased;
-		this.deflector=deflector;
-	}
 	
-	public void paintDrawable(Graphics2D g2d)
+	public void setShip(ShipHolder s)
 	{
-		if (!active) return;
-		
-		AffineTransform saved = g2d.getTransform();
-		
-		g2d.setColor(SHIP_COLOR);
-		g2d.translate(x, y);
-		
-		FontMetrics fm = g2d.getFontMetrics();		
-		Rectangle2D bounds = fm.getStringBounds(nick, g2d);
-		
-		//need to flip g2d so nick comes out ok
-		//g2d.scale(1, -1);
-		//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
-		//g2d.scale(1, -1);
-		
-		Utilities.drawFlippedString(g2d, nick, (float)-bounds.getWidth()/2, -((float)bounds.getHeight()/2 +SHIP_RADIUS));
-		
-		if (shielded)
-		{
-			g2d.draw(shield);
-		}
-		g2d.rotate(getAngleFrom128(heading));
-		g2d.draw(getShape());
-		//g2d.rotate(-heading);
-		//g2d.translate(-x,-y);
-		//g2d.rotate(-heading, -x, -y);
-		g2d.setTransform(saved);
+		active = true;
+		s.set(ship);
 	}
-
 }

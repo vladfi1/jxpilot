@@ -2,6 +2,11 @@ package net.sf.jxpilot.test;
 
 public class MineHolder implements Holder<MineHolder>{
 
+	/**
+	 * Assumed that no player has this id.
+	 */
+	public static final int EXPIRED_MINE_ID = 4096;
+	
 	protected short x,y,id;
 	protected byte team_mine;
 

@@ -645,6 +645,8 @@ public class NetClient
 		{
 			public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
 
+			private ShipHolder ship = new ShipHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -672,7 +674,7 @@ public class NetClient
 						"\nphased: " + phased +
 						"\ndeflector: " + deflector);
 
-				client.handleShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector);		
+				client.handleShip(ship.setShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector));
 			}
 		};
 

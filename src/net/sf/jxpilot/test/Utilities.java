@@ -6,7 +6,6 @@ import java.awt.geom.*;
 /**
  * Class with various useful functions.
  * @author vlad
- *
  */
 public class Utilities {
 	
@@ -66,6 +65,20 @@ public class Utilities {
 		g2d.scale(1, -1);
 		g2d.drawString(s, x, -y);
 		g2d.scale(1, -1);
+	}
+	
+	/**
+	 * Draws a String taking into account a flip of the Graphics object.
+	 * (x,y) is where the top middle of the string will be.
+	 * @param g2d Graphics object on which to draw the String.
+	 * @param s The String to be drawn.
+	 * @param x Where the String is drawn.
+	 * @param y Where the String is drawn.
+	 */
+	public static void drawAdjustedString(Graphics2D g2d, String s, float x, float y)
+	{
+		Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(s, g2d);
+		drawFlippedString(g2d, s, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()/2.0));
 	}
 	
 	/**

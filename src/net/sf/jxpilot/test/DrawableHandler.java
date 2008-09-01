@@ -70,7 +70,7 @@ public class DrawableHandler<T extends ExtendedDrawable<T>> extends java.util.Ar
 	{
 		if (size < super.size())
 		{
-			this.get(size).set(drawable);
+			drawable.set(this.get(size));
 		}
 		else
 		{
