@@ -276,7 +276,7 @@ public class GameWorld {
 	}
 	
 	public class Mine extends MineHolder implements ExtendedDrawable<Mine>
-	{
+	{	
 		private final Color MINE_COLOR = Color.CYAN;
 		public static final int X_RADIUS = 10, Y_RADIUS = 5;
 		private final Ellipse2D.Float mineShape= new Ellipse2D.Float(-X_RADIUS, -Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);

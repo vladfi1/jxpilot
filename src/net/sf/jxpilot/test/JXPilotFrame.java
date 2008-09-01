@@ -20,7 +20,7 @@ public class JXPilotFrame extends JFrame
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	private boolean FSEM = false;
+	private boolean FSEM = true;
 
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -527,14 +527,7 @@ public class JXPilotFrame extends JFrame
 		currentTransform.scale(scale, scale);
 		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE-setup.getY()*BLOCK_SIZE);
 	}
-	
-	/*
-	public void renderGame()
-	{
-		panel.renderGame();
-	}
-	*/
-	
+
 	public void activeRender()
 	{
 			try
@@ -557,8 +550,6 @@ public class JXPilotFrame extends JFrame
 			{
 				e.printStackTrace();
 			}
-		
-		//panel.paintScreen();
 	}
 	
 	/**
@@ -574,10 +565,6 @@ public class JXPilotFrame extends JFrame
 	{
 		setView(viewX+dx, viewY+dy);
 	}
-	
-	//private BufferedImage screenBuffer;
-	//private Graphics2D screenG2D;
-	
 	
 	private AffineTransform translated = new AffineTransform();
 	private void renderGame(Graphics2D screenG2D)
