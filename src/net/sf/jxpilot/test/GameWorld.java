@@ -251,6 +251,15 @@ public class GameWorld {
 			super.set(other);			
 		}
 		
+		/**
+		 * Makes sure that the connector is wrapped properly.
+		 */
+		private void checkWrap()
+		{
+			Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
+			//System.out.println("Wrapping connector!");
+		}
+		
 		public void paintDrawable(Graphics2D g2d)
 		{	
 			AffineTransform saved = g2d.getTransform();
@@ -258,6 +267,8 @@ public class GameWorld {
 			g2d.setColor(CONNECTOR_COLOR);
 			
 			connectorShape.setLine(x0, y0, x1, y1);
+			checkWrap();
+			
 			g2d.draw(connectorShape);
 			
 			g2d.setTransform(saved);

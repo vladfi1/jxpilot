@@ -1,6 +1,7 @@
 package net.sf.jxpilot.test;
 
 import java.awt.*;
+import java.awt.geom.*;
 
 /**
  * Class with various useful functions.
@@ -8,6 +9,33 @@ import java.awt.*;
  *
  */
 public class Utilities {
+	
+	private static double doubleMod;
+	public static double trueMod(double x, double m)
+	{
+		//return ((x%m)+m)%m;
+		
+		doubleMod = x%m;
+		return doubleMod >= 0 ? doubleMod : doubleMod+m;
+	}
+	
+	/**
+	 * 
+	 * @param x The number to get modded.
+	 * @param m The modulus.
+	 * @return A positive value for x mod m, since x%m sometimes returns negative values.
+	 */
+	
+	private static int intMod;
+	public static int trueMod(int x, int m)
+	{
+		//return ((x%m)+m)%m;
+		
+		intMod = x%m;
+		return intMod >= 0 ? intMod : intMod+m;
+	}
+	
+	
 	public static int getUnsignedShort(short val)
 	{
 		return (int)((char)val);
@@ -38,5 +66,66 @@ public class Utilities {
 		g2d.scale(1, -1);
 		g2d.drawString(s, x, -y);
 		g2d.scale(1, -1);
+	}
+	
+	/**
+	 * Note that 0<= start, end <= size
+	 * @param size The modulus.
+	 * @param start The start value.
+	 * @param end The end value.
+	 * @return A value for end that is the closest possible to start without changing end mod size.
+	 */
+	public static int wrap(int size, int start, int end)
+	{
+		int dif = end-start;
+		
+		if (dif > size/2)
+		{
+			return end-size;
+		}
+		
+		if (dif < -size/2)
+		{
+			return end+size;
+		}
+		
+		return end;
+	}
+	
+	/**
+	 * Note that 0<= start, end <= size
+	 * @param size The modulus.
+	 * @param start The start value.
+	 * @param end The end value.
+	 * @return A value for end that is the closest possible to start without changing end mod size.
+	 */
+	public static double wrap(double size, double start, double end)
+	{
+		double dif = end-start;
+		
+		if (dif > size/2)
+		{
+			return end-size;
+		}
+		
+		if (dif < -size/2)
+		{
+			return end+size;
+		}
+		
+		return end;
+	}
+	
+	/**
+	 * Invokes wrap() on x2 and y2 with respect to the width/x1 and height/y1.
+	 * @param width The wraping width.
+	 * @param height The wrapping height.
+	 * @param line The current line dimensions.
+	 * @return The given line.
+	 */
+	public static Line2D wrapLine(int width, int height, Line2D line)
+	{
+		line.setLine(line.getX1(), line.getY1(), wrap(width, line.getX1(), line.getX2()), wrap(height, line.getY1(), line.getY2()));
+		return line;
 	}
 }
