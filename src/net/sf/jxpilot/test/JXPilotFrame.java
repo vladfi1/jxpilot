@@ -20,7 +20,7 @@ public class JXPilotFrame extends JFrame
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	private boolean FSEM = true;
+	private boolean FSEM = false;
 
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -133,7 +133,7 @@ public class JXPilotFrame extends JFrame
 		setTransform();
 		//setTransform();
 
-		FSEM = GraphicsEnvironment.getLocalGraphicsEnvironment()
+		FSEM = FSEM && GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice().isFullScreenSupported();
 
 		messagePool = new MessagePool();
@@ -504,9 +504,8 @@ public class JXPilotFrame extends JFrame
 	
 	private void initBuffers()
 	{
-		mapBuffer = createMapBuffer();
-		
-		worldBuffer = createWorldBuffer(mapBuffer);
+		createMapBuffer();
+		createWorldBuffer(mapBuffer);
 		
 		worldG2D = worldBuffer.createGraphics();
 		worldG2D.setTransform(flippedTransform);
@@ -551,6 +550,7 @@ public class JXPilotFrame extends JFrame
 				{
 					System.out.println("BufferStrategy contents lost");
 				}
+				//for linux
 				Toolkit.getDefaultToolkit().sync();
 			}
 			catch(Exception e)
@@ -616,78 +616,55 @@ public class JXPilotFrame extends JFrame
 		this.setView((double)world.getSelfX()/MapBlock.BLOCK_SIZE, (double)world.getSelfY()/MapBlock.BLOCK_SIZE);
 	}
 	
-	private BufferedImage createMapBuffer()
+	private void createMapBuffer()
 	{
-		BufferedImage temp;
-		
 		if (FSEM)
-			temp = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
+			mapBuffer = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
 		else
-			temp = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
+			mapBuffer = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
 		
-		Graphics2D g2d = temp.createGraphics();
+		Graphics2D g2d = mapBuffer.createGraphics();
 
 		g2d.setColor(spaceColor);
-		g2d.fillRect(0, 0, temp.getWidth(), temp.getHeight());
+		g2d.fillRect(0, 0, mapBuffer.getWidth(), mapBuffer.getHeight());
 
 		g2d.setTransform(flippedTransform);
 
 		paintBlocks(g2d);
-
-		return temp;
 	}
 
 	/**
-	 * 
-	 * @param mapBuffer The map image.
-	 * @return A BufferImage representing the map translated into a 3x3 image (for world wrapping).
+	 * How much larger the world buffer should be compared to the mapBuffer.
 	 */
-	private BufferedImage createWorldBuffer(BufferedImage mapBuffer)
-	{
-		BufferedImage temp;
+	private final double worldMarginRatio = 0.1;
+	private int worldMarginX, worldMarginY;
 
-		int worldWidth = 3*mapBuffer.getWidth();
-		int worldHeight = 3*mapBuffer.getHeight();		
+	private void createWorldBuffer(BufferedImage mapBuffer)
+	{
+		worldMarginX = (int) (worldMarginRatio * mapWidth);
+		worldMarginY = (int) (worldMarginRatio * mapHeight);
+		
+		int worldWidth = 2*worldMarginX + mapWidth;
+		int worldHeight = 2*worldMarginY + mapHeight;
 		
 		if (FSEM)
-			temp = gd.getDefaultConfiguration().createCompatibleImage(worldWidth, worldHeight);
+			worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(worldWidth, worldHeight);
 		else
-			temp = new BufferedImage(worldWidth, worldHeight, BufferedImage.TYPE_INT_RGB);
+			worldBuffer = new BufferedImage(worldWidth, worldHeight, BufferedImage.TYPE_INT_RGB);
 		
-		Graphics2D g2d = temp.createGraphics();
+		Graphics2D g2d = worldBuffer.createGraphics();
+		
+		int startX = (int)((worldMarginRatio-1.0)*mapWidth);
+		int startY = (int)((worldMarginRatio-1.0)*mapHeight);
+		
 		
 		for(int x= 0; x<3;x++)
 		{
 			for (int y = 0; y<3;y++)
 			{
-				g2d.drawImage(mapBuffer, x*mapBuffer.getWidth(), y*mapBuffer.getHeight(), this);
+				g2d.drawImage(mapBuffer, x*mapWidth+startX, y*mapHeight+startY, this);
 			}
 		}
-		
-		return temp;
-	}
-	
-	private void paintWorldGraphics()
-	{
-		//worldG2D.setTransform(identity);
-		worldG2D.drawImage(mapBuffer, 0, 0, this);
-
-		worldG2D.setTransform(flippedTransform);
-		
-		if (drawables!=null)
-		{
-			for (Collection<? extends Drawable> c : drawables)
-			{
-				if (c!=null)
-					for (Drawable d : c)
-					{
-						worldG2D.setTransform(flippedTransform);
-						//System.out.println("\nPainting drawable: ****************************************");
-						d.paintDrawable(worldG2D);
-					}
-			}
-		}
-		
 	}
 	
 	/**
@@ -696,7 +673,7 @@ public class JXPilotFrame extends JFrame
 	 */
 	private void paintWorld(Graphics g)
 	{
-		g.drawImage(worldBuffer, -mapWidth, -mapHeight, this);
+		g.drawImage(worldBuffer, -worldMarginX, -worldMarginY, this);
 	}
 	
 	/**
