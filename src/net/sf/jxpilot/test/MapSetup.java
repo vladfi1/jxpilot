@@ -150,13 +150,24 @@ public class MapSetup implements java.io.Serializable
 		return this;
 	}
 	
-	
+	/**
+	 * @return The number of bytes in the map data.
+	 */
 	public int getMapDataLen(){return map_data_len;}
 	public int getMode(){return mode;}
 	public short getLives(){return lives;}
+	/**
+	 * @return The number of blocks in the map x-wise.
+	 */
 	public short getX(){return x;}
+	/**
+	 * @return The number of blocks in the map y-wise.
+	 */
 	public short getY(){return y;}
 	public short getFramesPerSecond(){return frames_per_second;}
+	/**
+	 * @return The type of map compression.
+	 */
 	public short getMapOrder(){return map_order;}
 	public String getName(){return name;}
 	public String getAuthor(){return author;}

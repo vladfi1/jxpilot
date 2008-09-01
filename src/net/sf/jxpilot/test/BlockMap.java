@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
+
 /**
  * Represents a block-based xpilot map.
  * @author vlad
@@ -8,6 +10,7 @@ public class BlockMap implements java.io.Serializable
 {
 	private MapSetup setup;
 	private MapBlock[][] blocks;
+	private int width, height;
 	
 	public BlockMap(MapSetup setup)
 	{
@@ -23,11 +26,16 @@ public class BlockMap implements java.io.Serializable
 				//blocks[x][y].setPosition(x, y);
 			}
 		}
+		
+		width = setup.getX() * BLOCK_SIZE;
+		height = setup.getY() * BLOCK_SIZE;
 	}
 	
 	public MapBlock[][] getBlocks(){return blocks;}
 	public MapSetup getSetup(){return setup;}
 	public MapBlock getBlock(short x, short y){return blocks[x][y];}
+	public int getWidth(){return width;}
+	public int getHeight(){return height;}
 	
 	public String toString()
 	{

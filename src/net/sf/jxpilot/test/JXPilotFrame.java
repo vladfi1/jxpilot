@@ -109,11 +109,12 @@ public class JXPilotFrame extends JFrame
 		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		
 		this.world = world;
-		
-		this.blockMap = world.getMap();
-		
+		blockMap = world.getMap();
 		setup = blockMap.getSetup();
 		blocks = blockMap.getBlocks();
+		
+		mapWidth = blockMap.getWidth();
+		mapHeight = blockMap.getHeight();
 		
 		viewX=setup.getX()/2.0;
 		viewY=setup.getY()/2.0;
@@ -127,7 +128,7 @@ public class JXPilotFrame extends JFrame
 		//currentTransform.translate(-viewX, -viewY);
 		
 		flippedTransform.scale(1, -1);
-		flippedTransform.translate(0, -setup.getY()*BLOCK_SIZE);
+		flippedTransform.translate(0, -mapHeight);
 		
 		setTransform();
 		//setTransform();
@@ -425,6 +426,10 @@ public class JXPilotFrame extends JFrame
 	private Graphics2D screenG2D;
 	private BufferStrategy bufferStrategy;
 	
+	/**
+	 * Map dimensions in xpilot pixels (blocks*BLOCK_SIZE);
+	 */
+	private int mapWidth, mapHeight;
 	private BufferedImage mapBuffer;
 	private BufferedImage worldBuffer;
 	private Graphics2D worldG2D;
@@ -501,10 +506,7 @@ public class JXPilotFrame extends JFrame
 	{
 		mapBuffer = createMapBuffer();
 		
-		if (FSEM)
-			worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(mapBuffer.getWidth(), mapBuffer.getHeight());
-		else
-			worldBuffer = new BufferedImage(mapBuffer.getWidth(), mapBuffer.getHeight(), BufferedImage.TYPE_INT_RGB);
+		worldBuffer = createWorldBuffer(mapBuffer);
 		
 		worldG2D = worldBuffer.createGraphics();
 		worldG2D.setTransform(flippedTransform);
@@ -583,23 +585,25 @@ public class JXPilotFrame extends JFrame
 		//paintWorld();
 		setViewPosition();
 		setTransform();
-		//paintWorldGraphics();
+		
+		screenG2D.setTransform(currentTransform);
+		paintWorld(screenG2D);
 		
 		for(int x= -1; x<=1;x++)
 		{
 			for (int y = -1; y<=1;y++)
 			{
 				translated.setTransform(currentTransform);
-				translated.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
+				translated.translate(x*mapWidth, y*mapHeight);
 				//screenG2D.setTransform(currentTransform);
 				//screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-				paintWorld(screenG2D, translated);
+				paintDrawables(screenG2D, translated);
 			}
 		}
 
 		screenG2D.setTransform(identity);
-//		screenG2D.setColor(Color.WHITE);
-//		screenG2D.drawString("TEST", 30, 30);
+		//screenG2D.setColor(Color.WHITE);
+		//screenG2D.drawString("TEST", 30, 30);
 
 		messagePool.render(screenG2D);
 
@@ -633,13 +637,42 @@ public class JXPilotFrame extends JFrame
 		return temp;
 	}
 
+	/**
+	 * 
+	 * @param mapBuffer The map image.
+	 * @return A BufferImage representing the map translated into a 3x3 image (for world wrapping).
+	 */
+	private BufferedImage createWorldBuffer(BufferedImage mapBuffer)
+	{
+		BufferedImage temp;
+
+		int worldWidth = 3*mapBuffer.getWidth();
+		int worldHeight = 3*mapBuffer.getHeight();		
+		
+		if (FSEM)
+			temp = gd.getDefaultConfiguration().createCompatibleImage(worldWidth, worldHeight);
+		else
+			temp = new BufferedImage(worldWidth, worldHeight, BufferedImage.TYPE_INT_RGB);
+		
+		Graphics2D g2d = temp.createGraphics();
+		
+		for(int x= 0; x<3;x++)
+		{
+			for (int y = 0; y<3;y++)
+			{
+				g2d.drawImage(mapBuffer, x*mapBuffer.getWidth(), y*mapBuffer.getHeight(), this);
+			}
+		}
+		
+		return temp;
+	}
+	
 	private void paintWorldGraphics()
 	{
 		//worldG2D.setTransform(identity);
 		worldG2D.drawImage(mapBuffer, 0, 0, this);
 
 		worldG2D.setTransform(flippedTransform);
-		
 		
 		if (drawables!=null)
 		{
@@ -657,21 +690,31 @@ public class JXPilotFrame extends JFrame
 		
 	}
 	
-	private void paintWorld(Graphics2D g2d)
+	/**
+	 * Paints the worldBuffer onto g. This is just the mapBuffer translated into a 3x3 pattern.
+	 * @param g2d The Graphics object on which to paint.
+	 */
+	private void paintWorld(Graphics g)
 	{
-		g2d.drawImage(mapBuffer, 0, 0, this);
+		g.drawImage(worldBuffer, -mapWidth, -mapHeight, this);
 	}
 	
-	private void paintWorld(Graphics2D g2d, AffineTransform transform)
+	/**
+	 * Paints all drawables in the GameWorld.
+	 * @param g2d The Graphics object on which to draw.
+	 * @param transform The transform used (some drawables may change the transform,
+	 * so this is used to change it back if necessary).
+	 */
+	private void paintDrawables(Graphics2D g2d, AffineTransform transform)
 	{
 		g2d.setTransform(transform);
-		g2d.drawImage(mapBuffer, 0, 0, this);
+		//g2d.drawImage(mapBuffer, 0, 0, this);
 		
 		g2d.transform(flippedTransform);
 		
 		if (drawables!=null)
 		{
-			for (Collection<? extends Drawable> c : drawables)
+			for (Collection<? extends Drawable> c : world.getDrawables())
 			{
 				if (c!=null)
 					for (Drawable d : c)
