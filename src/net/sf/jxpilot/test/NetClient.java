@@ -239,12 +239,12 @@ public class NetClient
 					short id = in.getShort();
 					short myTeam = in.getUnsignedByte();
 					short myChar = in.getUnsignedByte();
-					String name = in.getString();
-					String real = in.getString();
-					String host = in.getString();
+					String name = removeNullCharacter(in.getString());
+                    String real = removeNullCharacter(in.getString());
+                    String host = removeNullCharacter(in.getString());
 
-					ShipShape shape = ShipShape.parseShip(in.getString(), in.getString());
-
+					ShipShape shape = ShipShape.parseShip(in.getString(), in
+                            .getString());
 
 					if(PRINT_PACKETS)System.out.println("\nPlayer Packet\ntype = "  +type+
 							"\nid = "  + id +
@@ -407,7 +407,7 @@ public class NetClient
                 }
 
                 if (message != null) {
-                    message = message.substring(0, message.length() - 1);
+                    message = removeNullCharacter(message);
                     client.handleMessage(message);
                 }
 			}
@@ -1713,4 +1713,20 @@ public class NetClient
 			return keyboard;
 		}
 	}
+
+	/**
+     * Removes null character from end of string.<br>
+     * It doesn't copy the string. See {@link String#substring(int, int)}.
+     * 
+     * @param stringToFix
+     *            String with null character in end.
+     * @return Fixed string, w/o nul character in end.
+     */
+    public static String removeNullCharacter(String stringToFix) {
+        // <code>stringToFix.length() - 1</code> seems wierd, but it remove null
+        // character at end from string(I guess it is not unicode character -
+        // thats why)
+        return stringToFix.substring(0, stringToFix.length() - 1);
+    }
+
 }
