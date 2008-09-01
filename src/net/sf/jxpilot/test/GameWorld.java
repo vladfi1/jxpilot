@@ -38,6 +38,8 @@ public class GameWorld {
 	private final int DEBRIS_SIZE = 200;
 	private DrawableHandler<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
+	private DrawableHandler<ScoreObject> scoreObjectHandler;
+	private final int SCORE_OBJECT_SIZE = 5;
 	
 	/**
 	 * The current view position.
@@ -77,6 +79,9 @@ public class GameWorld {
 		
 		missileHandler = new DrawableHandler<Missile>(new Missile(), MISSILE_SIZE);
 		drawableHandlers.add(missileHandler);
+		
+		scoreObjectHandler = new DrawableHandler<ScoreObject>(new ScoreObject(), SCORE_OBJECT_SIZE);
+		drawableHandlers.add(scoreObjectHandler);
 		
 		drawables.addAll(drawableHandlers);
 	}
@@ -172,13 +177,17 @@ public class GameWorld {
 	public void addFastShot(AbstractDebrisHolder shot)
 	{
 		shotHandler.addDrawable(shot);
-		//System.out.println("Setting FastShot in GameWorld");	
 	}
 	
 	public void addSpark(AbstractDebrisHolder spark)
 	{
 		sparkHandler.addDrawable(spark);
-		//shotHandler.addDrawable(spark);		
+	}
+	
+	public void addScoreObject(ScoreObjectHolder s)
+	{
+		scoreObjectHandler.addDrawable(s);
+		System.out.println("Adding score object in GameWorld");
 	}
 	
 	/**
@@ -564,6 +573,41 @@ public class GameWorld {
 		public void set(Spark other)
 		{
 			super.set(other);
+		}
+	}
+	
+	public class ScoreObject extends ScoreObjectHolder implements ExtendedDrawable<ScoreObject>
+	{
+		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
+		
+		public void set(ScoreObject other)
+		{
+			super.set(other);
+		}
+		
+		public ScoreObject getNewInstance()
+		{
+			return new ScoreObject();
+		}
+		
+		public void paintDrawable(Graphics2D g2d)
+		{
+			System.out.println("Painting score object");
+			
+			AffineTransform saved = g2d.getTransform();
+			
+			g2d.setColor(SCORE_OBJECT_COLOR);
+			//g2d.translate(x, y);
+			
+			int x = super.x * MapBlock.BLOCK_SIZE;
+			int y = super.y * MapBlock.BLOCK_SIZE;
+			
+			Utilities.drawFlippedString(g2d, String.valueOf(score), x, y);
+			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
+			
+			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
+			
+			g2d.setTransform(saved);
 		}
 	}
 }

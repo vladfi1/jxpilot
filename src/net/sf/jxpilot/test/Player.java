@@ -1,6 +1,5 @@
 package net.sf.jxpilot.test;
 
-import static net.sf.jxpilot.test.Utilities.*;
 import java.awt.*;
 import java.awt.geom.*;
 

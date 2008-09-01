@@ -865,6 +865,9 @@ public class NetClient
 		readers[PKT_SCORE_OBJECT] = new PacketProcessor()
 		{
 			public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
+			
+			private ScoreObjectHolder scoreObject = new ScoreObjectHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH) throw reliableReadException;
@@ -884,6 +887,8 @@ public class NetClient
 							"\nx = " + x +
 							"\ny = " + y +
 							"\nmessage: " + message);
+					
+					client.handleScoreObject(scoreObject.setScoreObject(score, x, y, message));
 				}
 				catch (StringReadException e)
 				{
@@ -1218,6 +1223,8 @@ public class NetClient
 			readLatestPacket(in);
 			
 			netPacket(in, reliableBuf);
+			
+			client.handlePacketEnd();
 			
 			putPointerMove(out);
 			putKeyboard(out, keyboard);

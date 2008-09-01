@@ -45,6 +45,12 @@ public class Client implements AbstractClient, ClientInputListener
 	public BlockMap getMap(){return blockMap;}
 	
 	//Abstract Client methods
+	
+	public void handlePacketEnd()
+	{
+		//frame.activeRender();
+	}
+	
 	/**
 	 * Initializes world which maintains map and various drawables.
 	 * Also initializes JXPilotFrame.
@@ -106,24 +112,10 @@ public class Client implements AbstractClient, ClientInputListener
 		world.setViewPosition(eyesId);
 	}
 	
-	/**
-	 * Clears all in-game objects so that they are refreshed each frame.
-	 */
-	/*
-	private void clearHandlers()
+	public void handleScoreObject(ScoreObjectHolder s)
 	{
-		for (Player p : playerMap.values())
-		{
-			p.setActive(false);
-		}
-		
-		//shots.clearShots();		
-		for (DrawableHandler<?> d : drawableHandlers)
-		{
-			d.clearDrawables();
-		}
+		world.addScoreObject(s);
 	}
-	*/
 	
 	public void handleEnd(int loops)
 	{
