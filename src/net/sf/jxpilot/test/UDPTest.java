@@ -1,12 +1,14 @@
 package net.sf.jxpilot.test;
 
-import javax.swing.*;
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
+import net.sf.xpilotpanel.preferences.Preferences;
 
-import java.net.*;
 import java.awt.Image;
+import java.net.URL;
 import java.util.HashMap;
+
+import javax.swing.ImageIcon;
 
 public class UDPTest {
 
@@ -37,32 +39,30 @@ public class UDPTest {
 		
 	public static void main(String[] args)
 	{	
-		/*
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
-            xpilotpanelEmbeddedParams.putByte(
+            xpilotpanelEmbeddedParams.put(
                     XPilotPanel.EMBEDDED_PARAMETER_MAIN_WINDOW_TITLE,
                     "JXPilot - XPilotPanel");
-            xpilotpanelEmbeddedParams.putByte(XPilotPanel.EMBEDDED_PARAMETER_ICON,
+            xpilotpanelEmbeddedParams.put(XPilotPanel.EMBEDDED_PARAMETER_ICON,
                     getJXPilotIcon());
-            xpilotpanelEmbeddedParams.putByte(
+            xpilotpanelEmbeddedParams.put(
                     XPilotPanel.EMBEDDED_PARAMETER_CLIENT_LAUNCH_METHOD,
                     UDPTest.class.getDeclaredMethod("runClient", String.class,
-                            int.class));
+                            int.class, Preferences.class));
 
             XPilotPanel.embeddedLaunch(xpilotpanelEmbeddedParams);
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-		*/
 		
-        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT);
+//        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
 	}
 	
-	public static void runClient(String serverIP, int serverPort)
+	public static void runClient(String serverIP, int serverPort, Preferences prefs)
 	{	
-		new Client().runClient(serverIP, serverPort);
+		new Client(prefs).runClient(serverIP, serverPort);
 	}
 	
     /**

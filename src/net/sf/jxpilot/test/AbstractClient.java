@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.xpilotpanel.preferences.Preferences;
+
 public interface AbstractClient
 {
 	public void handlePacketEnd();
@@ -45,4 +47,12 @@ public interface AbstractClient
     public short getSelfY();
     
     public Player getPlayer(short id);
+
+    /**
+     * Preferences of this client.
+     * 
+     * @see Client#getPreferences()
+     */
+    public Preferences getPreferences();
+
 }

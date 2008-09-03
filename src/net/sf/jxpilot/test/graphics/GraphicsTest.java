@@ -23,7 +23,7 @@ public class GraphicsTest {
 		Client client;
 		BlockMap map;
 		
-		client = new Client();
+		client = new Client(null);
 		client.runClient(UDPTest.LKRAUSS_ADDRESS, UDPTest.SERVER_MAIN_PORT);
 		
 		map = client.getMap();

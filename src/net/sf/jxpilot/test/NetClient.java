@@ -11,6 +11,8 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.util.*;
 
+import net.sf.xpilotpanel.preferences.Preferences;
+
 public class NetClient
 {
 	private static final Random rnd = new Random();
@@ -28,9 +30,6 @@ public class NetClient
 	//these are used for testing, should be changed later to support preferences
 	public static final int TEAM = 0x0000FFFF;
 	public static final String DISPLAY = "";
-	public static final String REAL_NAME = "TEST";
-	public static final String NICK = "test"+rnd.nextInt(1024);
-	public static final String HOST = "java";
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 10;
 	public static final short TURN_RESISTANCE = 0;
@@ -44,8 +43,14 @@ public class NetClient
 	public static final byte SPARK_RAND = 0x33;
 
 	private static final ShipShape SHIP = ShipShape.defaultShip;
-	
-	/**
+
+	// Nick, user and host to send to server. This default values are for if
+    // JXPilot was lauched w/o XPilotPanel.
+    private String NICK = "test"+rnd.nextInt(1024);
+    private String REAL_NAME = "TEST";
+    private String HOST = "java";
+
+    /**
 	 * 2^12=4096
 	 */
 	public static final int MAX_PACKET_SIZE = 4096;
@@ -1117,6 +1122,14 @@ public class NetClient
 		//channel.send(ByteBufferWrap.wrap(first_packet), server_address);
 
 		//receivePacket(in);
+
+		// Processing preferences for this client.
+		Preferences prefs = client.getPreferences();
+		if (prefs != null) {
+		    NICK = prefs.get("XPilotName");
+		    REAL_NAME = prefs.get("XPilotUser");
+		    HOST = prefs.get("XPilotHost");
+		}
 
 		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 

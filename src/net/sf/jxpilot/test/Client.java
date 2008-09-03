@@ -1,6 +1,6 @@
 package net.sf.jxpilot.test;
 
-import java.util.*;
+import net.sf.xpilotpanel.preferences.Preferences;
 
 public class Client implements AbstractClient, ClientInputListener
 {
@@ -8,7 +8,13 @@ public class Client implements AbstractClient, ClientInputListener
 	private BlockMap blockMap;
 	private JXPilotFrame frame;
 	private BitVector keyboard;
-	
+
+	/**
+     * "Preferences" sent by XPilotPanel.<br>
+     * For now its only copy of XPilotPanel's preferences.
+     */
+    private Preferences prefs = null;
+
 	private GameWorld world;
 	
 	/**
@@ -30,12 +36,18 @@ public class Client implements AbstractClient, ClientInputListener
 		return world.getPlayer(id);
 	}
 	
-	
-	public Client()
-	{	
-		netClient = new NetClient(this);
-		keyboard = netClient.getKeyboard();
-	}
+	/**
+     * Creates new <code>Client</code>.
+     * 
+     * @param p
+     *            Preferences for this client or null for launch w/o
+     *            XPilotPanel.
+     */
+    public Client(Preferences p) {
+        prefs = p;
+        netClient = new NetClient(this);
+        keyboard = netClient.getKeyboard();
+    }
 
 	public void runClient(String serverIP, int serverPort)
 	{
@@ -198,4 +210,15 @@ public class Client implements AbstractClient, ClientInputListener
 	{
 		netClient.movePointer(amount);
 	}
+
+    /**
+     * Returns preferences of this client or <code>null</code>, if it was
+     * lauched w/o XPilotPanel.
+     * 
+     * @return Client's preferences.
+     */
+    public Preferences getPreferences() {
+        return prefs;
+    }
+
 }
