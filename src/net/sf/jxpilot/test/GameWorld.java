@@ -17,28 +17,28 @@ public class GameWorld {
 	
 	private Vector<Collection<? extends Drawable>> drawables;
 	
-	private Collection<DrawableHandler<? extends ExtendedDrawable<?>>> drawableHandlers;
+	private Collection<HolderList<? extends Drawable>> holderLists;
 	
 	//various collections to handle 
 	/**
 	 * Map holding the players by id number.
 	 */
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
-	private DrawableHandler<Ship> shipHandler;
+	private HolderList<Ship> shipHandler;
 	private final int SHIPS_SIZE = 10;
-	private DrawableHandler<FastShot> shotHandler;
+	private HolderList<FastShot> shotHandler;
 	private final int SHOTS_SIZE = 300;
-	private DrawableHandler<Connector> connectorHandler;
+	private HolderList<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
-	private DrawableHandler<Ball> ballHandler;
+	private HolderList<Ball> ballHandler;
 	private final int BALLS_SIZE = 10;
-	private DrawableHandler<Mine> mineHandler;
+	private HolderList<Mine> mineHandler;
 	private final int MINES_SIZE = 20;
-	private DrawableHandler<Spark> sparkHandler;
+	private HolderList<Spark> sparkHandler;
 	private final int DEBRIS_SIZE = 200;
-	private DrawableHandler<Missile> missileHandler;
+	private HolderList<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
-	private DrawableHandler<ScoreObject> scoreObjectHandler;
+	private HolderList<ScoreObject> scoreObjectHandler;
 	private final int SCORE_OBJECT_SIZE = 5;
 	
 	/**
@@ -57,33 +57,33 @@ public class GameWorld {
 	
 	private void initDrawableHandlers()
 	{
-		drawableHandlers = new ArrayList<DrawableHandler<? extends ExtendedDrawable<?>>>();
+		holderLists = new ArrayList<HolderList<? extends Drawable>>();
 		
-		shipHandler = new DrawableHandler<Ship>(new Ship(), SHIPS_SIZE);
-		drawableHandlers.add(shipHandler);
+		shipHandler = new HolderList<Ship>(shipFactory, SHIPS_SIZE);
+		holderLists.add(shipHandler);
 		
-		shotHandler = new DrawableHandler<FastShot>(new FastShot(), SHOTS_SIZE);
-		drawableHandlers.add(shotHandler);
+		shotHandler = new HolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
+		holderLists.add(shotHandler);
 		
-		ballHandler = new DrawableHandler<Ball>(new Ball(), BALLS_SIZE);
-		drawableHandlers.add(ballHandler);
+		ballHandler = new HolderList<Ball>(ballFactory, BALLS_SIZE);
+		holderLists.add(ballHandler);
 		
-		connectorHandler = new DrawableHandler<Connector>(new Connector(), CONNECTORS_SIZE);
-		drawableHandlers.add(connectorHandler);
+		connectorHandler = new HolderList<Connector>(connectorFactory, CONNECTORS_SIZE);
+		holderLists.add(connectorHandler);
 		
-		mineHandler = new DrawableHandler<Mine>(new Mine(), MINES_SIZE);
-		drawableHandlers.add(mineHandler);
+		mineHandler = new HolderList<Mine>(mineFactory, MINES_SIZE);
+		holderLists.add(mineHandler);
 		
-		sparkHandler = new DrawableHandler<Spark>(new Spark(), DEBRIS_SIZE);
-		drawableHandlers.add(sparkHandler);
+		sparkHandler = new HolderList<Spark>(sparkFactory, DEBRIS_SIZE);
+		holderLists.add(sparkHandler);
 		
-		missileHandler = new DrawableHandler<Missile>(new Missile(), MISSILE_SIZE);
-		drawableHandlers.add(missileHandler);
+		missileHandler = new HolderList<Missile>(missileFactory, MISSILE_SIZE);
+		holderLists.add(missileHandler);
 		
-		scoreObjectHandler = new DrawableHandler<ScoreObject>(new ScoreObject(), SCORE_OBJECT_SIZE);
-		drawableHandlers.add(scoreObjectHandler);
+		scoreObjectHandler = new HolderList<ScoreObject>(scoreObjectFactory, SCORE_OBJECT_SIZE);
+		holderLists.add(scoreObjectHandler);
 		
-		drawables.addAll(drawableHandlers);
+		drawables.addAll(holderLists);
 	}
 	
 	public BlockMap getMap(){return map;}
@@ -111,13 +111,13 @@ public class GameWorld {
 		}
 	}
 	
-	public DrawableHandler<Ship> getShipHandler(){return shipHandler;}
-	public DrawableHandler<Ball> getBallHandler(){return ballHandler;}
-	public DrawableHandler<Connector> getConnectorHandler(){return connectorHandler;}
-	public DrawableHandler<Mine> getMineHandler(){return mineHandler;}
-	public DrawableHandler<Missile> getMissileHandler(){return missileHandler;}
-	public DrawableHandler<FastShot> getShotHandler(){return shotHandler;}
-	public DrawableHandler<Spark> getSparkHandler(){return sparkHandler;}
+	public HolderList<Ship> getShipHandler(){return shipHandler;}
+	public HolderList<Ball> getBallHandler(){return ballHandler;}
+	public HolderList<Connector> getConnectorHandler(){return connectorHandler;}
+	public HolderList<Mine> getMineHandler(){return mineHandler;}
+	public HolderList<Missile> getMissileHandler(){return missileHandler;}
+	public HolderList<FastShot> getShotHandler(){return shotHandler;}
+	public HolderList<Spark> getSparkHandler(){return sparkHandler;}
 	
 	public Vector<Collection<? extends Drawable>> getDrawables(){return drawables;}
 	
@@ -151,42 +151,42 @@ public class GameWorld {
 		
 		p.setShip(s);
 		
-		shipHandler.addDrawable(s);
+		shipHandler.add(s);
 	}	
 	
 	public void addBall(BallHolder ball)
 	{
-		ballHandler.addDrawable(ball);
+		ballHandler.add(ball);
 	}
 	
 	public void addConnector(ConnectorHolder connector)
 	{
-		connectorHandler.addDrawable(connector);
+		connectorHandler.add(connector);
 	}
 	
 	public void addMine(MineHolder mine)
 	{
-		mineHandler.addDrawable(mine);
+		mineHandler.add(mine);
 	}
 	
 	public void addMissile(MissileHolder missile)
 	{
-		missileHandler.addDrawable(missile);
+		missileHandler.add(missile);
 	}
 	
 	public void addFastShot(AbstractDebrisHolder shot)
 	{
-		shotHandler.addDrawable(shot);
+		shotHandler.add(shot);
 	}
 	
 	public void addSpark(AbstractDebrisHolder spark)
 	{
-		sparkHandler.addDrawable(spark);
+		sparkHandler.add(spark);
 	}
 	
 	public void addScoreObject(ScoreObjectHolder s)
 	{
-		scoreObjectHandler.addDrawable(s);
+		scoreObjectHandler.add(s);
 		System.out.println("Adding score object in GameWorld");
 	}
 	
@@ -201,14 +201,14 @@ public class GameWorld {
 		}
 		
 		//shots.clearShots();		
-		for (DrawableHandler<?> d : drawableHandlers)
+		for (HolderList<?> d : holderLists)
 		{
-			d.clearDrawables();
+			d.clear();
 		}
 	}
 	
 	//inner Drawable classes	
-	protected class Ship extends ShipHolder implements ExtendedDrawable<Ship>
+	protected class Ship extends ShipHolder implements Drawable
 	{
 		public static final int SHIP_RADIUS = 16;
 		private  final Color SHIP_COLOR = Color.WHITE;
@@ -219,11 +219,6 @@ public class GameWorld {
 		{
 			shieldShape = new Ellipse2D.Float();
 			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
-		}
-		
-		public Ship getNewInstance()
-		{
-			return new Ship();
 		}
 		
 		public void set(Ship other)
@@ -265,8 +260,11 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
+	public final Factory<Ship> shipFactory = new Factory<Ship>(){
+		public Ship newInstance(){return new Ship();}
+	};
 	
-	public class Ball extends BallHolder implements ExtendedDrawable<Ball>
+	public class Ball extends BallHolder implements Drawable
 	{
 		public static final int Ball_RADIUS = 10;
 		private final Color BALL_COLOR = Color.GREEN;
@@ -278,11 +276,6 @@ public class GameWorld {
 		public Ball()
 		{
 			connector = new Connector();
-		}
-		
-		public Ball getNewInstance()
-		{
-			return new Ball();
 		}
 		
 		public void set(Ball other)
@@ -304,7 +297,6 @@ public class GameWorld {
 			return true;
 		}
 		
-		
 		public void paintDrawable(Graphics2D g2d)
 		{
 			AffineTransform saved = g2d.getTransform();
@@ -321,9 +313,12 @@ public class GameWorld {
 				if (setConnector());
 				connector.paintDrawable(g2d);
 			}
-		}
-		
+		}	
 	}
+	public final Factory<Ball> ballFactory = new Factory<Ball>(){
+		public Ball newInstance(){return new Ball();}
+	};
+	
 	
 	public class Connector extends ConnectorHolder implements ExtendedDrawable<Connector>
 	{
@@ -362,6 +357,9 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
+	public final Factory<Connector> connectorFactory = new Factory<Connector>(){
+		public Connector newInstance(){return new Connector();}
+	};
 	
 	public class Mine extends MineHolder implements ExtendedDrawable<Mine>
 	{	
@@ -408,20 +406,15 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
+	public final Factory<Mine> mineFactory = new Factory<Mine>(){
+		public Mine newInstance(){return new Mine();}
+	};
 	
-	public class Missile extends MissileHolder implements ExtendedDrawable<Missile>
+	public class Missile extends MissileHolder implements Drawable
 	{
 		public static final int MISSILE_WIDTH = 4;
 		private final Color MISSILE_COLOR = Color.WHITE;
 		private final Rectangle2D.Float missileShape= new Rectangle2D.Float();
-		
-		public Missile getNewInstance()
-		{return new Missile();}
-		
-		public void set(Missile other)
-		{
-			super.set(other);
-		}
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
@@ -437,9 +430,13 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
+	public final Factory<Missile> missileFactory = new Factory<Missile>(){
+		public Missile newInstance(){return new Missile();}
+	};
 	
-	private abstract class AbstractDebris<T extends AbstractDebris<T>> extends AbstractDebrisHolder implements ExtendedDrawable<T>
+	private abstract class AbstractDebris<T extends AbstractDebris<T>> extends AbstractDebrisHolder implements Drawable
 	{
+
 		//drawing info
 		protected Color COLOR;
 		protected Ellipse2D debrisShape;
@@ -475,27 +472,6 @@ public class GameWorld {
 			debrisShape = shape;
 		}
 
-		
-		@Override
-		public void set(T other)
-		{
-			setAbstractDebris(other.type, other.x, other.y);
-			System.out.println("Setting AbstractDebris in GameWorld");
-		}
-		
-		/*
-		@Override
-		public void set(AbstractDebrisHolder other)
-		{
-			this.set(other);
-			System.out.println("Setting FastShot in GameWorld");
-		}
-		*/
-		
-		public int getType(){return type;}
-		public short getX(){return x;}
-		public short getY(){return y;}
-		
 		public void paintDrawable(Graphics2D g2d)
 		{
 			AffineTransform saved = g2d.getTransform();
@@ -520,20 +496,15 @@ public class GameWorld {
 		public FastShot()
 		{
 			super.debrisShape = shotShape;
-			super.COLOR = ENEMY_COLOR;
-		}
-		
-		public FastShot getNewInstance()
-		{
-			return new FastShot();
+			//super.COLOR = ENEMY_COLOR;
 		}
 		
 		@Override
-		public void set(FastShot other)
+		public FastShot setAbstractDebris(int type, short x, short y)
 		{
-			super.set(other);
+			super.setAbstractDebris(type, x, y);
 			setColor();
-			System.out.println("Setting FastShot in GameWorld");	
+			return this;
 		}
 		
 		/**
@@ -545,6 +516,10 @@ public class GameWorld {
 			super.COLOR = ENEMY_COLOR;
 		}
 	}
+	public final Factory<FastShot> fastShotFactory = new Factory<FastShot>(){
+		public FastShot newInstance(){return new FastShot();}
+	};
+	
 	
 	public class Spark extends AbstractDebris<Spark>
 	{
@@ -556,39 +531,35 @@ public class GameWorld {
 		
 		private void setDebris()
 		{
-			super.COLOR = SPARK_COLOR;
+			//super.COLOR = SPARK_COLOR;
 			super.debrisShape = sparkShape;
 		}
 		
-		private Spark()
+		public Spark()
 		{
 			setDebris();
 		}
-
-		public Spark getNewInstance()
+		
+		@Override
+		public Spark setAbstractDebris(int type, short x, short y)
 		{
-			return new Spark();
+			super.setAbstractDebris(type, x, y);
+			setColor();
+			return this;
 		}
 		
-		public void set(Spark other)
+		private void setColor()
 		{
-			super.set(other);
+			super.COLOR = SPARK_COLOR;
 		}
 	}
+	public final Factory<Spark> sparkFactory = new Factory<Spark>(){
+		public Spark newInstance(){return new Spark();}
+	};
 	
-	public class ScoreObject extends ScoreObjectHolder implements ExtendedDrawable<ScoreObject>
+	public class ScoreObject extends ScoreObjectHolder implements Drawable
 	{
 		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
-		
-		public void set(ScoreObject other)
-		{
-			super.set(other);
-		}
-		
-		public ScoreObject getNewInstance()
-		{
-			return new ScoreObject();
-		}
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
@@ -610,4 +581,7 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
+	public final Factory<ScoreObject> scoreObjectFactory = new Factory<ScoreObject>(){
+		public ScoreObject newInstance(){return new ScoreObject();}
+	};
 }

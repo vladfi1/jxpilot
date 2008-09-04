@@ -1,12 +1,12 @@
 package net.sf.jxpilot.test;
 
 /**
- * Subclasses should be of the form Foo implements Holder<Foo>
+ * 
  * @author vlad
  *
  * @param <T> The subclass type.
  */
-public interface Holder<T> {
+public interface Holder<T extends Holder<T>> {
 	/**
 	 * @param other Sets another object to have the same information as this Holder.
 	 */
