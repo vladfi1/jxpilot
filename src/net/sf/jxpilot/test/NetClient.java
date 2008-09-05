@@ -1051,6 +1051,7 @@ public class NetClient
 				if(PRINT_PACKETS)
 				{
 					System.out.println("\nLaser Packet\ntype = " + type +
+										"\ncolor = " + color +
 										"\nx = " + x +
 										"\ny = " + y +
 										"\nlen = " + len +
@@ -1075,6 +1076,28 @@ public class NetClient
 										"\ny = " + y +
 										"\nsize = " + size);
 				}
+			}
+		};
+		
+		readers[PKT_REFUEL] = new PacketProcessor()
+		{
+			public void processPacket(ByteBufferWrap in, AbstractClient client)
+			{
+				byte type = in.getByte();
+				short x0 = in.getShort();
+				short y0 = in.getShort();
+				short x1 = in.getShort();
+				short y1 = in.getShort();
+				
+				if(PRINT_PACKETS)
+				{
+					System.out.println("\nRefuel Packet\ntype = " + type +
+										"\nx0 = " + x0 +
+										"\ny0 = " + y0 +
+										"\nx1 = " + x1 +
+										"\ny1 = " + y1);
+				}
+				
 			}
 		};
 	}

@@ -20,7 +20,7 @@ public class JXPilotFrame extends JFrame
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	private boolean FSEM = true;
+	private boolean FSEM = false;
 
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -142,10 +142,11 @@ public class JXPilotFrame extends JFrame
 			initFullScreen();
 		else
 		{
-			this.setUndecorated(true);
+			//this.setUndecorated(true);
 			this.setIgnoreRepaint(true);
 			this.setSize(screenSize);
 			this.setVisible(true);
+			this.setResizable(true);
 			setBufferStrategy();
 		}
 		
