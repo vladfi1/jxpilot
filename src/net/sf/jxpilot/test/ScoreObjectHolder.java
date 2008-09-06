@@ -9,12 +9,20 @@ public class ScoreObjectHolder implements Holder<ScoreObjectHolder>
 	protected int x,y;
 	protected String message;
 	
+	/**
+	 * Note that null chars are removed from end of message.
+	 * @param score
+	 * @param x
+	 * @param y
+	 * @param message
+	 * @return This ScoreObjectHolder.
+	 */
 	public ScoreObjectHolder setScoreObject(short score, int x, int y, String message)
 	{
 		this.score = score;
 		this.x = x;
 		this.y = y;
-		this.message= message;
+		this.message= Utilities.removeNullCharacter(message);
 		return this;
 	}
 	

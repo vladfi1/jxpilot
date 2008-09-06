@@ -115,7 +115,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handleStart(int loops)
 	{
-		world.clearDrawables();
+		world.update();
 	}
 	
 	public void handleEyes(short id)

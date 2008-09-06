@@ -38,7 +38,8 @@ public class UDPTest {
     private static Image icon = null;
 		
 	public static void main(String[] args)
-	{	
+	{
+		/*
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
             xpilotpanelEmbeddedParams.put(
@@ -56,8 +57,9 @@ public class UDPTest {
         catch (Exception e) {
             e.printStackTrace();
         }
+		*/
 		
-//        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
+        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
 	}
 	
 	public static void runClient(String serverIP, int serverPort, Preferences prefs)

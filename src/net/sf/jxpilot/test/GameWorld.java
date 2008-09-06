@@ -15,7 +15,7 @@ public class GameWorld {
 	private BlockMap map;
 	private MapSetup setup;
 	
-	private Vector<Collection<? extends Drawable>> drawables;
+	private Vector<Iterable<? extends Drawable>> drawables;
 	
 	private Collection<HolderList<? extends Drawable>> holderLists;
 	
@@ -38,8 +38,11 @@ public class GameWorld {
 	private final int DEBRIS_SIZE = 200;
 	private HolderList<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
-	private HolderList<ScoreObject> scoreObjectHandler;
-	private final int SCORE_OBJECT_SIZE = 5;
+	private TimedQueue<ScoreObject> scoreObjectHandler;
+	/**
+	 * Score objects should be displayed for 3 seconds.
+	 */
+	private final long SCORE_OBJECT_DURATION = 3*1000;
 	
 	/**
 	 * The current view position.
@@ -51,7 +54,7 @@ public class GameWorld {
 		this.map = map;
 		this.setup = map.getSetup();
 		
-		drawables = new Vector<Collection<? extends Drawable>>();
+		drawables = new Vector<Iterable<? extends Drawable>>();
 		initDrawableHandlers();
 	}
 	
@@ -80,8 +83,9 @@ public class GameWorld {
 		missileHandler = new HolderList<Missile>(missileFactory, MISSILE_SIZE);
 		holderLists.add(missileHandler);
 		
-		scoreObjectHandler = new HolderList<ScoreObject>(scoreObjectFactory, SCORE_OBJECT_SIZE);
-		holderLists.add(scoreObjectHandler);
+		scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
+		drawables.add(scoreObjectHandler);
+		//holderLists.add(scoreObjectHandler);
 		
 		drawables.addAll(holderLists);
 	}
@@ -119,7 +123,7 @@ public class GameWorld {
 	public HolderList<FastShot> getShotHandler(){return shotHandler;}
 	public HolderList<Spark> getSparkHandler(){return sparkHandler;}
 	
-	public Vector<Collection<? extends Drawable>> getDrawables(){return drawables;}
+	public Vector<Iterable<? extends Drawable>> getDrawables(){return drawables;}
 	
 	//methods for manipulating game objects
 	public Player getPlayer(short id)
@@ -186,14 +190,14 @@ public class GameWorld {
 	
 	public void addScoreObject(ScoreObjectHolder s)
 	{
-		scoreObjectHandler.add(s);
-		System.out.println("Adding score object in GameWorld");
+		scoreObjectHandler.add(new ScoreObject(s));
+		//System.out.println("Adding score object in GameWorld");
 	}
 	
 	/**
 	 * Clears all in-game objects so that they are refreshed each frame.
 	 */
-	public void clearDrawables()
+	public void update()
 	{
 		for (Player p : playerMap.values())
 		{
@@ -205,6 +209,8 @@ public class GameWorld {
 		{
 			d.clear();
 		}
+		
+		scoreObjectHandler.update();
 	}
 	
 	//inner Drawable classes	
@@ -560,6 +566,13 @@ public class GameWorld {
 	public class ScoreObject extends ScoreObjectHolder implements Drawable
 	{
 		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
+		
+		public ScoreObject(){}
+		
+		public ScoreObject(ScoreObjectHolder holder)
+		{
+			holder.set(this);
+		}
 		
 		public void paintDrawable(Graphics2D g2d)
 		{

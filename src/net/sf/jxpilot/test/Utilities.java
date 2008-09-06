@@ -141,4 +141,28 @@ public class Utilities {
 		line.setLine(line.getX1(), line.getY1(), wrap(width, line.getX1(), line.getX2()), wrap(height, line.getY1(), line.getY2()));
 		return line;
 	}
+	
+	/**
+	 * Null char = 0. Often found at end of strings.
+	 */
+	public static final char NULL_CHAR = '\0';
+	/**
+     * Removes null character from end of string.<br>
+     * It doesn't copy the string. See {@link String#substring(int, int)}.
+     * 
+     * @param stringToFix
+     *            String with null character in end.
+     * @return Fixed string, w/o nul character in end.
+     */
+    public static String removeNullCharacter(String stringToFix) {
+    	
+    	if(stringToFix.length()==0) return "";
+    	
+    	if (stringToFix.charAt(stringToFix.length()-1) != NULL_CHAR) return stringToFix;
+    	
+        // <code>stringToFix.length() - 1</code> seems weird, but it removes any null
+        // character from the end of the string(I guess it is not Unicode character -
+        // thats why)
+        return stringToFix.substring(0, stringToFix.length() - 1);
+    }
 }

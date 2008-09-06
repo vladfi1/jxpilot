@@ -20,7 +20,7 @@ public class JXPilotFrame extends JFrame
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses USF (undecorated full screen)
 	 */
-	private boolean FSEM = false;
+	private boolean FSEM = true;
 
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -65,7 +65,7 @@ public class JXPilotFrame extends JFrame
 	private AffineTransform flippedTransform = new AffineTransform();
 	
 	
-	private Vector<Collection<? extends Drawable>> drawables;
+	private Vector<? extends Iterable<? extends Drawable>> drawables;
 
 	/**
 	 * Messages to draw.
@@ -512,7 +512,7 @@ public class JXPilotFrame extends JFrame
 		worldG2D.setTransform(flippedTransform);
 	}
 
-	public void setDrawables(Vector<Collection<? extends Drawable>> d)
+	public void setDrawables(Vector<? extends Iterable<? extends Drawable>> d)
 	{
 		drawables = d;
 	}
@@ -679,7 +679,7 @@ public class JXPilotFrame extends JFrame
 		
 		if (drawables!=null)
 		{
-			for (Collection<? extends Drawable> c : world.getDrawables())
+			for (Iterable<? extends Drawable> c : world.getDrawables())
 			{
 				if (c!=null)
 					for (Drawable d : c)

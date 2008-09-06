@@ -4,6 +4,7 @@ import static net.sf.jxpilot.test.UDPTest.PRINT_PACKETS;
 import static net.sf.jxpilot.test.Ack.putAck;
 import static net.sf.jxpilot.test.Packet.*;
 import static net.sf.jxpilot.test.ReplyData.readReplyData;
+import static net.sf.jxpilot.test.Utilities.removeNullCharacter;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -1758,20 +1759,5 @@ public class NetClient
 			return keyboard;
 		}
 	}
-
-	/**
-     * Removes null character from end of string.<br>
-     * It doesn't copy the string. See {@link String#substring(int, int)}.
-     * 
-     * @param stringToFix
-     *            String with null character in end.
-     * @return Fixed string, w/o nul character in end.
-     */
-    public static String removeNullCharacter(String stringToFix) {
-        // <code>stringToFix.length() - 1</code> seems wierd, but it remove null
-        // character at end from string(I guess it is not unicode character -
-        // thats why)
-        return stringToFix.substring(0, stringToFix.length() - 1);
-    }
 
 }
