@@ -68,7 +68,7 @@ public class NetClient
 	private ByteBufferWrap in = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private ByteBufferWrap map = new ByteBufferWrap(MAX_MAP_SIZE);
 	private ByteBufferWrap reliableBuf = new ByteBufferWrap(MAX_PACKET_SIZE);
-	private MapSetup setup = new MapSetup();
+	private BlockMapSetup setup = new BlockMapSetup();
 	private final PacketProcessor[] readers = new PacketProcessor[256];
 	private ReplyData reply = new ReplyData();
 	private ReliableData reliable = new ReliableData();
@@ -373,11 +373,14 @@ public class NetClient
 		{
 			public static final int LENGTH = 1 + 2 + 4;//7
 
+			private BaseHolder b = new BaseHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
 			{
 				if (in.remaining()<LENGTH)
 				{
-					if(PRINT_PACKETS)System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
+					if(PRINT_PACKETS)
+						System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
 					throw reliableReadException;
 				}
 
@@ -385,9 +388,12 @@ public class NetClient
 				short id = in.getShort();
 				int num = in.getUnsignedShort();
 
-				if(PRINT_PACKETS)System.out.println("\nBase Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nBase Packet\ntype = " + type +
 						"\nid = " + id +
 						"\nnum = " + num);
+				
+				client.handleBase(b.setBase(id, num));
 			}
 		};
 
@@ -957,21 +963,27 @@ public class NetClient
 
 		readers[PKT_CANNON] = new PacketProcessor()
 		{
+			private CannonHolder cannon = new CannonHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
 				int num = in.getUnsignedShort();
 				int dead_time = in.getUnsignedShort();
 
-				if(PRINT_PACKETS)System.out.println("\nCannon Packet\ntype = " + type + 
+				if(PRINT_PACKETS)
+					System.out.println("\nCannon Packet\ntype = " + type + 
 						"\nnum = " + num +
 						"\ndead time = " + dead_time);
+				
+				
 				
 				out.putByte(PKT_ACK_CANNON);
 				out.putInt(last_loops);
 				out.putShort((short)num);
+				
+				client.handleCannon(cannon.set(num, dead_time));
 			}
-			
 		};
 		
 		readers[PKT_FUEL] = new PacketProcessor()
@@ -1393,7 +1405,7 @@ public class NetClient
 		buf.putString(DISPLAY);
 	}
 	
-	private  void sendVerify(ByteBufferWrap buf, String real_name, String nick)
+	private void sendVerify(ByteBufferWrap buf, String real_name, String nick)
 	{
 		buf.clear();
 		putVerify(buf, real_name, nick);
@@ -1411,7 +1423,8 @@ public class NetClient
 	private void sendAck(ByteBufferWrap buf, Ack ack)
 	{
 		putAck(buf, ack);
-		if(PRINT_PACKETS)System.out.println("\n"+ack);
+		if(PRINT_PACKETS)
+			System.out.println("\n"+ack);
 	}
 	
 	public void sendAck(Ack ack)
@@ -1545,7 +1558,7 @@ public class NetClient
 		//System.out.println(reliable);
 	}
 	
-	private  int readFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
+	private  int readFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
 	{
 		setup.readMapSetup(in);
 		int remaining = in.remaining();
@@ -1554,7 +1567,7 @@ public class NetClient
 		return remaining;
 	}
 	
-	private  int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
+	private  int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
 	{
 		ReliableDataError error = getReliableData(reliable, in);
 		
@@ -1609,7 +1622,7 @@ public class NetClient
 	 * Uncompresses the map if necessary.
 	 * 
 	 */
-	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, MapSetup setup, ReliableData reliable)
+	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
 	{
 		int i = getFirstMapPacket(in, map, setup, reliable);
 		System.out.println(setup);
@@ -1627,7 +1640,7 @@ public class NetClient
 				todo -= i;
 		}
 		
-		if (setup.getMapOrder() != MapSetup.SETUP_MAP_UNCOMPRESSED)
+		if (setup.getMapOrder() != BlockMapSetup.SETUP_MAP_UNCOMPRESSED)
 		{
 			//map.flip();
 			setup.uncompressMap(map);

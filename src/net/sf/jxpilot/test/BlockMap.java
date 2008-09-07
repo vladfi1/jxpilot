@@ -1,6 +1,9 @@
 package net.sf.jxpilot.test;
 
-import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
+import static net.sf.jxpilot.test.MapBlock.*;
+import static net.sf.jxpilot.test.Cannon.CannonType;
+import static net.sf.jxpilot.test.Base.BaseType;
+import java.util.*;
 
 /**
  * Represents a block-based xpilot map.
@@ -8,11 +11,17 @@ import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
  */
 public class BlockMap implements java.io.Serializable
 {
-	private MapSetup setup;
-	private MapBlock[][] blocks;
-	private int width, height;
+	private final BlockMapSetup setup;
+	private final MapBlock[][] blocks;
+	/**
+	 * Map width and height, measured in blocks*BLOCK_SIZE.
+	 */
+	private final int width, height;
 	
-	public BlockMap(MapSetup setup)
+	private ArrayList<Cannon> cannons;
+	private ArrayList<Base> bases;
+	
+	public BlockMap(BlockMapSetup setup)
 	{
 		this.setup = setup;
 		
@@ -22,20 +31,77 @@ public class BlockMap implements java.io.Serializable
 		{
 			for (int y = 0 ; y<setup.getY();y++)
 			{
-				blocks[x][y] = MapBlock.getMapBlock(setup.getBlock(x, y), x, y);
-				//blocks[x][y].setPosition(x, y);
+				blocks[x][y] = MapBlock.getMapBlock(setup, setup.getNum(x, y));
 			}
 		}
 		
 		width = setup.getX() * BLOCK_SIZE;
 		height = setup.getY() * BLOCK_SIZE;
+		
+		MapInit();
+	}
+	
+	
+	/**
+	 * Initializes non-block map objects, such as cannons.
+	 */
+	private void MapInit()
+	{
+		byte[] map_data = setup.getMapData();
+		
+		//counts game objects
+		int num_cannons = 0, num_bases = 0;
+		for(int i =0;i<map_data.length;i++)
+		{
+			byte block_type = map_data[i];
+			if(CannonType.getCannonType(block_type)!=null) num_cannons++;
+			if(BaseType.getBaseType(block_type)!=null) num_bases++;
+		}
+		
+		//creates game objects
+		cannons = new ArrayList<Cannon>(num_cannons);
+		num_cannons=0;
+		
+		bases = new ArrayList<Base>(num_bases);
+		num_bases = 0;
+		
+		for(int i =0;i<map_data.length;i++)
+		{
+			byte block_type = map_data[i];
+			int x = setup.getX(i);
+			int y = setup.getY(i);
+			
+			Cannon c = Cannon.createCannon(block_type, num_cannons, x, y);
+			
+			if(c!=null)
+			{
+				cannons.add(num_cannons, c);
+				num_cannons++;
+			}
+			
+			Base b = Base.createBase(block_type, num_bases, x, y);
+			
+			if(b!=null)
+			{
+				bases.add(num_bases, b);
+				num_bases++;
+			}
+		}
 	}
 	
 	public MapBlock[][] getBlocks(){return blocks;}
-	public MapSetup getSetup(){return setup;}
+	public BlockMapSetup getSetup(){return setup;}
 	public MapBlock getBlock(short x, short y){return blocks[x][y];}
+	public MapBlock getBlock(int num)
+	{
+		return blocks[setup.getX(num)][setup.getY(num)];
+	}
+	
 	public int getWidth(){return width;}
 	public int getHeight(){return height;}
+	
+	public ArrayList<Cannon> getCannons(){return cannons;}
+	public ArrayList<Base> getBases(){return bases;}
 	
 	public String toString()
 	{
@@ -46,7 +112,7 @@ public class BlockMap implements java.io.Serializable
 			{
 				temp += blocks[x][y];
 			}
-			temp+="\n";
+			temp+='\n';
 		}
 		return temp;
 	}

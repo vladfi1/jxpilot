@@ -27,7 +27,7 @@ public class TestMapFrame extends JFrame
 	//private ClientInputListener clientInputListener;
 	
 	private BlockMap blockMap;
-	private MapSetup setup;
+	private BlockMapSetup setup;
 	private MapBlock[][] blocks;
 	
 	//center of viewing screen, in blocks

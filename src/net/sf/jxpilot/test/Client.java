@@ -162,6 +162,16 @@ public class Client implements AbstractClient, ClientInputListener
 		
 	}
 	
+	public void handleCannon(CannonHolder c)
+	{
+		world.handleCannon(c);
+	}
+	
+	public void handleBase(BaseHolder b)
+	{
+		world.handleBase(b);
+	}
+	
     /**
      * @see net.sf.jxpilot.test.AbstractClient#handleMessage(java.lang.String)
      */

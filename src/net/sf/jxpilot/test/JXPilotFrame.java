@@ -40,7 +40,7 @@ public class JXPilotFrame extends JFrame
 	private GameWorld world;
 	
 	private BlockMap blockMap;
-	private MapSetup setup;
+	private BlockMapSetup setup;
 	private MapBlock[][] blocks;
 	
 	/**

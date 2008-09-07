@@ -146,6 +146,8 @@ public class Utilities {
 	 * Null char = 0. Often found at end of strings.
 	 */
 	public static final char NULL_CHAR = '\0';
+	
+	public static final String EMPTY_STRING = "";
 	/**
      * Removes null character from end of string.<br>
      * It doesn't copy the string. See {@link String#substring(int, int)}.
@@ -156,7 +158,7 @@ public class Utilities {
      */
     public static String removeNullCharacter(String stringToFix) {
     	
-    	if(stringToFix.length()==0) return "";
+    	if(stringToFix.length()==0) return EMPTY_STRING;
     	
     	if (stringToFix.charAt(stringToFix.length()-1) != NULL_CHAR) return stringToFix;
     	

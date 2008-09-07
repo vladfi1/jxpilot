@@ -28,6 +28,9 @@ public interface AbstractClient
 	public void handleDebris(AbstractDebrisHolder d);
 	public void handleMissile(MissileHolder m);
 	public void handleScoreObject(ScoreObjectHolder s);
+	public void handleCannon(CannonHolder c);
+	public void handleBase(BaseHolder b);
+	
 	
 	/**
      * Prints message in client window.

@@ -3,7 +3,7 @@ package net.sf.jxpilot.test;
 import static net.sf.jxpilot.test.MapError.*;
 import static net.sf.jxpilot.test.UDPTest.*;
 
-public class MapSetup implements java.io.Serializable
+public class BlockMapSetup implements java.io.Serializable
 {
 	
 	/*
@@ -27,7 +27,6 @@ public class MapSetup implements java.io.Serializable
 	/*
 	 * Definitions for the map layout which permit a compact definition
 	 * of map data. Map layout is as follows:
-	 * 
 	 * 
 	 * y-1	2y-1	.	.	.	yx-1
 	 * .	.				.	.
@@ -58,6 +57,10 @@ public class MapSetup implements java.io.Serializable
 	public static final byte  SETUP_CANNON_LEFT = 		18;
 	public static final byte  SETUP_SPACE_DOT	= 		19;
 	public static final byte  SETUP_TREASURE	 = 		20;	/* + team number (10) */
+	/**
+	 * The number of bases used for a certain base type. This is used for storing the team name.
+	 */
+	public static final byte NUM_BASES_PER_TYPE = 10;
 	public static final byte  SETUP_BASE_LOWEST = 		30;	/* lowest base number */
 	public static final byte  SETUP_BASE_UP = 			30;	/* + team number (10) */
 	public static final byte  SETUP_BASE_RIGHT = 		40;	/* + team number (10) */
@@ -135,7 +138,7 @@ public class MapSetup implements java.io.Serializable
 	private String name, author;
 	private byte[] map_data;
 	
-	public MapSetup setMapSetup(int map_data_len, int mode, short lives, short x, short y, 
+	public BlockMapSetup setMapSetup(int map_data_len, int mode, short lives, short x, short y, 
 								short frames_per_second, short map_order, String name, String author)
 	{
 		this.map_data_len = map_data_len;
@@ -171,9 +174,6 @@ public class MapSetup implements java.io.Serializable
 	public short getMapOrder(){return map_order;}
 	public String getName(){return name;}
 	public String getAuthor(){return author;}
-	
-	public void setMapData(byte[] data)
-	{map_data = data;}
 	public byte[] getMapData(){return map_data;}
 	
 	public void setMapOrder(short order){map_order = order;}
@@ -204,7 +204,7 @@ public class MapSetup implements java.io.Serializable
 	 * Because we uncompress the map backwards to save on
 	 * memory usage there is some complexity involved.
 	 */
-	private static MapError uncompressMap(ByteBufferWrap map, MapSetup setup)
+	private static MapError uncompressMap(ByteBufferWrap map, BlockMapSetup setup)
 	{
 		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
@@ -229,7 +229,7 @@ public class MapSetup implements java.io.Serializable
 		int		i,
 		count;
 
-		if(setup.getMapOrder() != MapSetup.SETUP_MAP_ORDER_XY)
+		if(setup.getMapOrder() != BlockMapSetup.SETUP_MAP_ORDER_XY)
 		{
 			return UNKNOWN_MAP_ORDER;
 		}
@@ -272,7 +272,7 @@ public class MapSetup implements java.io.Serializable
 					return MAP_COMPRESS_ERROR;
 				}
 				
-				map_bytes[cmp] &= ~MapSetup.SETUP_COMPRESSED;
+				map_bytes[cmp] &= ~BlockMapSetup.SETUP_COMPRESSED;
 				for (i = 0; i < count; i++) {
 					map_bytes[ump] = map_bytes[cmp];
 					ump--;
@@ -292,11 +292,11 @@ public class MapSetup implements java.io.Serializable
 			return MAP_COMPRESS_ERROR;
 		}
 		
-		setup.setMapOrder(MapSetup.SETUP_MAP_UNCOMPRESSED);
+		setup.setMapOrder(BlockMapSetup.SETUP_MAP_UNCOMPRESSED);
 		map.clear();
 		//map.putBytes(map_bytes);
 		
-		setup.setMapData(map_bytes);
+		setup.map_data = map_bytes;
 		return MapError.NO_ERROR;
 	}
 	
@@ -374,7 +374,7 @@ public class MapSetup implements java.io.Serializable
 		return uncompressMap(map, this);
 	}
 
-	private static MapSetup readMapSetup(ByteBufferWrap in, MapSetup setup)
+	private static BlockMapSetup readMapSetup(ByteBufferWrap in, BlockMapSetup setup)
 	{	
 		try
 		{
@@ -388,7 +388,7 @@ public class MapSetup implements java.io.Serializable
 		}
 	}
 	
-	public MapSetup readMapSetup(ByteBufferWrap in)
+	public BlockMapSetup readMapSetup(ByteBufferWrap in)
 	{	
 		return readMapSetup(in, this);
 	}
@@ -399,14 +399,33 @@ public class MapSetup implements java.io.Serializable
 		{
 			for (int x =0;x<this.x; x++)
 			{
-				System.out.print(MapBlock.getBlockChar(getBlock(x,y)));
+				System.out.print(MapBlock.getBlockChar(getBlockType(x,y)));
 			}
 			System.out.println();
 		}
 	}
 	
-	public byte getBlock(int x, int y)
+	public byte getBlockType(int x, int y)
 	{	
-		return map_data[y + x*this.y];
+		return map_data[getNum(x, y)];
+	}
+	
+	public byte getBlockType(int num)
+	{
+		return map_data[num];
+	}
+	
+	public int getX(int num)
+	{
+		return num / y;
+	}
+	public int getY(int num)
+	{
+		return num % y;
+	}
+	
+	public int getNum(int x, int y)
+	{
+		return y + x*this.y;
 	}
 }

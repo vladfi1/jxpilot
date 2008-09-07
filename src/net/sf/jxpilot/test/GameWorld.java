@@ -13,7 +13,7 @@ import java.awt.geom.*;
 public class GameWorld {
 	
 	private BlockMap map;
-	private MapSetup setup;
+	private BlockMapSetup setup;
 	
 	private Vector<Iterable<? extends Drawable>> drawables;
 	
@@ -44,6 +44,9 @@ public class GameWorld {
 	 */
 	private final long SCORE_OBJECT_DURATION = 3*1000;
 	
+	private final ArrayList<Cannon> cannons;
+	private final ArrayList<Base> bases;
+	
 	/**
 	 * The current view position.
 	 */
@@ -55,6 +58,13 @@ public class GameWorld {
 		this.setup = map.getSetup();
 		
 		drawables = new Vector<Iterable<? extends Drawable>>();
+		
+		cannons = map.getCannons();
+		drawables.add(cannons);
+		
+		bases = map.getBases();
+		drawables.add(bases);
+		
 		initDrawableHandlers();
 	}
 	
@@ -192,6 +202,16 @@ public class GameWorld {
 	{
 		scoreObjectHandler.add(new ScoreObject(s));
 		//System.out.println("Adding score object in GameWorld");
+	}
+	
+	public void handleCannon(CannonHolder c)
+	{
+		c.set(cannons.get(c.getNum()));
+	}
+	
+	public void handleBase(BaseHolder b)
+	{
+		b.set(bases.get(b.getNum()));
 	}
 	
 	/**
@@ -576,8 +596,6 @@ public class GameWorld {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			System.out.println("Painting score object");
-			
 			AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(SCORE_OBJECT_COLOR);
@@ -594,7 +612,4 @@ public class GameWorld {
 			g2d.setTransform(saved);
 		}
 	}
-	public final Factory<ScoreObject> scoreObjectFactory = new Factory<ScoreObject>(){
-		public ScoreObject newInstance(){return new ScoreObject();}
-	};
 }
