@@ -122,7 +122,7 @@ public class MessagePool {
         boolean grayed = false;
         boolean noMore = false;
 
-        Collection<TimedMessage> messagesToRemove = new ArrayList<TimedMessage>();
+        Collection<TimedMessage> messagesToRemove = null;
 
         g2.setColor(NEW_MESSAGE_COLOR);
 
@@ -138,8 +138,12 @@ public class MessagePool {
                 noMore = ((messagesSize - i) > MAX_MESSAGES)
                         || (currentTime - mess.getPublishTime()) > MESSAGE_REMOVE_TIMEOUT;
 
-            if (noMore)
+            if (noMore) {
+                if (messagesToRemove == null)
+                    messagesToRemove = new ArrayList<TimedMessage>();
+
                 messagesToRemove.add(mess);
+            }
             else
                 g2.drawString(messages.get(i).getMessage(), baseX, baseY
                         + (messagesSize - 1 - i) * yDistance);
