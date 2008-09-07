@@ -113,9 +113,9 @@ public class MessagePool {
      * @param g2
      */
     public void render(Graphics2D g2) {
-        final int baseX = 13;
-        final int baseY = 13;
-        final int yDistance = 13;
+        final int baseX = 16;
+        final int baseY = 40;
+        final int yDistance = 16;
 
         long currentTime = System.currentTimeMillis();
 
