@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 
 /**
  * Contains information given by server about a cannon.

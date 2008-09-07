@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import map.BlockMap;
 import net.sf.xpilotpanel.preferences.Preferences;
 
 public interface AbstractClient

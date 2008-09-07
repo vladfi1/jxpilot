@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 public class ConnectorHolder implements Holder<ConnectorHolder>
 {
 	protected short x0,y0,x1,y1;

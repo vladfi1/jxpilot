@@ -2,11 +2,9 @@ package net.sf.jxpilot.net;
 
 import static net.sf.jxpilot.JXPilot.*;
 import static net.sf.jxpilot.net.Ack.*;
-import static net.sf.jxpilot.test.Packet.*;
-import static net.sf.jxpilot.test.ReliableDataError.*;
+import static net.sf.jxpilot.net.Packet.*;
+import static net.sf.jxpilot.net.ReliableDataError.*;
 import net.sf.jxpilot.JXPilot;
-import net.sf.jxpilot.test.ByteBufferWrap;
-import net.sf.jxpilot.test.ReliableDataError;
 
 /**
  * Class to hold reliable data packets.

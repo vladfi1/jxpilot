@@ -1,16 +1,18 @@
 package net.sf.jxpilot.graphics;
 
 import java.util.*;
-import static net.sf.jxpilot.test.MapBlock.*;
+
+import static map.MapBlock.*;
+
 import javax.swing.*;
 
-import net.sf.jxpilot.test.BlockMap;
-import net.sf.jxpilot.test.BlockMapSetup;
+import data.Keys;
+
+import map.BlockMap;
+import map.BlockMapSetup;
+import map.MapBlock;
 import net.sf.jxpilot.test.ClientInputListener;
-import net.sf.jxpilot.test.Drawable;
 import net.sf.jxpilot.test.GameWorld;
-import net.sf.jxpilot.test.Keys;
-import net.sf.jxpilot.test.MapBlock;
 import net.sf.jxpilot.test.MessagePool;
 import net.sf.jxpilot.test.UserOption;
 

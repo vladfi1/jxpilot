@@ -1,12 +1,19 @@
 package net.sf.jxpilot.test;
 
-import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
+import static map.MapBlock.BLOCK_SIZE;
 import static net.sf.jxpilot.util.Utilities.getAngleFrom128;
 
 import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 
+import map.BlockMap;
+import map.BlockMapSetup;
+import map.MapBlock;
+import net.sf.jxpilot.graphics.Drawable;
+import net.sf.jxpilot.util.Factory;
+import net.sf.jxpilot.util.HolderList;
+import net.sf.jxpilot.util.TimedQueue;
 import net.sf.jxpilot.util.Utilities;
 
 /**
@@ -365,19 +372,13 @@ public class GameWorld {
 	};
 	
 	
-	public class Connector extends ConnectorHolder implements ExtendedDrawable<Connector>
+	public class Connector extends ConnectorHolder implements Drawable
 	{
 		private final Color CONNECTOR_COLOR = Color.GREEN;
 		private final Line2D.Float connectorShape= new Line2D.Float();
 
 		public Connector getNewInstance()
 		{return new Connector();}
-		
-		@Override
-		public void set(Connector other)
-		{
-			super.set(other);			
-		}
 		
 		/**
 		 * Makes sure that the connector is wrapped properly.
@@ -406,7 +407,7 @@ public class GameWorld {
 		public Connector newInstance(){return new Connector();}
 	};
 	
-	public class Mine extends MineHolder implements ExtendedDrawable<Mine>
+	public class Mine extends MineHolder implements Drawable
 	{	
 		public static final String EXPIRED_MINE_NAME = "Expired";
 		

@@ -2,8 +2,10 @@ package net.sf.jxpilot.test;
 
 import java.awt.*;
 import java.awt.geom.*;
-import static net.sf.jxpilot.test.BlockMapSetup.*;
-import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
+
+import net.sf.jxpilot.graphics.Drawable;
+import static map.BlockMapSetup.*;
+import static map.MapBlock.BLOCK_SIZE;
 
 public class Base extends BaseHolder implements Drawable
 {

@@ -1,7 +1,6 @@
 package net.sf.jxpilot.net;
 
-import static net.sf.jxpilot.test.Packet.PKT_ACK;
-import net.sf.jxpilot.test.ByteBufferWrap;
+import static net.sf.jxpilot.net.Packet.PKT_ACK;
 
 class Ack
 {

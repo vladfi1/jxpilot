@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 public class BallHolder implements Holder<BallHolder>
 {
 	protected short x,y;

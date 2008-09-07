@@ -1,8 +1,9 @@
-package net.sf.jxpilot.test;
+package map;
 
 import java.awt.geom.*;
 import java.awt.*;
-import static net.sf.jxpilot.test.BlockMapSetup.*;
+
+import static map.BlockMapSetup.*;
 
 /**
  * Represents a block of a BlockMap. Note that things that can change such as cannons are not represented by MapBlocks.

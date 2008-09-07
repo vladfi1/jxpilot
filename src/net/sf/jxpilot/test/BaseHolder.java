@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 /**
  * Carries information server sends for bases.
  * @author vlad

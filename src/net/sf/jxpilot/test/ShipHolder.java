@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 public class ShipHolder implements Holder<ShipHolder>
 {
 	protected short x, y, id, heading;

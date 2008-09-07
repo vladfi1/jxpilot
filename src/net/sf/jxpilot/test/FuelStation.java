@@ -1,8 +1,11 @@
 package net.sf.jxpilot.test;
 
-import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
-import static net.sf.jxpilot.test.BlockMapSetup.*;
+import static map.BlockMapSetup.*;
+import static map.MapBlock.BLOCK_SIZE;
+
 import java.awt.*;
+
+import net.sf.jxpilot.graphics.Drawable;
 
 public class FuelStation extends FuelHolder implements Drawable
 {

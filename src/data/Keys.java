@@ -1,4 +1,4 @@
-package net.sf.jxpilot.test;
+package data;
 
 /**
  * Class that contains the various keyboard numbers.

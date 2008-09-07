@@ -1,9 +1,15 @@
-package net.sf.jxpilot.test;
+package map;
 
-import static net.sf.jxpilot.test.MapBlock.*;
+import static map.MapBlock.*;
 import static net.sf.jxpilot.test.Cannon.CannonType;
 import static net.sf.jxpilot.test.Base.BaseType;
 import java.util.*;
+
+import net.sf.jxpilot.test.Base;
+import net.sf.jxpilot.test.Cannon;
+import net.sf.jxpilot.test.FuelStation;
+import net.sf.jxpilot.test.Base.BaseType;
+import net.sf.jxpilot.test.Cannon.CannonType;
 
 /**
  * Represents a block-based xpilot map.

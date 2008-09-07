@@ -1,4 +1,5 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.net;
+
 
 /**
  * This exception is thrown when the reliable data stream doesn't have 

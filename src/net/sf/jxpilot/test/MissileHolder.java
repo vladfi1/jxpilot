@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 public class MissileHolder implements Holder<MissileHolder>
 {
 	protected short x,y;

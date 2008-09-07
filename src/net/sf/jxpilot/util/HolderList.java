@@ -1,4 +1,5 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.util;
+
 
 /**
  * Class to hold ExtendedDrawables without constantly creating new instances. Might be better implemented as a LinkedList.

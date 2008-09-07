@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Holder;
+
 public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder>
 {
 	protected int type;
