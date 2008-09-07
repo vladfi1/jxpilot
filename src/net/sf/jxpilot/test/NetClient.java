@@ -47,9 +47,9 @@ public class NetClient
 
 	// Nick, user and host to send to server. This default values are for if
     // JXPilot was lauched w/o XPilotPanel.
-    private String NICK = "test"+rnd.nextInt(1024);
-    private String REAL_NAME = "TEST";
-    private String HOST = "java";
+    private String NICK = null;
+    private String REAL_NAME = null;
+    private String HOST = null;
 
     /**
 	 * 2^12=4096
@@ -1161,11 +1161,18 @@ public class NetClient
 
 		// Processing preferences for this client.
 		Preferences prefs = client.getPreferences();
-		if (prefs != null) {
-		    NICK = prefs.get("XPilotName");
-		    REAL_NAME = prefs.get("XPilotUser");
-		    HOST = prefs.get("XPilotHost");
-		}
+        if (prefs != null) {
+            NICK = prefs.get("XPilotName");
+            REAL_NAME = prefs.get("XPilotUser");
+            HOST = prefs.get("XPilotHost");
+        }
+
+        if (NICK == null || NICK.isEmpty())
+            NICK = System.getProperty("user.name");
+        if (REAL_NAME == null || REAL_NAME.isEmpty())
+            REAL_NAME = NICK;
+        if (HOST == null || HOST.isEmpty())
+            HOST = "java.client";
 
 		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 
