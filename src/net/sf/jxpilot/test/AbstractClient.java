@@ -23,14 +23,13 @@ public interface AbstractClient
 	public void handleFastShot(AbstractDebrisHolder shot);
 	public void handleBall(BallHolder b);
 	public void handleConnector(ConnectorHolder c);
-	public void handleFuel(int num, int fuel);
 	public void handleMine(MineHolder m);
 	public void handleDebris(AbstractDebrisHolder d);
 	public void handleMissile(MissileHolder m);
 	public void handleScoreObject(ScoreObjectHolder s);
 	public void handleCannon(CannonHolder c);
 	public void handleBase(BaseHolder b);
-	
+	public void handleFuel(FuelHolder f);
 	
 	/**
      * Prints message in client window.

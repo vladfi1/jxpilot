@@ -4,6 +4,8 @@ import net.sf.xpilotpanel.preferences.Preferences;
 
 public class Client implements AbstractClient, ClientInputListener
 {
+	private volatile boolean quit=false;
+	
 	private NetClient netClient;
 	private BlockMap blockMap;
 	private JXPilotFrame frame;
@@ -29,7 +31,6 @@ public class Client implements AbstractClient, ClientInputListener
 	 * The id of the player we are watching, or -1 if we aren't dead.
 	 */
 	private short eyesId = -1;
-	
 	
 	public Player getPlayer(short id)
 	{
@@ -132,6 +133,7 @@ public class Client implements AbstractClient, ClientInputListener
 	public void handleEnd(int loops)
 	{
 		//setFrameView();
+		if(!quit)
 		frame.activeRender();
 	}
 	
@@ -157,9 +159,9 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addConnector(connector);
 	}
 	
-	public void handleFuel(int num, int fuel)
+	public void handleFuel(FuelHolder f)
 	{
-		
+		world.handleFuel(f);
 	}
 	
 	public void handleCannon(CannonHolder c)
@@ -203,6 +205,7 @@ public class Client implements AbstractClient, ClientInputListener
 	//Client Input Listener methods
 	public void quit()
 	{
+		quit=true;
 		netClient.quit();
 		frame.finish();
 		//System.exit(0);
@@ -221,15 +224,19 @@ public class Client implements AbstractClient, ClientInputListener
 		netClient.movePointer(amount);
 	}
 
+	public void talk(String message)
+	{
+		netClient.netTalk(message);
+	}
+	
     /**
      * Returns preferences of this client or <code>null</code>, if it was
-     * lauched w/o XPilotPanel.
+     * launched w/o XPilotPanel.
      * 
      * @return Client's preferences.
      */
     public Preferences getPreferences() {
         return prefs;
     }
-
     
 }

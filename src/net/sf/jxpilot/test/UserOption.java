@@ -7,5 +7,5 @@ package net.sf.jxpilot.test;
  *
  */
 public enum UserOption{
-	QUIT, TOGGLE_MOUSE_CONTROL;
+	QUIT, TOGGLE_MOUSE_CONTROL, BALL_GONE;
 }

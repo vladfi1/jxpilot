@@ -1,5 +1,6 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
 import static net.sf.jxpilot.test.Utilities.getAngleFrom128;
 import java.util.*;
 import java.awt.*;
@@ -7,6 +8,7 @@ import java.awt.geom.*;
 
 /**
  * Class that manages the various objects in the world.
+ * All drawable objects are contained in here.
  * @author vlad
  *
  */
@@ -45,7 +47,8 @@ public class GameWorld {
 	private final long SCORE_OBJECT_DURATION = 3*1000;
 	
 	private final ArrayList<Cannon> cannons;
-	private final ArrayList<Base> bases;
+	private final ArrayList<DrawableBase> bases;
+	private final ArrayList<FuelStation> fuelStations;
 	
 	/**
 	 * The current view position.
@@ -62,8 +65,16 @@ public class GameWorld {
 		cannons = map.getCannons();
 		drawables.add(cannons);
 		
-		bases = map.getBases();
+		ArrayList<Base> mapBases = map.getBases();
+		bases = new ArrayList<DrawableBase>(mapBases.size());
+		for(int i = 0;i<mapBases.size();i++)
+		{
+			bases.add(i, new DrawableBase(mapBases.get(i)));
+		}
 		drawables.add(bases);
+		
+		fuelStations = map.getFuelStations();
+		drawables.add(fuelStations);
 		
 		initDrawableHandlers();
 	}
@@ -214,6 +225,11 @@ public class GameWorld {
 		b.set(bases.get(b.getNum()));
 	}
 	
+	public void handleFuel(FuelHolder f)
+	{
+		f.set(fuelStations.get(f.getNum()));
+	}
+	
 	/**
 	 * Clears all in-game objects so that they are refreshed each frame.
 	 */
@@ -271,7 +287,7 @@ public class GameWorld {
 			//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
 			//g2d.scale(1, -1);
 			
-			Utilities.drawAdjustedString(g2d, p.getNick(), 0, -SHIP_RADIUS);
+			Utilities.drawAdjustedStringDown(g2d, p.getNick(), 0, -SHIP_RADIUS);
 			
 			if (shield)
 			{
@@ -426,7 +442,7 @@ public class GameWorld {
 			String s = getMineName();
 			if (s!=null)
 			{
-				Utilities.drawAdjustedString(g2d, s, 0, -Y_RADIUS);
+				Utilities.drawAdjustedStringDown(g2d, s, 0, -Y_RADIUS);
 			}
 			
 			g2d.setTransform(saved);
@@ -596,7 +612,7 @@ public class GameWorld {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			AffineTransform saved = g2d.getTransform();
+			//AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(SCORE_OBJECT_COLOR);
 			//g2d.translate(x, y);
@@ -609,7 +625,45 @@ public class GameWorld {
 			
 			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
 			
-			g2d.setTransform(saved);
+			//g2d.setTransform(saved);
+		}
+	}
+	
+	/**
+	 * Class that extends Base to draw player names as well.
+	 * @author vlad
+	 */
+	private class DrawableBase extends Base
+	{
+		
+		public DrawableBase(Base other)
+		{
+			super(other.num, other.team, other.base_type, other.x, other.y);
+		}
+		
+		public void paintDrawable(Graphics2D g2d)
+		{
+			super.paintDrawable(g2d);
+			
+			if(id == Player.NO_ID) return;
+			
+			Player p = getPlayer(id);
+			
+			if(p==null) return;
+			
+			String nick = p.getNick();
+			
+			switch(base_type)
+			{
+			case UP: Utilities.drawAdjustedStringDown(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE/2, y*BLOCK_SIZE);
+				break;	
+			case DOWN: Utilities.drawAdjustedStringUp(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE/2, y*BLOCK_SIZE+BLOCK_SIZE);
+				break;	
+			case LEFT: Utilities.drawAdjustedStringRight(g2d, nick, x*BLOCK_SIZE, y+BLOCK_SIZE/2);
+				break;	
+			case RIGHT: Utilities.drawAdjustedStringLeft(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE, y*BLOCK_SIZE+BLOCK_SIZE/2);
+				break;
+			}
 		}
 	}
 }

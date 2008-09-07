@@ -22,4 +22,10 @@ public interface ClientInputListener
 	 * @param amount by which pointer has moved.
 	 */
 	public void movePointer(short amount);
+	
+	/**
+	 * Sends a talk to the server.
+	 * @param message Message to send to server.
+	 */
+	public void talk(String message);
 }

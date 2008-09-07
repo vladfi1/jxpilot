@@ -20,6 +20,7 @@ public class BlockMap implements java.io.Serializable
 	
 	private ArrayList<Cannon> cannons;
 	private ArrayList<Base> bases;
+	private ArrayList<FuelStation> fuelStations;
 	
 	public BlockMap(BlockMapSetup setup)
 	{
@@ -50,12 +51,13 @@ public class BlockMap implements java.io.Serializable
 		byte[] map_data = setup.getMapData();
 		
 		//counts game objects
-		int num_cannons = 0, num_bases = 0;
+		int num_cannons = 0, num_bases = 0, num_fuels=0;
 		for(int i =0;i<map_data.length;i++)
 		{
 			byte block_type = map_data[i];
 			if(CannonType.getCannonType(block_type)!=null) num_cannons++;
 			if(BaseType.getBaseType(block_type)!=null) num_bases++;
+			if(block_type==BlockMapSetup.SETUP_FUEL) num_fuels++;
 		}
 		
 		//creates game objects
@@ -64,6 +66,10 @@ public class BlockMap implements java.io.Serializable
 		
 		bases = new ArrayList<Base>(num_bases);
 		num_bases = 0;
+		
+		fuelStations = new ArrayList<FuelStation>(num_fuels);
+		num_fuels = 0;
+		
 		
 		for(int i =0;i<map_data.length;i++)
 		{
@@ -86,6 +92,12 @@ public class BlockMap implements java.io.Serializable
 				bases.add(num_bases, b);
 				num_bases++;
 			}
+			
+			if(block_type==BlockMapSetup.SETUP_FUEL)
+			{
+				fuelStations.add(num_fuels, new FuelStation(num_fuels, x, y));
+				num_fuels++;
+			}
 		}
 	}
 	
@@ -102,6 +114,7 @@ public class BlockMap implements java.io.Serializable
 	
 	public ArrayList<Cannon> getCannons(){return cannons;}
 	public ArrayList<Base> getBases(){return bases;}
+	public ArrayList<FuelStation> getFuelStations(){return fuelStations;}
 	
 	public String toString()
 	{

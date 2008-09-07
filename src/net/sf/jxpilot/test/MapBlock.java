@@ -69,7 +69,7 @@ public class MapBlock implements java.io.Serializable
 		{
 		case SETUP_SPACE: return new MapBlock(SETUP_SPACE, num, x, y);
 		case SETUP_FILLED: return new MapBlock(SETUP_FILLED, num, x, y, getDefaultRectangle(), BLOCK_COLOR, true);
-		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL,num, x, y, getDefaultRectangle(), FUEL_COLOR, true);
+		case SETUP_FUEL: return  new MapBlock(SETUP_FUEL , num , x, y, getDefaultRectangle(), BLOCK_COLOR, false);
 		case SETUP_REC_RU: return new MapBlock(SETUP_REC_RU,num, x, y, getRec(x, y, true, true), BLOCK_COLOR, true);
 		case SETUP_REC_RD: return new MapBlock(SETUP_REC_RD,num, x, y, getRec(x, y, true, false), BLOCK_COLOR, true);
 		case SETUP_REC_LU: return new MapBlock(SETUP_REC_LU,num, x, y, getRec(x, y, false, true), BLOCK_COLOR, true);

@@ -69,16 +69,57 @@ public class Utilities {
 	
 	/**
 	 * Draws a String taking into account a flip of the Graphics object.
-	 * (x,y) is where the top middle of the string will be.
+	 * (x,y) is where the top middle of where the string will be.
 	 * @param g2d Graphics object on which to draw the String.
 	 * @param s The String to be drawn.
 	 * @param x Where the String is drawn.
 	 * @param y Where the String is drawn.
 	 */
-	public static void drawAdjustedString(Graphics2D g2d, String s, float x, float y)
+	public static void drawAdjustedStringDown(Graphics2D g2d, String s, float x, float y)
 	{
 		Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(s, g2d);
-		drawFlippedString(g2d, s, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()/2.0));
+		drawFlippedString(g2d, s, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
+	}
+	
+	/**
+	 * Draws a String taking into account a flip of the Graphics object.
+	 * (x,y) is where the bottom middle of where the string will be.
+	 * @param g2d Graphics object on which to draw the String.
+	 * @param s The String to be drawn.
+	 * @param x Where the String is drawn.
+	 * @param y Where the String is drawn.
+	 */
+	public static void drawAdjustedStringUp(Graphics2D g2d, String s, float x, float y)
+	{
+		Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(s, g2d);
+		drawFlippedString(g2d, s, (float)(x-bounds.getWidth()/2.0), (float)(y+bounds.getHeight()*3.0/2.0));
+	}
+	
+	/**
+	 * Draws a String taking into account a flip of the Graphics object.
+	 * (x,y) is where the right middle of where the string will be.
+	 * @param g2d Graphics object on which to draw the String.
+	 * @param s The String to be drawn.
+	 * @param x Where the String is drawn.
+	 * @param y Where the String is drawn.
+	 */
+	public static void drawAdjustedStringLeft(Graphics2D g2d, String s, float x, float y)
+	{
+		Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(s, g2d);
+		drawFlippedString(g2d, s, (float)(x-bounds.getWidth()-1.0), (float)(y-bounds.getHeight()/2.0));
+	}
+	
+	/**
+	 * Draws a String taking into account a flip of the Graphics object.
+	 * (x,y) is where the left middle of where the string will be.
+	 * @param g2d Graphics object on which to draw the String.
+	 * @param s The String to be drawn.
+	 * @param x Where the String is drawn.
+	 * @param y Where the String is drawn.
+	 */
+	public static void drawAdjustedStringRight(Graphics2D g2d, String s, float x, float y)
+	{
+		drawFlippedString(g2d, s, x+1, (float)(y-g2d.getFontMetrics().getHeight()/2.0));
 	}
 	
 	/**
@@ -162,9 +203,6 @@ public class Utilities {
     	
     	if (stringToFix.charAt(stringToFix.length()-1) != NULL_CHAR) return stringToFix;
     	
-        // <code>stringToFix.length() - 1</code> seems weird, but it removes any null
-        // character from the end of the string(I guess it is not Unicode character -
-        // thats why)
-        return stringToFix.substring(0, stringToFix.length() - 1);
+    	return stringToFix.substring(0, stringToFix.length() - 1);
     }
 }

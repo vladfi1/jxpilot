@@ -88,6 +88,15 @@ public class NetClient
 	 */
 	private volatile short pointer_move_amount = 0;
 	
+	public static final int TALK_RETRY = 2;
+	/**
+	 * Used for sending talks.
+	 */
+	private volatile int talk_pending=0,talk_sequence_num=0, talk_last_send;
+	
+	//private Queue<String> talkQueue = new ArrayDeque<String>();
+	private String talkString;
+	
 	//for measurement
 	private long numPackets = 0;
 	private long numPacketsReceived = 0;
@@ -584,7 +593,8 @@ public class NetClient
 						ext_view_width, ext_view_height,
 						debris_colors, stat, autopilot_light);
 
-				if(PRINT_PACKETS)System.out.println("\nPacket Self\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nPacket Self\ntype = " + type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nvx = " + vx +
@@ -731,7 +741,8 @@ public class NetClient
 				short y = in.getShort();
 				byte type = in.getByte();
 
-				if(PRINT_PACKETS)System.out.println("\nItem Packet\npkt = " + pkt +
+				if(PRINT_PACKETS)
+					System.out.println("\nItem Packet\npkt = " + pkt +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\ntype = " + type);
@@ -893,7 +904,7 @@ public class NetClient
 					int y = in.getUnsignedShort();
 					String message = in.getString();
 
-					//if(PRINT_PACKETS)
+					if(PRINT_PACKETS)
 						System.out.println("\nScore Object Packet\ntype = " + type +
 							"\nscore = " + score +
 							"\nx = " + x +
@@ -988,6 +999,8 @@ public class NetClient
 		
 		readers[PKT_FUEL] = new PacketProcessor()
 		{
+			private FuelHolder f = new FuelHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -995,17 +1008,16 @@ public class NetClient
 				int fuel = in.getUnsignedShort();
 				
 				if(PRINT_PACKETS)
-				{
 					System.out.println("\nFuel Packet\ntype = " + type +
 										"\nnum = " + num +
 										"\nfuel = " + fuel);
-				}
+				
 				
 				out.putByte(PKT_ACK_FUEL);
 				out.putInt(last_loops);
 				out.putShort((short)num);
 				
-				client.handleFuel(num, fuel);
+				client.handleFuel(f.setFuel(num, fuel));
 			}
 		};
 		
@@ -1113,11 +1125,31 @@ public class NetClient
 				
 			}
 		};
+		
+		readers[PKT_TALK_ACK] = new PacketProcessor()
+		{
+			public static final int LENGTH = 1+4;//5
+			
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			{
+				if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
+				
+				byte type = in.getByte();
+				int talk_ack = in.getInt();
+				
+				if(PRINT_PACKETS)
+					System.out.println("\nTalk Ack Packet\ntype = " + type +
+										"\ntalk ack = " + talk_ack);
+				
+				if (talk_ack >= talk_pending) {
+					talk_pending = 0;
+				}
+			}
+		};
 	}
 
 	public void runClient(String serverIP, int serverPort)
 	{
-
 		try{
 			server_address = new InetSocketAddress(serverIP, serverPort);
 
@@ -1242,8 +1274,7 @@ public class NetClient
 	}
 	
 	private void inputLoop()
-	{
-		
+	{	
 		try
 		{
 			channel.configureBlocking(true);
@@ -1259,22 +1290,6 @@ public class NetClient
 		while(!quit)
 		{
 			
-			/*
-			readPacket(in);
-			
-			
-			//skips packet if FPS is too high
-			currentFrameTime = System.nanoTime();
-			if (currentFrameTime-lastFrameTime < min_interval)
-			{
-				continue;
-			}
-			else
-			{
-				lastFrameTime = currentFrameTime;
-			}
-			*/
-			
 			//readPacket(in);
 			readLatestPacket(in);
 			
@@ -1282,11 +1297,16 @@ public class NetClient
 			
 			client.handlePacketEnd();
 			
+			//this.netTalk("Hello");
+			
 			putPointerMove(out);
 			putKeyboard(out, keyboard);
+			sendTalk(out);
 			sendPacket(out);
 			out.clear();
 		}
+		
+		sendQuit();
 	}
 	
 	private ByteBufferWrap temp = new ByteBufferWrap(MAX_PACKET_SIZE);
@@ -1740,6 +1760,52 @@ public class NetClient
 	 * Number of quit packets to send to server.
 	 */
 	public static final int NUM_QUITS = 5;
+
+	/**
+	 * NetClient attempts to send a talk to the server.
+	 * @param message Message to send to server.
+	 */
+	public void netTalk(String message)
+	{
+		talkString = message;
+		talk_pending = ++talk_sequence_num;
+		talk_last_send = last_loops - TALK_RETRY;
+	}
+	
+	private void sendTalk(ByteBufferWrap out)
+	{
+		if (talk_pending == 0) {
+			return;
+		}
+		
+		if (last_loops - talk_last_send < TALK_RETRY) {
+			return;
+		}
+		
+		/*
+		if (Packet_printf(&wbuf, "%c%ld%s", PKT_TALK,
+				talk_pending, talk_str) == -1) {
+			return -1;
+		}
+		*/
+		
+		out.putByte(PKT_TALK);
+		out.putInt(talk_pending);
+		//for(String s : talkQueue)
+		out.putString(talkString);
+		
+		talk_last_send = last_loops;
+	}
+
+	
+	/**
+	 * Stops input loop and sends quit packets.
+	 */
+	public void quit()
+	{
+		quit = true;
+		//sendQuit();
+	}
 	
 	private void sendQuit()
 	{
@@ -1759,17 +1825,11 @@ public class NetClient
 		System.out.println("\nClient ran for " + runTime + " seconds.\n" +
 							numPacketsReceived + " packets were received.\n" +
 							numFrames + " frames were received.\n" +
-							"Average fps = " + (double)numFrames/runTime); 
+							"Average fps = " + (double)numFrames/runTime);
+		
+		
 	}
 	
-	/**
-	 * Stops input loop and sends quit packets.
-	 */
-	public void quit()
-	{
-		quit = true;
-		sendQuit();
-	}
 	
 	//other methods client might need
 	public BitVector getKeyboard()

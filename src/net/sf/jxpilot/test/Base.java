@@ -9,12 +9,15 @@ public class Base extends BaseHolder implements Drawable
 {
 	public static final Color BASE_COLOR = Color.WHITE;
 	
-	private final int team;
-	private final BaseType base_type;
-	private final int x, y;
-	private final Line2D baseShape;
+	protected final int team;
+	protected final BaseType base_type;
+	/**
+	 * Block coordinates.
+	 */
+	protected final int x, y;
+	protected final Line2D baseShape;
 	
-	private Base(int num, int team, BaseType base_type, int x, int y)
+	protected Base(int num, int team, BaseType base_type, int x, int y)
 	{
 		super.num = num;
 		this.team = team;
@@ -22,6 +25,22 @@ public class Base extends BaseHolder implements Drawable
 		this.x = x;
 		this.y = y;
 		baseShape = getBaseShape(base_type);
+	}
+	
+	protected Base(byte block_type, int num, int x, int y)
+	{
+		//this(num, block_type-(BaseType.getBaseType(block_type).getBlockType()), BaseType.getBaseType(block_type), x, y);
+		
+		BaseType base_type = BaseType.getBaseType(block_type);
+
+		int team = block_type-base_type.getBlockType();
+		
+		super.num = num;
+		this.team = team;
+		this.base_type = base_type;
+		this.x=x;
+		this.y=y;
+		this.baseShape = getBaseShape(base_type);
 	}
 	
 	/**
@@ -48,9 +67,13 @@ public class Base extends BaseHolder implements Drawable
 	public int getX(){return x;}
 	public int getY(){return y;}
 	
+	/**
+	 * Note that this only draws the line, not any player names.
+	 */
+	@Override
 	public void paintDrawable(Graphics2D g2d)
 	{
-		//AffineTransform saved = g2d.getTransform();
+		AffineTransform saved = g2d.getTransform();
 		
 		int x = this.x*BLOCK_SIZE;
 		int y = this.y*BLOCK_SIZE;
@@ -58,9 +81,10 @@ public class Base extends BaseHolder implements Drawable
 		g2d.translate(x, y);
 		g2d.setColor(BASE_COLOR);
 		g2d.draw(baseShape);
-		g2d.translate(-x, -y);
 		
-		//g2d.setTransform(saved);
+		//g2d.translate(-x, -y);
+		
+		g2d.setTransform(saved);
 	}
 	
 	private static Line2D getBaseShape(BaseType type)
@@ -69,10 +93,10 @@ public class Base extends BaseHolder implements Drawable
 		
 		switch(type)
 		{
-		case RIGHT:
+		case LEFT:
 			line.setLine(BLOCK_SIZE, 0, BLOCK_SIZE, BLOCK_SIZE);
 			break;
-		case LEFT:
+		case RIGHT:
 			line.setLine(0, 0, 0, BLOCK_SIZE);
 			break;
 		case DOWN:
@@ -99,6 +123,11 @@ public class Base extends BaseHolder implements Drawable
 		
 		public byte getBlockType(){return block_type;}
 		
+		/**
+		 * 
+		 * @param block_type A block from the map data.
+		 * @return The corresponding base type.
+		 */
 		public static BaseType getBaseType(byte block_type)
 		{
 			for(BaseType b : BaseType.values())
@@ -110,5 +139,5 @@ public class Base extends BaseHolder implements Drawable
 			}
 			return null;//Unknown base type
 		}
-	}		
+	}
 }

@@ -2,9 +2,7 @@ package net.sf.jxpilot.test;
 
 import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
 import static net.sf.jxpilot.test.BlockMapSetup.*;
-
 import java.awt.*;
-import java.awt.geom.*;
 
 public class Cannon extends CannonHolder implements Drawable 
 {
@@ -104,12 +102,12 @@ public class Cannon extends CannonHolder implements Drawable
 			poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
 			poly.addPoint(BLOCK_SIZE*3/4, BLOCK_SIZE/2);
 			break;
-		case UP:
+		case DOWN:
 			poly.addPoint(0, BLOCK_SIZE);
 			poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
 			poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE*3/4);
 			break;
-		case DOWN:
+		case UP:
 			poly.addPoint(0, 0);
 			poly.addPoint(BLOCK_SIZE, 0);
 			poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE/4);

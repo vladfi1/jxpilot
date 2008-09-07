@@ -102,11 +102,6 @@ public class JXPilotFrame extends JFrame
 		defaultMouseInit();
 		defaultUserInit();
 		optionsInit();
-		//this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		//this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 		
 		this.world = world;
 		blockMap = world.getMap();
@@ -371,11 +366,12 @@ public class JXPilotFrame extends JFrame
 		keyPreferences.put(KeyEvent.VK_A, 		new Byte[] {Keys.KEY_TURN_LEFT});
 		keyPreferences.put(KeyEvent.VK_S, 		new Byte[] {Keys.KEY_TURN_RIGHT});
 		keyPreferences.put(KeyEvent.VK_SHIFT, 	new Byte[] {Keys.KEY_THRUST});
-		keyPreferences.put(KeyEvent.VK_CONTROL, new Byte[] {Keys.KEY_CONNECTOR});
+		keyPreferences.put(KeyEvent.VK_CONTROL, new Byte[] {Keys.KEY_CONNECTOR, Keys.KEY_REFUEL});
 		keyPreferences.put(KeyEvent.VK_H, 		new Byte[] {Keys.KEY_CHANGE_HOME});
 		keyPreferences.put(KeyEvent.VK_D, 		new Byte[] {Keys.KEY_DROP_BALL});
 		keyPreferences.put(KeyEvent.VK_PAUSE, 	new Byte[] {Keys.KEY_PAUSE});
 		keyPreferences.put(KeyEvent.VK_M,		new Byte[] {Keys.KEY_TALK} );
+		keyPreferences.put(KeyEvent.VK_T,		new Byte[] {Keys.KEY_TALK} );
 		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
 	}
 	
@@ -407,6 +403,14 @@ public class JXPilotFrame extends JFrame
 				}
 			}
 		});
+		
+		optionHandlers.put(UserOption.BALL_GONE, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				clientInputListener.talk("***BALL IS GONE SAVE IT NOW***");
+			}
+		});
 	}
 	
 	private interface OptionHandler{
@@ -418,7 +422,8 @@ public class JXPilotFrame extends JFrame
 		userPreferences = new HashMap<Integer, UserOption>();
 		
 		userPreferences.put(KeyEvent.VK_ESCAPE, UserOption.QUIT);
-		userPreferences.put(KeyEvent.VK_K, UserOption.TOGGLE_MOUSE_CONTROL);	
+		userPreferences.put(KeyEvent.VK_K, UserOption.TOGGLE_MOUSE_CONTROL);
+		userPreferences.put(KeyEvent.VK_F1, UserOption.BALL_GONE);
 	}
 	
 	//graphics stuff
