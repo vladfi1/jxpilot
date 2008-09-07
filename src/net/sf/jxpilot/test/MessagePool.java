@@ -149,7 +149,8 @@ public class MessagePool {
                         + (messagesSize - 1 - i) * yDistance);
         }
 
-        messages.removeAll(messagesToRemove);
+        if (messagesToRemove != null)
+            messages.removeAll(messagesToRemove);
     }
 
 }
