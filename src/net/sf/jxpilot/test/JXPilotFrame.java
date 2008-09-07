@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
-import static net.sf.jxpilot.MathFunctions.*;
+import static net.sf.jxpilot.test.Utilities.*;
 
 public class JXPilotFrame extends JFrame
 {
