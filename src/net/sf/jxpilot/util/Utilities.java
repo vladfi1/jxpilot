@@ -1,4 +1,4 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.util;
 
 import java.awt.*;
 import java.awt.geom.*;

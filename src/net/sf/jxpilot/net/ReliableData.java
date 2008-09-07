@@ -1,9 +1,12 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.net;
 
+import static net.sf.jxpilot.JXPilot.*;
+import static net.sf.jxpilot.net.Ack.*;
 import static net.sf.jxpilot.test.Packet.*;
-import static net.sf.jxpilot.test.UDPTest.*;
 import static net.sf.jxpilot.test.ReliableDataError.*;
-import static net.sf.jxpilot.test.Ack.*;
+import net.sf.jxpilot.JXPilot;
+import net.sf.jxpilot.test.ByteBufferWrap;
+import net.sf.jxpilot.test.ReliableDataError;
 
 /**
  * Class to hold reliable data packets.
@@ -70,7 +73,7 @@ class ReliableData
 		}
 		
 		
-		if (UDPTest.PRINT_RELIABLE)
+		if (JXPilot.PRINT_RELIABLE)
 			System.out.println(data);
 		
 		data.incrementOffset();

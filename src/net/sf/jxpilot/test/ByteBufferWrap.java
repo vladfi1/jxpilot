@@ -5,6 +5,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.net.*;
 
+import net.sf.jxpilot.util.Utilities;
+
 /**
  * Wrapper class that handles buffer flips automatically. It does not actually extend ByteBuffer since
  * ByteBuffer has only private methods/constructors.

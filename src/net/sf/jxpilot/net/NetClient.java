@@ -1,10 +1,10 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.net;
 
-import static net.sf.jxpilot.test.UDPTest.PRINT_PACKETS;
-import static net.sf.jxpilot.test.Ack.putAck;
+import static net.sf.jxpilot.JXPilot.PRINT_PACKETS;
+import static net.sf.jxpilot.net.Ack.putAck;
+import static net.sf.jxpilot.net.ReplyData.readReplyData;
 import static net.sf.jxpilot.test.Packet.*;
-import static net.sf.jxpilot.test.ReplyData.readReplyData;
-import static net.sf.jxpilot.test.Utilities.removeNullCharacter;
+import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -12,6 +12,31 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.util.*;
 
+import net.sf.jxpilot.test.AbstractClient;
+import net.sf.jxpilot.test.AbstractDebrisHolder;
+import net.sf.jxpilot.test.BallHolder;
+import net.sf.jxpilot.test.BaseHolder;
+import net.sf.jxpilot.test.BlockMap;
+import net.sf.jxpilot.test.BlockMapSetup;
+import net.sf.jxpilot.test.ByteBufferWrap;
+import net.sf.jxpilot.test.CannonHolder;
+import net.sf.jxpilot.test.ConnectorHolder;
+import net.sf.jxpilot.test.FuelHolder;
+import net.sf.jxpilot.test.Items;
+import net.sf.jxpilot.test.Keys;
+import net.sf.jxpilot.test.MineHolder;
+import net.sf.jxpilot.test.MissileHolder;
+import net.sf.jxpilot.test.PacketReadException;
+import net.sf.jxpilot.test.Player;
+import net.sf.jxpilot.test.ReliableDataError;
+import net.sf.jxpilot.test.ReliableReadException;
+import net.sf.jxpilot.test.ReplyMessage;
+import net.sf.jxpilot.test.ScoreObjectHolder;
+import net.sf.jxpilot.test.ShipHolder;
+import net.sf.jxpilot.test.ShipShape;
+import net.sf.jxpilot.test.StringReadException;
+import net.sf.jxpilot.util.BitVector;
+import net.sf.jxpilot.util.Utilities;
 import net.sf.xpilotpanel.preferences.Preferences;
 
 public class NetClient

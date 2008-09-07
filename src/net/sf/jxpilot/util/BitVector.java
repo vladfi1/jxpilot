@@ -1,4 +1,4 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.util;
 
 /**
  * Class that holds a number of bits that is a multiple of 8.

@@ -1,10 +1,13 @@
 package net.sf.jxpilot.test;
 
 import static net.sf.jxpilot.test.MapBlock.BLOCK_SIZE;
-import static net.sf.jxpilot.test.Utilities.getAngleFrom128;
+import static net.sf.jxpilot.util.Utilities.getAngleFrom128;
+
 import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
+
+import net.sf.jxpilot.util.Utilities;
 
 /**
  * Class that manages the various objects in the world.

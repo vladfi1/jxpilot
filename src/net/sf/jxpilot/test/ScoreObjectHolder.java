@@ -1,5 +1,7 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.util.Utilities;
+
 public class ScoreObjectHolder implements Holder<ScoreObjectHolder>
 {
 	protected short score;

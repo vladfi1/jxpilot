@@ -1,4 +1,6 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot.net;
+
+import net.sf.jxpilot.test.ByteBufferWrap;
 
 
 class ReplyData

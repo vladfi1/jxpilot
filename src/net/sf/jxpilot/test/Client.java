@@ -1,5 +1,8 @@
 package net.sf.jxpilot.test;
 
+import net.sf.jxpilot.graphics.JXPilotFrame;
+import net.sf.jxpilot.net.NetClient;
+import net.sf.jxpilot.util.BitVector;
 import net.sf.xpilotpanel.preferences.Preferences;
 
 public class Client implements AbstractClient, ClientInputListener

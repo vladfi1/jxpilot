@@ -1,5 +1,6 @@
-package net.sf.jxpilot.test;
+package net.sf.jxpilot;
 
+import net.sf.jxpilot.test.Client;
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
 import net.sf.xpilotpanel.preferences.Preferences;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 
-public class UDPTest {
+public class JXPilot {
 
 	/**
 	 * Whether or not to print various packet information.

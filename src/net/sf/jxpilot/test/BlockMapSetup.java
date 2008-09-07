@@ -1,7 +1,8 @@
 package net.sf.jxpilot.test;
 
+import static net.sf.jxpilot.JXPilot.*;
 import static net.sf.jxpilot.test.MapError.*;
-import static net.sf.jxpilot.test.UDPTest.*;
+import net.sf.jxpilot.util.Utilities;
 
 public class BlockMapSetup implements java.io.Serializable
 {
