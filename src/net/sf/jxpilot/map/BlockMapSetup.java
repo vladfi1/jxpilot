@@ -1,7 +1,7 @@
-package map;
+package net.sf.jxpilot.map;
 
-import static map.MapError.*;
 import static net.sf.jxpilot.JXPilot.*;
+import static net.sf.jxpilot.map.MapError.*;
 import net.sf.jxpilot.net.ByteBufferWrap;
 import net.sf.jxpilot.net.StringReadException;
 import net.sf.jxpilot.util.Utilities;

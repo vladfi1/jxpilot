@@ -1,16 +1,16 @@
 package net.sf.jxpilot.test;
 
-import static map.MapBlock.BLOCK_SIZE;
+import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 import static net.sf.jxpilot.util.Utilities.getAngleFrom128;
 
 import java.util.*;
 import java.awt.*;
 import java.awt.geom.*;
 
-import map.BlockMap;
-import map.BlockMapSetup;
-import map.MapBlock;
 import net.sf.jxpilot.graphics.Drawable;
+import net.sf.jxpilot.map.BlockMap;
+import net.sf.jxpilot.map.BlockMapSetup;
+import net.sf.jxpilot.map.MapBlock;
 import net.sf.jxpilot.util.Factory;
 import net.sf.jxpilot.util.HolderList;
 import net.sf.jxpilot.util.TimedQueue;

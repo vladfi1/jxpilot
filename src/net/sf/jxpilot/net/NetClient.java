@@ -12,11 +12,11 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.util.*;
 
-import data.Items;
-import data.Keys;
 
-import map.BlockMap;
-import map.BlockMapSetup;
+import net.sf.jxpilot.data.Items;
+import net.sf.jxpilot.data.Keys;
+import net.sf.jxpilot.map.BlockMap;
+import net.sf.jxpilot.map.BlockMapSetup;
 import net.sf.jxpilot.test.AbstractClient;
 import net.sf.jxpilot.test.AbstractDebrisHolder;
 import net.sf.jxpilot.test.BallHolder;

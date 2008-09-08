@@ -1,6 +1,6 @@
-package map;
+package net.sf.jxpilot.map;
 
-import static map.MapBlock.*;
+import static net.sf.jxpilot.map.MapBlock.*;
 import static net.sf.jxpilot.test.Cannon.CannonType;
 import static net.sf.jxpilot.test.Base.BaseType;
 import java.util.*;

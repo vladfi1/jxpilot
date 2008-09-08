@@ -1,4 +1,4 @@
-package data;
+package net.sf.jxpilot.data;
 
 public class Items {
 	public static final int

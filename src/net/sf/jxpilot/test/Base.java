@@ -4,8 +4,8 @@ import java.awt.*;
 import java.awt.geom.*;
 
 import net.sf.jxpilot.graphics.Drawable;
-import static map.BlockMapSetup.*;
-import static map.MapBlock.BLOCK_SIZE;
+import static net.sf.jxpilot.map.BlockMapSetup.*;
+import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 
 public class Base extends BaseHolder implements Drawable
 {

@@ -1,7 +1,7 @@
 package net.sf.jxpilot.test;
 
-import map.BlockMap;
 import net.sf.jxpilot.graphics.JXPilotFrame;
+import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
 import net.sf.jxpilot.util.BitVector;
 import net.sf.xpilotpanel.preferences.Preferences;

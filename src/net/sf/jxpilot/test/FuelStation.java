@@ -1,7 +1,7 @@
 package net.sf.jxpilot.test;
 
-import static map.BlockMapSetup.*;
-import static map.MapBlock.BLOCK_SIZE;
+import static net.sf.jxpilot.map.BlockMapSetup.*;
+import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 
 import java.awt.*;
 

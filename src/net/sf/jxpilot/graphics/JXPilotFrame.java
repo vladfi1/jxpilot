@@ -2,15 +2,14 @@ package net.sf.jxpilot.graphics;
 
 import java.util.*;
 
-import static map.MapBlock.*;
 
 import javax.swing.*;
 
-import data.Keys;
 
-import map.BlockMap;
-import map.BlockMapSetup;
-import map.MapBlock;
+import net.sf.jxpilot.data.Keys;
+import net.sf.jxpilot.map.BlockMap;
+import net.sf.jxpilot.map.BlockMapSetup;
+import net.sf.jxpilot.map.MapBlock;
 import net.sf.jxpilot.test.ClientInputListener;
 import net.sf.jxpilot.test.GameWorld;
 import net.sf.jxpilot.test.MessagePool;
@@ -21,6 +20,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 
+import static net.sf.jxpilot.map.MapBlock.*;
 import static net.sf.jxpilot.util.Utilities.*;
 
 public class JXPilotFrame extends JFrame
