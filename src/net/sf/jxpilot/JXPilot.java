@@ -1,6 +1,5 @@
 package net.sf.jxpilot;
 
-import net.sf.jxpilot.test.Client;
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
 import net.sf.xpilotpanel.preferences.Preferences;

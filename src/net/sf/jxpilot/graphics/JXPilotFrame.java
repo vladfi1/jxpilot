@@ -1,27 +1,18 @@
 package net.sf.jxpilot.graphics;
 
 import java.util.*;
-
-
 import javax.swing.*;
-
-
-import net.sf.jxpilot.data.Keys;
-import net.sf.jxpilot.map.BlockMap;
-import net.sf.jxpilot.map.BlockMapSetup;
-import net.sf.jxpilot.map.MapBlock;
-import net.sf.jxpilot.test.ClientInputListener;
-import net.sf.jxpilot.test.GameWorld;
-import net.sf.jxpilot.test.MessagePool;
-import net.sf.jxpilot.test.UserOption;
-
 import java.awt.event.*;
+import net.sf.jxpilot.data.Keys;
+import net.sf.jxpilot.map.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
-
 import static net.sf.jxpilot.map.MapBlock.*;
 import static net.sf.jxpilot.util.Utilities.*;
+import net.sf.jxpilot.user.*;
+import net.sf.jxpilot.*;
+import net.sf.jxpilot.game.*;
 
 public class JXPilotFrame extends JFrame
 {
