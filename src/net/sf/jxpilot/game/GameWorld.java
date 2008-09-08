@@ -68,7 +68,10 @@ public class GameWorld {
 		drawables = new Vector<Iterable<? extends Drawable>>();
 		
 		cannons = map.getCannons();
-		drawables.add(cannons);
+		drawables.add(cannons);	
+
+		fuelStations = map.getFuelStations();
+		drawables.add(fuelStations);
 		
 		ArrayList<Base> mapBases = map.getBases();
 		bases = new ArrayList<DrawableBase>(mapBases.size());
@@ -78,19 +81,13 @@ public class GameWorld {
 		}
 		drawables.add(bases);
 		
-		fuelStations = map.getFuelStations();
-		drawables.add(fuelStations);
-		
 		initDrawableHandlers();
 	}
 	
 	private void initDrawableHandlers()
 	{
 		holderLists = new ArrayList<HolderList<? extends Drawable>>();
-		
-		shipHandler = new HolderList<Ship>(shipFactory, SHIPS_SIZE);
-		holderLists.add(shipHandler);
-		
+
 		shotHandler = new HolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
 		holderLists.add(shotHandler);
 		
@@ -112,6 +109,10 @@ public class GameWorld {
 		scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
 		drawables.add(scoreObjectHandler);
 		//holderLists.add(scoreObjectHandler);
+		
+		
+		shipHandler = new HolderList<Ship>(shipFactory, SHIPS_SIZE);
+		holderLists.add(shipHandler);
 		
 		drawables.addAll(holderLists);
 	}

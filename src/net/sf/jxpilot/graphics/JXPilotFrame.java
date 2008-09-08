@@ -13,6 +13,7 @@ import static net.sf.jxpilot.util.Utilities.*;
 import net.sf.jxpilot.user.*;
 import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
+import net.sf.jxpilot.util.*;
 
 public class JXPilotFrame extends JFrame
 {
@@ -150,7 +151,7 @@ public class JXPilotFrame extends JFrame
 			setBufferStrategy();
 		}
 		
-		initBuffers();
+		//initBuffers();
 		
 		//pack();
 		
@@ -416,6 +417,28 @@ public class JXPilotFrame extends JFrame
 				clientInputListener.talk("***BALL IS GONE SAVE IT NOW***");
 			}
 		});
+		
+		optionHandlers.put(UserOption.BALL_SAFE, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				clientInputListener.talk("***BALL IS SAFE, DON'T SHOOT YOURSELF***");
+			}
+		});
+		optionHandlers.put(UserOption.COVER, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				clientInputListener.talk("***BALL IS APPROACHING BASE COVER NOW***");
+			}
+		});
+		optionHandlers.put(UserOption.BALL_POP, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				clientInputListener.talk("***BALL HAS POPPED***");
+			}
+		});
 	}
 	
 	private interface OptionHandler{
@@ -429,6 +452,9 @@ public class JXPilotFrame extends JFrame
 		userPreferences.put(KeyEvent.VK_ESCAPE, UserOption.QUIT);
 		userPreferences.put(KeyEvent.VK_K, UserOption.TOGGLE_MOUSE_CONTROL);
 		userPreferences.put(KeyEvent.VK_F1, UserOption.BALL_GONE);
+		userPreferences.put(KeyEvent.VK_F2, UserOption.BALL_SAFE);
+		userPreferences.put(KeyEvent.VK_F3, UserOption.COVER);
+		userPreferences.put(KeyEvent.VK_F4, UserOption.BALL_POP);
 	}
 	
 	//graphics stuff
@@ -441,9 +467,6 @@ public class JXPilotFrame extends JFrame
 	 * Map dimensions in xpilot pixels (blocks*BLOCK_SIZE);
 	 */
 	private int mapWidth, mapHeight;
-	private BufferedImage mapBuffer;
-	private BufferedImage worldBuffer;
-	private Graphics2D worldG2D;
 	
 	private void initFullScreen()
 	{
@@ -512,15 +535,6 @@ public class JXPilotFrame extends JFrame
 		//clientInputListener.quit();
 		this.dispose();
 	}
-	
-	private void initBuffers()
-	{
-		createMapBuffer();
-		createWorldBuffer(mapBuffer);
-		
-		worldG2D = worldBuffer.createGraphics();
-		worldG2D.setTransform(flippedTransform);
-	}
 
 	public void setDrawables(Vector<? extends Iterable<? extends Drawable>> d)
 	{
@@ -584,8 +598,16 @@ public class JXPilotFrame extends JFrame
 		setViewPosition();
 		setTransform();
 		
+
+		screenG2D.setTransform(identity);
+		screenG2D.setColor(spaceColor);
+		screenG2D.fillRect(0, 0, super.getWidth(), super.getHeight());
+		
 		screenG2D.setTransform(currentTransform);
-		paintWorld(screenG2D);
+		
+		screenG2D.transform(flippedTransform);
+		
+		paintBlocksArea(screenG2D, (int)viewX, (int)viewY, (viewSize*super.getWidth())/super.getHeight(), viewSize);
 		
 		for(int x= -1; x<=1;x++)
 		{
@@ -613,67 +635,7 @@ public class JXPilotFrame extends JFrame
 	{
 		this.setView((double)world.getSelfX()/MapBlock.BLOCK_SIZE, (double)world.getSelfY()/MapBlock.BLOCK_SIZE);
 	}
-	
-	private void createMapBuffer()
-	{
-		if (FSEM)
-			mapBuffer = gd.getDefaultConfiguration().createCompatibleImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE);
-		else
-			mapBuffer = new BufferedImage(setup.getX()*BLOCK_SIZE, setup.getY()*BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
 		
-		Graphics2D g2d = mapBuffer.createGraphics();
-
-		g2d.setColor(spaceColor);
-		g2d.fillRect(0, 0, mapBuffer.getWidth(), mapBuffer.getHeight());
-
-		g2d.setTransform(flippedTransform);
-
-		paintBlocks(g2d);
-	}
-
-	/**
-	 * How much larger the world buffer should be compared to the mapBuffer.
-	 */
-	private final double worldMarginRatio = 0.1;
-	private int worldMarginX, worldMarginY;
-
-	private void createWorldBuffer(BufferedImage mapBuffer)
-	{
-		worldMarginX = (int) (worldMarginRatio * mapWidth);
-		worldMarginY = (int) (worldMarginRatio * mapHeight);
-		
-		int worldWidth = 2*worldMarginX + mapWidth;
-		int worldHeight = 2*worldMarginY + mapHeight;
-		
-		if (FSEM)
-			worldBuffer = gd.getDefaultConfiguration().createCompatibleImage(worldWidth, worldHeight);
-		else
-			worldBuffer = new BufferedImage(worldWidth, worldHeight, BufferedImage.TYPE_INT_RGB);
-		
-		Graphics2D g2d = worldBuffer.createGraphics();
-		
-		int startX = (int)((worldMarginRatio-1.0)*mapWidth);
-		int startY = (int)((worldMarginRatio-1.0)*mapHeight);
-		
-		
-		for(int x= 0; x<3;x++)
-		{
-			for (int y = 0; y<3;y++)
-			{
-				g2d.drawImage(mapBuffer, x*mapWidth+startX, y*mapHeight+startY, this);
-			}
-		}
-	}
-	
-	/**
-	 * Paints the worldBuffer onto g. This is just the mapBuffer translated into a 3x3 pattern.
-	 * @param g2d The Graphics object on which to paint.
-	 */
-	private void paintWorld(Graphics g)
-	{
-		g.drawImage(worldBuffer, -worldMarginX, -worldMarginY, this);
-	}
-	
 	/**
 	 * Paints all drawables in the GameWorld.
 	 * @param g2d The Graphics object on which to draw.
@@ -712,28 +674,31 @@ public class JXPilotFrame extends JFrame
 		{
 			for (MapBlock o : array)
 			{		
-				paintBlock(g2, o);
+				o.paintDrawable(g2);
 			}
 		}
 	}
 
-	private void paintBlock(Graphics2D g2, MapBlock block)
+	/**
+	 * 
+	 * @param g2 Graphics on which to paint the blocks
+	 * @param centerX center of view area
+	 * @param centerY center of view area
+	 * @param width of viewing area
+	 * @param height of viewing area
+	 */
+	private void paintBlocksArea(Graphics2D g2, int centerX, int centerY, int width, int height)
 	{
-		if (block.getShape()==null) return;
-
-		//g2.setTransform(identity);
-		//g2.translate(block.getX()*block.BLOCK_SIZE, (setup.getY()-block.getY()-1)*block.BLOCK_SIZE);
-
-		g2.setColor(block.getColor());
-
-		g2.translate(block.getX()*BLOCK_SIZE, block.getY()*BLOCK_SIZE);
-
-		if (block.isFilled())
-			g2.fill(block.getShape());
-		else
-			g2.draw(block.getShape());
-
-		g2.translate(-block.getX()*BLOCK_SIZE, -block.getY()*BLOCK_SIZE);
+		int xRadius = width/2+1;
+		int yRadius = height/2+1;
+		
+		for(int x=centerX-xRadius;x<=centerX+xRadius;x++)
+		{
+			for(int y=centerY-yRadius;y<=centerY+yRadius;y++)
+			{
+				blocks[Utilities.trueMod(x, setup.getX())][Utilities.trueMod(y, setup.getY())].paintBlock(g2, x, y);
+			}
+		}
 	}
 
 	/**
@@ -752,5 +717,4 @@ public class JXPilotFrame extends JFrame
     public MessagePool getMessagePool() {
         return messagePool;
     }
-
 }
