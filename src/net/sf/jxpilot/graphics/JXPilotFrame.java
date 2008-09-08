@@ -1,7 +1,6 @@
 package net.sf.jxpilot.graphics;
 
 import java.util.*;
-import javax.swing.*;
 import java.awt.event.*;
 import net.sf.jxpilot.data.Keys;
 import net.sf.jxpilot.map.*;
@@ -15,7 +14,7 @@ import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.util.*;
 
-public class JXPilotFrame extends JFrame
+public class JXPilotFrame extends Frame
 {
 	/**
 	 * Whether or not to try to recenter the mouse after every movement.

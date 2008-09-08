@@ -15,7 +15,6 @@ import net.sf.jxpilot.util.*;
  * Class that manages the various objects in the world.
  * All drawable objects are contained in here.
  * @author vlad
- *
  */
 public class GameWorld {
 	
@@ -635,7 +634,6 @@ public class GameWorld {
 	 */
 	private class DrawableBase extends Base
 	{
-		
 		public DrawableBase(Base other)
 		{
 			super(other.num, other.team, other.base_type, other.x, other.y);

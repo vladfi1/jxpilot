@@ -1,9 +1,6 @@
 package net.sf.jxpilot.map;
 
-import net.sf.jxpilot.graphics.*;
-import java.awt.geom.*;
 import java.awt.*;
-import java.awt.image.*;
 
 import static net.sf.jxpilot.map.BlockMapSetup.*;
 
@@ -11,7 +8,7 @@ import static net.sf.jxpilot.map.BlockMapSetup.*;
  * Represents a block of a BlockMap. Note that things that can change such as cannons are not represented by MapBlocks.
  * @author vlad
  */
-public class MapBlock extends DrawableBlock implements java.io.Serializable, Drawable
+public class MapBlock extends DrawableBlock
 {
 	public static final int BLOCK_SIZE = 35;
 	

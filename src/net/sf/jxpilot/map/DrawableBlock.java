@@ -169,7 +169,7 @@ public class DrawableBlock implements Drawable
 	//drawing information
 	public final Shape shape;
 	public final Color color;
-	public final boolean fill;
+	public final boolean isFilled;
 	protected final BufferedImage image;	
 	
 	/**
@@ -182,7 +182,7 @@ public class DrawableBlock implements Drawable
 		this.isDrawn=false;
 		this.shape = null;
 		this.color = null;
-		this.fill = false;
+		this.isFilled = false;
 		image = null;	
 	}
 	
@@ -196,7 +196,7 @@ public class DrawableBlock implements Drawable
 		this.isDrawn = other.isDrawn;
 		this.shape = other.shape;
 		this.color = other.color;
-		this.fill = other.fill;
+		this.isFilled = other.isFilled;
 		this.image = other.image;
 	}
 	
@@ -213,7 +213,7 @@ public class DrawableBlock implements Drawable
 		this.isDrawn=true;
 		this.shape = shape;
 		this.color = color;
-		this.fill = fill;
+		this.isFilled = fill;
 		image = createImage();
 	}
 	
@@ -227,7 +227,7 @@ public class DrawableBlock implements Drawable
 	public byte getBlockType(){return block_type;}
 	public Shape getShape(){return shape;}
 	public Color getColor(){return color;}
-	public boolean isFilled(){return fill;}
+	public boolean isFilled(){return isFilled;}
 	
 	/**
 	 * Note that this method draws without using the block's stored image.
@@ -238,7 +238,7 @@ public class DrawableBlock implements Drawable
 		if(!isDrawn) return;
 		
 		g2d.setColor(color);
-		if(fill)
+		if(isFilled)
 		{
 			g2d.fill(shape);
 		}
