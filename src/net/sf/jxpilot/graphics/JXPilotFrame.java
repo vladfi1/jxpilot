@@ -23,15 +23,9 @@ public class JXPilotFrame extends Frame
 	
     /**
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
-	 * Otherwise uses USF (undecorated full screen)
+	 * Otherwise uses AFS (almost full screen)
 	 */
 	private boolean FSEM = true;
-
-	/**
-	 * Whether or not to render the game using a large buffered image for the map.
-	 * Otherwise, the map is rendered block by block.
-	 */
-	private final boolean USE_MAP_BUFFER = true;
 	
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -39,9 +33,6 @@ public class JXPilotFrame extends Frame
 	private boolean mouseControl = false;
 	
 	private AffineTransform identity = new AffineTransform();
-	private Color blockColor = Color.BLUE;
-	private Color spaceColor = Color.BLACK;
-	private Color shipColor = Color.white;
 
 	private Toolkit toolkit = Toolkit.getDefaultToolkit();
 	private Dimension screenSize = toolkit.getScreenSize();
@@ -50,15 +41,6 @@ public class JXPilotFrame extends Frame
 	
 	private GameWorld world;
 	
-	private BlockMap blockMap;
-	private BlockMapSetup setup;
-	private MapBlock[][] blocks;
-	
-	/**
-	 * center of viewing screen, in blocks
-	 */
-	private double viewX, viewY;
-	
 	public static final int defaultViewSize = 27;
 	
 	/**
@@ -66,16 +48,7 @@ public class JXPilotFrame extends Frame
 	 */
 	private int viewSize;
 	
-	/**
-	 * current transform of screen
-	 */
-	private AffineTransform currentTransform = new AffineTransform();
-	/**
-	 * transform for switching between Cartesian mode and AWT mode. (y is changed with -y)
-	 */
-	private AffineTransform flippedTransform = new AffineTransform();
-	
-	
+
 	private Vector<? extends Iterable<? extends Drawable>> drawables;
 
 	/**
@@ -104,45 +77,23 @@ public class JXPilotFrame extends Frame
 	 */
 	private EnumMap<UserOption, OptionHandler> optionHandlers;
 	
-	
+	private WorldRenderer renderer;
 	public JXPilotFrame(GameWorld world, ClientInputListener l)
-	{	
-		
+	{			
 		super(Accelerator.gfxConfig);
 		
 		clientInputListener = l;
+		drawables = world.getDrawables();
 		
 		defaultKeyInit();
 		defaultMouseInit();
 		defaultUserInit();
 		optionsInit();
 		
-		this.world = world;
-		blockMap = world.getMap();
-		setup = blockMap.getSetup();
-		blocks = blockMap.getBlocks();
-		
-		mapWidth = blockMap.getWidth();
-		mapHeight = blockMap.getHeight();
-		
-		viewX=setup.getX()/2.0;
-		viewY=setup.getY()/2.0;
-		
 		viewSize = defaultViewSize;
 		
-		//viewSize = this.getHeight()/BLOCK_SIZE;
-		
-		//buffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);
-		
-		//g2d = buffer.createGraphics();
-		
-		//currentTransform.translate(-viewX, -viewY);
-		
-		flippedTransform.scale(1, -1);
-		flippedTransform.translate(0, -mapHeight);
-		
-		setTransform();
-		//setTransform();
+		this.world = world;
+		renderer = new WorldRenderer(world);		
 
 		FSEM = FSEM && GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice().isFullScreenSupported();
@@ -160,12 +111,6 @@ public class JXPilotFrame extends Frame
 			this.setResizable(true);
 			setBufferStrategy();
 		}
-		
-		//viewSize = this.getHeight()/BLOCK_SIZE;
-		
-		//initBuffers();
-		if(USE_MAP_BUFFER)
-			createMapBuffer();
 		
 		//pack();
 		
@@ -474,26 +419,7 @@ public class JXPilotFrame extends Frame
 	//graphics stuff
 	private final int NUM_BUFFERS = 2;
 	private GraphicsDevice gd;
-	private Graphics2D screenG2D;
 	private BufferStrategy bufferStrategy;
-	
-	/**
-	 * How many times smaller the scaled map buffer should be.
-	 */
-	private final double scale_factor = 7;
-	/**
-	 * The scaled map buffer.
-	 */
-	private BufferedImage scaledMapBuffer;
-	/**
-	 * Unscaled map buffer.
-	 */
-	private BufferedImage mapBuffer;
-	
-	/**
-	 * Map dimensions in xpilot pixels (blocks*BLOCK_SIZE);
-	 */
-	private int mapWidth, mapHeight;
 	
 	private void initFullScreen()
 	{
@@ -563,31 +489,11 @@ public class JXPilotFrame extends Frame
 		this.dispose();
 	}
 
-	public void setDrawables(Vector<? extends Iterable<? extends Drawable>> d)
-	{
-		drawables = d;
-	}
-
-	private void setTransform()
-	{
-		//currentTransform.setToIdentity();
-		double scale = (double)this.getHeight()/(viewSize*BLOCK_SIZE);
-		//double scale = this.getHeight()/(viewSize*BLOCK_SIZE);
-		//double scale = 1;
-		//System.out.println("Scale = " + scale + "\nHeight = " + this.getHeight());
-		
-		
-		currentTransform.setToIdentity();
-		currentTransform.translate(this.getWidth()/2.0, this.getHeight()/2.0);
-		currentTransform.scale(scale, scale);
-		currentTransform.translate(-viewX*BLOCK_SIZE, viewY*BLOCK_SIZE-setup.getY()*BLOCK_SIZE);
-	}
-
 	public void activeRender()
 	{
 			try
 			{
-				screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
+				Graphics2D screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
 				renderGame(screenG2D);
 				screenG2D.dispose();
 				if (!bufferStrategy.contentsLost())
@@ -607,173 +513,17 @@ public class JXPilotFrame extends Frame
 			}
 	}
 	
-	/**
-	 * Sets the view focus in blocks, measured in regular Cartesian form.
-	 */
-	public void setView(double x, double y)
-	{
-		viewX = trueMod(x, setup.getX());
-		viewY = trueMod(y, setup.getY());
-	}
-	
-	public void moveView(double dx, double dy)
-	{
-		setView(viewX+dx, viewY+dy);
-	}
-	
-	private AffineTransform translated = new AffineTransform();
 	private void renderGame(Graphics2D screenG2D)
 	{
-		//paintWorld();
-		setViewPosition();
-		setTransform();
 		
-		
-		//screenG2D.setColor(spaceColor);
-		//screenG2D.fillRect(0, 0, super.getWidth(), super.getHeight());
-		
-		//screenG2D.setTransform(identity);
-		screenG2D.setBackground(spaceColor);
-		screenG2D.clearRect(0, 0, super.getWidth(), super.getHeight());
-		
-		if(USE_MAP_BUFFER)
-		{
-			screenG2D.setTransform(currentTransform);
-			screenG2D.transform(flippedTransform);
-			paintScaledMapBuffer(screenG2D);
-		}
-		else
-		{
-			
-			screenG2D.setTransform(identity);
-			screenG2D.setBackground(spaceColor);
-			screenG2D.clearRect(0, 0, super.getWidth(), super.getHeight());
-
-			screenG2D.setTransform(currentTransform);
-			screenG2D.transform(flippedTransform);
-
-			paintBlocksArea(screenG2D, (int)viewX, (int)viewY, (viewSize*super.getWidth())/super.getHeight(), viewSize);
-		}
-		
-		//paintBlocks(screenG2D);
-		
-		/*
-		for(int x= -1; x<=1;x++)
-		{
-			for (int y = -1; y<=1;y++)
-			{
-				translated.setTransform(currentTransform);
-				translated.translate(x*mapWidth, y*mapHeight);
-				//screenG2D.setTransform(currentTransform);
-				//screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
-				paintDrawables(screenG2D, translated);
-			}
-		}
-		*/
-		
-		paintDrawables(screenG2D, currentTransform);		
-		
+		renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
+				(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);
+	
 		screenG2D.setTransform(identity);
-		//screenG2D.setColor(Color.WHITE);
-		//screenG2D.drawString("TEST", 30, 30);
-
 		messagePool.render(screenG2D);
 
 		//screenG2D.setTransform(currentTransform);
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);
-	}
-
-	private void setViewPosition()
-	{
-		this.setView((double)world.getSelfX()/MapBlock.BLOCK_SIZE, (double)world.getSelfY()/MapBlock.BLOCK_SIZE);
-	}
-	
-	private void createMapBuffer()
-	{
-		//scaledMapBuffer = Accelerator.createCompatibleImage((int)(mapWidth/scale_factor+0.5), (int)(mapHeight/scale_factor+0.5));
-		scaledMapBuffer = new BufferedImage((int)(mapWidth/scale_factor+0.5), (int)(mapHeight/scale_factor+0.5), BufferedImage.TYPE_INT_ARGB);
-		
-		Graphics2D mapG2D = scaledMapBuffer.createGraphics();
-		
-		mapG2D.scale(1.0/scale_factor, 1.0/scale_factor);
-		
-		mapG2D.setColor(spaceColor);
-		mapG2D.fillRect(0, 0, scaledMapBuffer.getWidth(), scaledMapBuffer.getHeight());
-		paintBlocks(mapG2D);
-	}
-	
-	private void paintScaledMapBuffer(Graphics2D screenG2D)
-	{
-		//screenG2D.scale(scale_factor, scale_factor);
-		screenG2D.drawImage(scaledMapBuffer, 0, 0, mapWidth, mapHeight, null);
-		
-		//screenG2D.
-		//screenG2D.scale(1.0/scale_factor, 1.0/scale_factor);
-	}
-	
-	/**
-	 * Paints all drawables in the GameWorld.
-	 * @param g2d The Graphics object on which to draw.
-	 * @param transform The transform used (some drawables may change the transform,
-	 * so this is used to change it back if necessary).
-	 */
-	private void paintDrawables(Graphics2D g2d, AffineTransform transform)
-	{
-		g2d.setTransform(transform);
-		//g2d.drawImage(mapBuffer, 0, 0, this);
-		
-		g2d.transform(flippedTransform);
-		
-		if (drawables!=null)
-		{
-			for (Iterable<? extends Drawable> c : world.getDrawables())
-			{
-				if (c!=null)
-					for (Drawable d : c)
-					{
-						//g2d.setTransform(transform);
-						
-						//g2d.setTransform(transform);
-						//g2d.transform(flippedTransform);
-						
-						//System.out.println("\nPainting drawable: ****************************************");
-						d.paintDrawable(g2d);
-					}
-			}
-		}
-	}
-	
-	private void paintBlocks(Graphics2D g2)
-	{
-		for (MapBlock[] array : blocks)
-		{
-			for (MapBlock o : array)
-			{		
-				o.paintDrawable(g2);
-			}
-		}
-	}
-
-	/**
-	 * 
-	 * @param g2 Graphics on which to paint the blocks
-	 * @param centerX center of view area
-	 * @param centerY center of view area
-	 * @param width of viewing area
-	 * @param height of viewing area
-	 */
-	private void paintBlocksArea(Graphics2D g2, int centerX, int centerY, int width, int height)
-	{
-		int xRadius = width/2+1;
-		int yRadius = height/2+1;
-		
-		for(int x=centerX-xRadius;x<=centerX+xRadius;x++)
-		{
-			for(int y=centerY-yRadius;y<=centerY+yRadius;y++)
-			{
-				blocks[Utilities.trueMod(x, setup.getX())][Utilities.trueMod(y, setup.getY())].paintBlock(g2, x, y);
-			}
-		}
 	}
 
 	/**

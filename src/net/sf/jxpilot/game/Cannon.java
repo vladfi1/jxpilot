@@ -10,14 +10,13 @@ import net.sf.jxpilot.graphics.Drawable;
 public class Cannon extends CannonHolder implements Drawable 
 {
 	public static final Color CANNON_COLOR = Color.WHITE;
-	
 
 	/**
 	 * Measured in blocks.
 	 */
 	private final int x, y;
 	private final CannonType type;
-	private final Polygon cannonShape;
+	private final Shape cannonShape;
 	
 	private Cannon(CannonType type, int num, int x, int y)
 	{
@@ -25,7 +24,7 @@ public class Cannon extends CannonHolder implements Drawable
 		super.num = num;
 		this.x = x;
 		this.y = y;
-		cannonShape = getCannonShape(type);
+		cannonShape = type.shape;
 	}
 	
 	public static Cannon createCannon(byte block_type, int num, int x, int y)
@@ -64,12 +63,25 @@ public class Cannon extends CannonHolder implements Drawable
 	{
 		RIGHT(SETUP_CANNON_RIGHT), LEFT(SETUP_CANNON_LEFT), UP(SETUP_CANNON_UP), DOWN(SETUP_CANNON_DOWN);
 		
-		private final byte block_type;
+		
+		static
+		{
+			for(CannonType c : values())
+			{
+				c.shape = getCannonShape(c);
+			}
+		}
+		
+		public final byte block_type;
+		private Shape shape;
 		
 		private CannonType(byte block_type)
 		{
 			this.block_type = block_type;
+			//this.shape = getCannonShape(this);
 		}
+		
+		public Shape getShape(){return shape;}
 		
 		public byte getBlockType()
 		{
@@ -78,45 +90,44 @@ public class Cannon extends CannonHolder implements Drawable
 		
 		public static CannonType getCannonType(byte block_type)
 		{	
-			switch(block_type)
+			
+			for(CannonType type : CannonType.values())
 			{
-			case SETUP_CANNON_RIGHT: return RIGHT;
-			case SETUP_CANNON_LEFT: return LEFT;
-			case SETUP_CANNON_UP: return UP;
-			case SETUP_CANNON_DOWN:	return DOWN;
-			default: return null;//unknown cannon type
+				if(type.block_type==block_type) return type;
 			}
+			
+			return null;
 		}
-	}
-	
-	private static Polygon getCannonShape(CannonType type)
-	{
-		Polygon poly = new Polygon();
 		
-		switch(type)
+		public static Polygon getCannonShape(CannonType type)
 		{
-		case RIGHT:
-			poly.addPoint(0, 0);
-			poly.addPoint(0, BLOCK_SIZE);
-			poly.addPoint(BLOCK_SIZE/4, BLOCK_SIZE/2);
-			break;
-		case LEFT:
-			poly.addPoint(BLOCK_SIZE, 0);
-			poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
-			poly.addPoint(BLOCK_SIZE*3/4, BLOCK_SIZE/2);
-			break;
-		case DOWN:
-			poly.addPoint(0, BLOCK_SIZE);
-			poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
-			poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE*3/4);
-			break;
-		case UP:
-			poly.addPoint(0, 0);
-			poly.addPoint(BLOCK_SIZE, 0);
-			poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE/4);
-			break;
+			Polygon poly = new Polygon();
+			
+			switch(type)
+			{
+			case RIGHT:
+				poly.addPoint(0, 0);
+				poly.addPoint(0, BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE/4, BLOCK_SIZE/2);
+				break;
+			case LEFT:
+				poly.addPoint(BLOCK_SIZE, 0);
+				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE*3/4, BLOCK_SIZE/2);
+				break;
+			case DOWN:
+				poly.addPoint(0, BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
+				poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE*3/4);
+				break;
+			case UP:
+				poly.addPoint(0, 0);
+				poly.addPoint(BLOCK_SIZE, 0);
+				poly.addPoint(BLOCK_SIZE/2, BLOCK_SIZE/4);
+				break;
+			}
+			
+			return poly;
 		}
-		
-		return poly;
 	}
 }

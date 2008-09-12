@@ -92,7 +92,6 @@ public class Client implements AbstractClient, ClientInputListener
 		frame = new JXPilotFrame(world, this);
 		//frame.setDrawables(drawables);
 		
-		frame.setDrawables(world.getDrawables());
 		frame.setVisible(true);
 	}
 	
