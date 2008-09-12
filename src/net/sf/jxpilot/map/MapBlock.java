@@ -48,15 +48,8 @@ public class MapBlock extends DrawableBlock
 	 */
 	public void paintBlock(Graphics2D g2d, int x, int y)
 	{
-		if(!isDrawn) return;
-		
-		//g2d.translate(x*BLOCK_SIZE, y*BLOCK_SIZE);
-		
-		//super.paintDrawable(g2d);
-		
-		g2d.drawImage(super.image, x*BLOCK_SIZE, y*BLOCK_SIZE, null);
-		
-		//g2d.translate(-x*BLOCK_SIZE, -y*BLOCK_SIZE);
+		if(isDrawn)
+			super.paintBlock(g2d, x, y);
 	}
 	
 	public static MapBlock getMapBlock(BlockMapSetup setup, int num)

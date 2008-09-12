@@ -2,7 +2,7 @@ package net.sf.jxpilot.map;
 
 import static net.sf.jxpilot.map.BlockMapSetup.*;
 import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
-import net.sf.jxpilot.graphics.Drawable;
+import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.util.Utilities;
 
 import java.awt.*;
@@ -170,7 +170,7 @@ public class DrawableBlock implements Drawable
 	public final Shape shape;
 	public final Color color;
 	public final boolean isFilled;
-	protected final BufferedImage image;	
+	private final BufferedImage image;	
 	
 	/**
 	 * This constructor is used for non-drawable blocks.
@@ -219,7 +219,9 @@ public class DrawableBlock implements Drawable
 	
 	private BufferedImage createImage()
 	{
-		BufferedImage temp = new BufferedImage(BLOCK_SIZE, BLOCK_SIZE, BufferedImage.TYPE_INT_ARGB);	
+		//BufferedImage temp = new BufferedImage(BLOCK_SIZE, BLOCK_SIZE, BufferedImage.TYPE_INT_ARGB);
+		
+		BufferedImage temp = Accelerator.createCompatibleImage(BLOCK_SIZE, BLOCK_SIZE);
 		this.paintDrawable(temp.createGraphics());
 		return temp;
 	}
@@ -246,5 +248,16 @@ public class DrawableBlock implements Drawable
 		{
 			g2d.draw(shape);
 		}
+	}
+	
+	/**
+	 * @param g2d
+	 * @param x Position in blocks.
+	 * @param y Position in blocks.
+	 */
+	public void paintBlock(Graphics2D g2d, int x, int y)
+	{
+		if(isDrawn)
+		g2d.drawImage(image, x*BLOCK_SIZE, y*BLOCK_SIZE, null);
 	}
 }

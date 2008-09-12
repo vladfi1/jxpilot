@@ -1,8 +1,6 @@
 package net.sf.jxpilot.game;
 
-import static net.sf.jxpilot.map.BlockMapSetup.*;
 import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
-
 import java.awt.*;
 
 import net.sf.jxpilot.graphics.Drawable;

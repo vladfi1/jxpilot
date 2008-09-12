@@ -28,6 +28,12 @@ public class JXPilotFrame extends Frame
 	private boolean FSEM = true;
 
 	/**
+	 * Whether or not to render the game using a large buffered image for the map.
+	 * Otherwise, the map is rendered block by block.
+	 */
+	private final boolean USE_MAP_BUFFER = true;
+	
+	/**
 	 * Whether or not the mouse should be used to control user input.
 	 */
 	private boolean mouseControl = false;
@@ -101,6 +107,9 @@ public class JXPilotFrame extends Frame
 	
 	public JXPilotFrame(GameWorld world, ClientInputListener l)
 	{	
+		
+		super(Accelerator.gfxConfig);
+		
 		clientInputListener = l;
 		
 		defaultKeyInit();
@@ -120,6 +129,8 @@ public class JXPilotFrame extends Frame
 		viewY=setup.getY()/2.0;
 		
 		viewSize = defaultViewSize;
+		
+		//viewSize = this.getHeight()/BLOCK_SIZE;
 		
 		//buffer = new BufferedImage(this.getWidth(),this.getHeight(),BufferedImage.TYPE_INT_RGB);
 		
@@ -150,7 +161,11 @@ public class JXPilotFrame extends Frame
 			setBufferStrategy();
 		}
 		
+		//viewSize = this.getHeight()/BLOCK_SIZE;
+		
 		//initBuffers();
+		if(USE_MAP_BUFFER)
+			createMapBuffer();
 		
 		//pack();
 		
@@ -463,6 +478,19 @@ public class JXPilotFrame extends Frame
 	private BufferStrategy bufferStrategy;
 	
 	/**
+	 * How many times smaller the scaled map buffer should be.
+	 */
+	private final double scale_factor = 7;
+	/**
+	 * The scaled map buffer.
+	 */
+	private BufferedImage scaledMapBuffer;
+	/**
+	 * Unscaled map buffer.
+	 */
+	private BufferedImage mapBuffer;
+	
+	/**
 	 * Map dimensions in xpilot pixels (blocks*BLOCK_SIZE);
 	 */
 	private int mapWidth, mapHeight;
@@ -544,7 +572,10 @@ public class JXPilotFrame extends Frame
 	{
 		//currentTransform.setToIdentity();
 		double scale = (double)this.getHeight()/(viewSize*BLOCK_SIZE);
+		//double scale = this.getHeight()/(viewSize*BLOCK_SIZE);
+		//double scale = 1;
 		//System.out.println("Scale = " + scale + "\nHeight = " + this.getHeight());
+		
 		
 		currentTransform.setToIdentity();
 		currentTransform.translate(this.getWidth()/2.0, this.getHeight()/2.0);
@@ -597,17 +628,36 @@ public class JXPilotFrame extends Frame
 		setViewPosition();
 		setTransform();
 		
+		
+		//screenG2D.setColor(spaceColor);
+		//screenG2D.fillRect(0, 0, super.getWidth(), super.getHeight());
+		
+		//screenG2D.setTransform(identity);
+		screenG2D.setBackground(spaceColor);
+		screenG2D.clearRect(0, 0, super.getWidth(), super.getHeight());
+		
+		if(USE_MAP_BUFFER)
+		{
+			screenG2D.setTransform(currentTransform);
+			screenG2D.transform(flippedTransform);
+			paintScaledMapBuffer(screenG2D);
+		}
+		else
+		{
+			
+			screenG2D.setTransform(identity);
+			screenG2D.setBackground(spaceColor);
+			screenG2D.clearRect(0, 0, super.getWidth(), super.getHeight());
 
-		screenG2D.setTransform(identity);
-		screenG2D.setColor(spaceColor);
-		screenG2D.fillRect(0, 0, super.getWidth(), super.getHeight());
+			screenG2D.setTransform(currentTransform);
+			screenG2D.transform(flippedTransform);
+
+			paintBlocksArea(screenG2D, (int)viewX, (int)viewY, (viewSize*super.getWidth())/super.getHeight(), viewSize);
+		}
 		
-		screenG2D.setTransform(currentTransform);
+		//paintBlocks(screenG2D);
 		
-		screenG2D.transform(flippedTransform);
-		
-		paintBlocksArea(screenG2D, (int)viewX, (int)viewY, (viewSize*super.getWidth())/super.getHeight(), viewSize);
-		
+		/*
 		for(int x= -1; x<=1;x++)
 		{
 			for (int y = -1; y<=1;y++)
@@ -619,7 +669,10 @@ public class JXPilotFrame extends Frame
 				paintDrawables(screenG2D, translated);
 			}
 		}
-
+		*/
+		
+		paintDrawables(screenG2D, currentTransform);		
+		
 		screenG2D.setTransform(identity);
 		//screenG2D.setColor(Color.WHITE);
 		//screenG2D.drawString("TEST", 30, 30);
@@ -634,7 +687,30 @@ public class JXPilotFrame extends Frame
 	{
 		this.setView((double)world.getSelfX()/MapBlock.BLOCK_SIZE, (double)world.getSelfY()/MapBlock.BLOCK_SIZE);
 	}
+	
+	private void createMapBuffer()
+	{
+		//scaledMapBuffer = Accelerator.createCompatibleImage((int)(mapWidth/scale_factor+0.5), (int)(mapHeight/scale_factor+0.5));
+		scaledMapBuffer = new BufferedImage((int)(mapWidth/scale_factor+0.5), (int)(mapHeight/scale_factor+0.5), BufferedImage.TYPE_INT_ARGB);
 		
+		Graphics2D mapG2D = scaledMapBuffer.createGraphics();
+		
+		mapG2D.scale(1.0/scale_factor, 1.0/scale_factor);
+		
+		mapG2D.setColor(spaceColor);
+		mapG2D.fillRect(0, 0, scaledMapBuffer.getWidth(), scaledMapBuffer.getHeight());
+		paintBlocks(mapG2D);
+	}
+	
+	private void paintScaledMapBuffer(Graphics2D screenG2D)
+	{
+		//screenG2D.scale(scale_factor, scale_factor);
+		screenG2D.drawImage(scaledMapBuffer, 0, 0, mapWidth, mapHeight, null);
+		
+		//screenG2D.
+		//screenG2D.scale(1.0/scale_factor, 1.0/scale_factor);
+	}
+	
 	/**
 	 * Paints all drawables in the GameWorld.
 	 * @param g2d The Graphics object on which to draw.
