@@ -119,6 +119,14 @@ class ReliableData
 		return readReliableData(this, in, client, reliableBuf);
 	}
 	
+	/**
+	 * Resets the data offset. This must be called before starting a new connection.
+	 */
+	public static void resetDataOffset()
+	{
+		offset=0;
+	}
+	
 	private static int offset=0;
 
 	private byte pkt_type;

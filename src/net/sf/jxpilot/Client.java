@@ -12,7 +12,7 @@ import net.sf.jxpilot.game.MissileHolder;
 import net.sf.jxpilot.game.Player;
 import net.sf.jxpilot.game.ScoreObjectHolder;
 import net.sf.jxpilot.game.ShipHolder;
-import net.sf.jxpilot.graphics.JXPilotFrame;
+import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
 import net.sf.jxpilot.util.BitVector;
@@ -89,7 +89,10 @@ public class Client implements AbstractClient, ClientInputListener
 		world = new GameWorld(blockMap);
 		
 		this.blockMap = blockMap;
-		frame = new JXPilotFrame(world, this);
+		
+		DisplayMode mode = DisplayMode.getDisplayMode(prefs.get(DisplayMode.displayModeKey));
+		
+		frame = new JXPilotFrame(mode, world, this);
 		//frame.setDrawables(drawables);
 		
 		frame.setVisible(true);

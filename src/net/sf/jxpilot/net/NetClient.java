@@ -54,7 +54,7 @@ public class NetClient
 	public static final short POWER = 55;
 	public static final short TURN_SPEED = 10;
 	public static final short TURN_RESISTANCE = 0;
-	public static final byte MAX_FPS = (byte)20;
+	public static final byte MAX_FPS = (byte)50;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};
 
 	//used for sending display
@@ -63,7 +63,7 @@ public class NetClient
 	public static final byte NUM_SPARK_COLORS = 0x08;
 	public static final byte SPARK_RAND = 0x33;
 
-	private static final ShipShape SHIP = ShipShape.defaultShip;
+	private final ShipShape SHIP = ShipShape.defaultShip;
 
 	// Nick, user and host to send to server. This default values are for if
     // JXPilot was lauched w/o XPilotPanel.
@@ -1190,8 +1190,8 @@ public class NetClient
 		//creates first message
 		//putJoinRequest(out, "vlad", PORT, "Vlad","xxx", 0x0000FFFF);
 
-		byte[] first_packet = 
-		{0x4F, 0x15, (byte)0xF4, (byte)0xED, 0x76, 0x6C, 0x61, 0x64, 0x00, 0x04, 0x12, 0x31};
+		//byte[] first_packet = 
+		//{0x4F, 0x15, (byte)0xF4, (byte)0xED, 0x76, 0x6C, 0x61, 0x64, 0x00, 0x04, 0x12, 0x31};
 
 		//{0x4f, 0x15, (byte)0xf4, (byte)0xed, 0x76, 0x6c, 0x61, 0x64, 0x00, 0x04, 0x13, 0x01, 0x56, 0x6c, 0x61, 0x64, 0x00, 0x00, 0x78, 0x78, 0x78, 0x00, 0x00, 0x00, (byte)0xff, (byte)0xff};
 
@@ -1226,6 +1226,8 @@ public class NetClient
         if (HOST == null || HOST.isEmpty())
             HOST = "java.client";
 
+        ReliableData.resetDataOffset();
+        
 		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 
 		getReplyMessage(in, message);

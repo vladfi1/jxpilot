@@ -25,7 +25,17 @@ public class JXPilotFrame extends Frame
 	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
 	 * Otherwise uses AFS (almost full screen)
 	 */
-	private boolean FSEM = true;
+	private boolean FSEM = false;
+	
+	/**
+	 * The display mode to be used if no display mode is given.
+	 */
+	public static final DisplayMode defaultDisplayMode = DisplayMode.UFS;
+	
+	/**
+	 * DisplayMode used by this JXPilotFrame.
+	 */
+	private DisplayMode displayMode;
 	
 	/**
 	 * Whether or not the mouse should be used to control user input.
@@ -47,9 +57,6 @@ public class JXPilotFrame extends Frame
 	 * number of blocks in the screen
 	 */
 	private int viewSize;
-	
-
-	private Vector<? extends Iterable<? extends Drawable>> drawables;
 
 	/**
 	 * Messages to draw.
@@ -78,12 +85,21 @@ public class JXPilotFrame extends Frame
 	private EnumMap<UserOption, OptionHandler> optionHandlers;
 	
 	private WorldRenderer renderer;
-	public JXPilotFrame(GameWorld world, ClientInputListener l)
+	public JXPilotFrame(DisplayMode mode, GameWorld world, ClientInputListener l)
 	{			
 		super(Accelerator.gfxConfig);
 		
+		if(mode==null)
+		{
+			this.displayMode = defaultDisplayMode;
+		}
+		else
+		{
+			this.displayMode = mode;
+		}
+		
+		this.world = world;
 		clientInputListener = l;
-		drawables = world.getDrawables();
 		
 		defaultKeyInit();
 		defaultMouseInit();
@@ -95,16 +111,25 @@ public class JXPilotFrame extends Frame
 		this.world = world;
 		renderer = new WorldRenderer(world);		
 
-		FSEM = FSEM && GraphicsEnvironment.getLocalGraphicsEnvironment()
+		FSEM = (displayMode==DisplayMode.FSEM) && GraphicsEnvironment.getLocalGraphicsEnvironment()
                 .getDefaultScreenDevice().isFullScreenSupported();
 
-		messagePool = new MessagePool();
 
 		if (FSEM)
 			initFullScreen();
 		else
 		{
-			//this.setUndecorated(true);
+			
+			if(displayMode == DisplayMode.FSEM)
+			{
+				displayMode = defaultDisplayMode;
+			}
+			
+			if(displayMode == DisplayMode.UFS)
+			{
+				this.setUndecorated(true);
+			}
+			
 			this.setIgnoreRepaint(true);
 			this.setSize(screenSize);
 			this.setVisible(true);
@@ -112,6 +137,10 @@ public class JXPilotFrame extends Frame
 			setBufferStrategy();
 		}
 		
+		
+		
+		
+		messagePool = new MessagePool();
 		//pack();
 		
 		this.addKeyListener(new KeyAdapter()
