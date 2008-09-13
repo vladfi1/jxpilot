@@ -39,7 +39,7 @@ public class JXPilot {
 		
 	public static void main(String[] args)
 	{
-		/*
+		
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
             xpilotpanelEmbeddedParams.put(
@@ -49,7 +49,7 @@ public class JXPilot {
                     getJXPilotIcon());
             xpilotpanelEmbeddedParams.put(
                     XPilotPanel.EMBEDDED_PARAMETER_CLIENT_LAUNCH_METHOD,
-                    UDPTest.class.getDeclaredMethod("runClient", String.class,
+                    JXPilot.class.getDeclaredMethod("runClient", String.class,
                             int.class, Preferences.class));
 
             XPilotPanel.embeddedLaunch(xpilotpanelEmbeddedParams);
@@ -57,9 +57,9 @@ public class JXPilot {
         catch (Exception e) {
             e.printStackTrace();
         }
-		*/
 		
-        runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
+		
+        //runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
 	}
 	
 	public static void runClient(String serverIP, int serverPort, Preferences prefs)

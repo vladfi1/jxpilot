@@ -639,6 +639,10 @@ public class GameWorld {
 			super(other.num, other.team, other.base_type, other.x, other.y);
 		}
 		
+		private Player player;
+		
+		
+		
 		public void paintDrawable(Graphics2D g2d)
 		{
 			super.paintDrawable(g2d);

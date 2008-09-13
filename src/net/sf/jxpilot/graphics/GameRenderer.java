@@ -54,7 +54,8 @@ public class GameRenderer {
 	 * transform for switching between Cartesian mode and AWT mode. (y is changed with -y)
 	 */
 	private AffineTransform flippedTransform = new AffineTransform();
-	
+	private AffineTransform translated = new AffineTransform();
+
 	private Color blockColor = Color.BLUE;
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
@@ -136,6 +137,7 @@ public class GameRenderer {
 			//screenG2D.setTransform(currentTransform);
 			//screenG2D.transform(flippedTransform);
 			paintBlocksArea(screenG2D, (int)viewX, (int)viewY, xRadius, yRadius);
+			//paintBlocks(screenG2D);
 		}
 		
 		//paintBlocks(screenG2D);
@@ -146,7 +148,7 @@ public class GameRenderer {
 			for (int y = -1; y<=1;y++)
 			{
 				translated.setTransform(currentTransform);
-				translated.translate(x*mapWidth, y*mapHeight);
+				translated.translate(x*blockMap.getWidth(), y*blockMap.getHeight());
 				//screenG2D.setTransform(currentTransform);
 				//screenG2D.translate(x*setup.getX()*BLOCK_SIZE, y*setup.getY()*BLOCK_SIZE);
 				paintDrawables(screenG2D, translated);
