@@ -6,5 +6,5 @@ package net.sf.jxpilot.user;
  * @author vlad
  */
 public enum UserOption{
-	QUIT, TOGGLE_MOUSE_CONTROL, BALL_GONE, BALL_SAFE, COVER, BALL_POP;
+	QUIT, TOGGLE_MOUSE_CONTROL, BALL_GONE, BALL_SAFE, COVER, BALL_POP, TALK;
 }

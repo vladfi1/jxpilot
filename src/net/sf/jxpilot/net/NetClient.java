@@ -36,7 +36,7 @@ import net.sf.xpilotpanel.preferences.Preferences;
 
 public class NetClient
 {
-	private static final Random rnd = new Random();
+	private final Random rnd = new Random();
 	
 	/**
 	 * MAGIC = 0x4401F4ED
@@ -124,7 +124,6 @@ public class NetClient
 	private long startTime;
 	
 	private AbstractClient client;	
-	
 	
 	public NetClient(AbstractClient client)
 	{
@@ -1226,8 +1225,6 @@ public class NetClient
         if (HOST == null || HOST.isEmpty())
             HOST = "java.client";
 
-        ReliableData.resetDataOffset();
-        
 		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 
 		getReplyMessage(in, message);

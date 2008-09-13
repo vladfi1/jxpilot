@@ -12,7 +12,6 @@ import net.sf.jxpilot.JXPilot;
  * dropping duplicate/out of order packets, copying reliable data, and sending acks(through a client).
  * 
  * @author vlad
- *
  */
 class ReliableData
 {
@@ -62,12 +61,12 @@ class ReliableData
 			return DUPLICATE_DATA;
 		}
 		
-		if (data.rel < offset) {
-			data.len -= (short)(offset - data.rel);
+		if (data.rel < data.offset) {
+			data.len -= (short)(data.offset - data.rel);
 			
-			in.position(in.position()+offset-data.rel);
+			in.position(in.position()+data.offset-data.rel);
 			
-			data.rel = offset;
+			data.rel = data.offset;
 		}
 		
 		
@@ -119,15 +118,7 @@ class ReliableData
 		return readReliableData(this, in, client, reliableBuf);
 	}
 	
-	/**
-	 * Resets the data offset. This must be called before starting a new connection.
-	 */
-	public static void resetDataOffset()
-	{
-		offset=0;
-	}
-	
-	private static int offset=0;
+	private int offset=0;
 
 	private byte pkt_type;
 	private short len;
@@ -153,7 +144,7 @@ class ReliableData
 		offset += len;
 	}
 
-	public static int getOffset()
+	public int getOffset()
 	{
 		return offset;
 	}

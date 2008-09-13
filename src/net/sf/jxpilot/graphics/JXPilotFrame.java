@@ -7,6 +7,7 @@ import net.sf.jxpilot.map.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
+import javax.swing.*;
 import static net.sf.jxpilot.map.MapBlock.*;
 import static net.sf.jxpilot.util.Utilities.*;
 import net.sf.jxpilot.user.*;
@@ -14,18 +15,13 @@ import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.util.*;
 
+
 public class JXPilotFrame extends Frame
 {
 	/**
 	 * Whether or not to try to recenter the mouse after every movement.
 	 */
-	public static final boolean MOUSE_RECENTERING = true;
-	
-    /**
-	 * Whether the MapFrame attempts to use Full Screen Exclusive Mode.
-	 * Otherwise uses AFS (almost full screen)
-	 */
-	private boolean FSEM = false;
+	public final boolean MOUSE_RECENTERING = true;
 	
 	/**
 	 * The display mode to be used if no display mode is given.
@@ -111,20 +107,19 @@ public class JXPilotFrame extends Frame
 		this.world = world;
 		renderer = new WorldRenderer(world);		
 
-		FSEM = (displayMode==DisplayMode.FSEM) && GraphicsEnvironment.getLocalGraphicsEnvironment()
-                .getDefaultScreenDevice().isFullScreenSupported();
+		if(displayMode == DisplayMode.FSEM)
+		{
+			if(!Accelerator.gfxDevice.isFullScreenSupported())
+			{
+				JOptionPane.showMessageDialog(this, "FSEM is not supported!");
+				displayMode = defaultDisplayMode;
+			}
+		}
 
-
-		if (FSEM)
+		if (displayMode == DisplayMode.FSEM)
 			initFullScreen();
 		else
 		{
-			
-			if(displayMode == DisplayMode.FSEM)
-			{
-				displayMode = defaultDisplayMode;
-			}
-			
 			if(displayMode == DisplayMode.UFS)
 			{
 				this.setUndecorated(true);
@@ -137,7 +132,7 @@ public class JXPilotFrame extends Frame
 			setBufferStrategy();
 		}
 		
-		
+		System.out.println("Using " + displayMode);
 		
 		
 		messagePool = new MessagePool();
@@ -398,6 +393,19 @@ public class JXPilotFrame extends Frame
 			}
 		});
 		
+		optionHandlers.put(UserOption.TALK, new OptionHandler()
+		{
+			public void fireOption()
+			{
+				if(displayMode != DisplayMode.FSEM)
+				{
+					String message = JOptionPane.showInputDialog(JXPilotFrame.this, "Enter a message: ");
+					if(message != null)
+						clientInputListener.talk(message);
+				}
+			}
+		});
+		
 		optionHandlers.put(UserOption.BALL_GONE, new OptionHandler()
 		{
 			public void fireOption()
@@ -443,6 +451,7 @@ public class JXPilotFrame extends Frame
 		userPreferences.put(KeyEvent.VK_F2, UserOption.BALL_SAFE);
 		userPreferences.put(KeyEvent.VK_F3, UserOption.COVER);
 		userPreferences.put(KeyEvent.VK_F4, UserOption.BALL_POP);
+		userPreferences.put(KeyEvent.VK_M, UserOption.TALK);
 	}
 	
 	//graphics stuff
@@ -452,8 +461,8 @@ public class JXPilotFrame extends Frame
 	
 	private void initFullScreen()
 	{
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		gd = ge.getDefaultScreenDevice();
+		//gd = Accelerator.gfxDevice;
+		gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		
 		this.setUndecorated(true);
 		this.setIgnoreRepaint(true);
@@ -511,8 +520,10 @@ public class JXPilotFrame extends Frame
 	 */
 	public void finish()
 	{
-		if (FSEM)
+		if (displayMode==DisplayMode.FSEM)
+		{
 			restoreScreen();
+		}
 		
 		//clientInputListener.quit();
 		this.dispose();
@@ -534,7 +545,7 @@ public class JXPilotFrame extends Frame
 					System.out.println("BufferStrategy contents lost");
 				}
 				//for linux
-				Toolkit.getDefaultToolkit().sync();
+				toolkit.sync();
 			}
 			catch(Exception e)
 			{
@@ -562,7 +573,7 @@ public class JXPilotFrame extends Frame
      * @return <code>True</code>, if supported.
      */
     public boolean isFSEMSupported() {
-        return FSEM;
+        return displayMode == DisplayMode.FSEM;
     }
 
     /**
