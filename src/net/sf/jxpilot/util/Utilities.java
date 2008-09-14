@@ -170,6 +170,12 @@ public class Utilities {
 		return end;
 	}
 	
+	public static Point2D wrapPoint(double width, double height, double startX, double startY, Point2D point)
+	{
+		point.setLocation(wrap(width, startX, point.getX()),wrap(height, startY, point.getY()));
+		return point;
+	}
+	
 	/**
 	 * Invokes wrap() on x2 and y2 with respect to the width/x1 and height/y1.
 	 * @param width The wraping width.
@@ -180,6 +186,13 @@ public class Utilities {
 	public static Line2D wrapLine(int width, int height, Line2D line)
 	{
 		line.setLine(line.getX1(), line.getY1(), wrap(width, line.getX1(), line.getX2()), wrap(height, line.getY1(), line.getY2()));
+		return line;
+	}
+	
+	public static Line2D wrapLine(double width, double height, double startX, double startY, Line2D line)
+	{
+		line.setLine(wrap(width, startX, line.getX1()), wrap(height, startY, line.getY1()),
+					wrap(width, startX, line.getX2()), wrap(height, startY, line.getY2()));
 		return line;
 	}
 	

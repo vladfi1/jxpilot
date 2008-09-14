@@ -70,6 +70,11 @@ public class Base extends BaseHolder implements Drawable
 	public int getY(){return y;}
 	
 	/**
+	 * Resets this base so that it has no player.
+	 */
+	public void leave(){super.id = Player.NO_ID;}
+	
+	/**
 	 * Note that this only draws the line, not any player names.
 	 */
 	@Override

@@ -11,11 +11,11 @@ public class BaseHolder implements Holder<BaseHolder>
 	/**
 	 * Id of player that has taken base.
 	 */
-	protected short id;
+	protected short id = Player.NO_ID;
 	/**
 	 * Base number, as appears in map data.
 	 */
-	int num;
+	protected int num;
 	
 	public BaseHolder setBase(short id, int num)
 	{
@@ -28,6 +28,11 @@ public class BaseHolder implements Holder<BaseHolder>
 	public void set(BaseHolder other)
 	{
 		other.setBase(id, num);
+	}
+	
+	public void setFrom(Holder<BaseHolder> other)
+	{
+		other.set(this);
 	}
 	
 	public short getId(){return id;}

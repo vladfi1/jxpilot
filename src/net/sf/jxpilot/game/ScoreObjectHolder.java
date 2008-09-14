@@ -35,6 +35,11 @@ public class ScoreObjectHolder implements Holder<ScoreObjectHolder>
 		other.setScoreObject(score, x, y, message);
 	}
 	
+	public void setFrom(Holder<ScoreObjectHolder> other)
+	{
+		other.set(this);
+	}
+	
 	public short getScore(){return score;}
 	public int getX(){return x;}
 	public int getY(){return y;}

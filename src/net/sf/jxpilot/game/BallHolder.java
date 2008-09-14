@@ -20,6 +20,11 @@ public class BallHolder implements Holder<BallHolder>
 		other.setBall(x, y, id);
 	}
 	
+	public void setFrom(Holder<BallHolder> other)
+	{
+		other.set(this);
+	}
+	
 	public short getX(){return x;}
 	public short getY(){return y;}
 	public short getId(){return id;}

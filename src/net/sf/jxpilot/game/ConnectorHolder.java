@@ -22,6 +22,11 @@ public class ConnectorHolder implements Holder<ConnectorHolder>
 		other.setConnector(x0, y0, x1, y1, tractor);
 	}
 	
+	public void setFrom(Holder<ConnectorHolder> other)
+	{
+		other.set(this);
+	}
+	
 	public short getX0(){return x0;}
 	public short getX1(){return x1;}
 	public short getY0(){return y0;}

@@ -2,12 +2,13 @@ package net.sf.jxpilot.util;
 
 
 /**
- * Class to hold ExtendedDrawables without constantly creating new instances. Might be better implemented as a LinkedList.
+ * Class to hold ExtendedDrawables without constantly creating new instances. 
+ * Might be better implemented as a LinkedList.
  * @author vlad
  *
  * @param <T>
  */
-public class HolderList<T extends Holder<? super T>> extends java.util.ArrayList<T>
+public class HolderList<G extends Holder<G>, T extends G> extends java.util.ArrayList<T>
 {
 	/**
 	 * Represents the 1+the largest index used in the ArrayList.
@@ -54,17 +55,17 @@ public class HolderList<T extends Holder<? super T>> extends java.util.ArrayList
 		size = 0;
 	}
 	
-	@Override
-	public boolean add(T holder)
-	{
+	public boolean add(G holder)
+	{	
 		if (size < super.size())
 		{
-			holder.set(this.get(size));
+			//holder.set(this.get(size));
+			this.get(size).setFrom(holder);
 		}
 		else
 		{
 			T temp = factory.newInstance();
-			temp.set(holder);
+			temp.setFrom(holder);
 			super.add(temp);
 			System.out.println("Increasing holderlist size to " + (size+1));
 		}
@@ -72,20 +73,23 @@ public class HolderList<T extends Holder<? super T>> extends java.util.ArrayList
 		return true;
 	}
 	
-	
-	public void add(Holder<? super T>  holder)
+	/*
+	public boolean add(Holder<? super T> holder)
 	{
 		if (size < super.size())
 		{
-			holder.set(this.get(size));
+			//holder.set(this.get(size));
+			this.get(size).setFrom(holder);
 		}
 		else
 		{
 			T temp = factory.newInstance();
-			holder.set(temp);
+			temp.setFrom(holder);
 			super.add(temp);
 			System.out.println("Increasing holderlist size to " + (size+1));
 		}
 		size++;
+		return true;
 	}
+	*/
 }

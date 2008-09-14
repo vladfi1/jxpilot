@@ -23,26 +23,26 @@ public class GameWorld {
 	
 	private Vector<Iterable<? extends Drawable>> drawables;
 	
-	private Collection<HolderList<? extends Drawable>> holderLists;
+	private Collection<HolderList<?, ? extends Drawable>> holderLists;
 	
 	//various collections to handle 
 	/**
 	 * Map holding the players by id number.
 	 */
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
-	private HolderList<Ship> shipHandler;
+	private HolderList<ShipHolder, Ship> shipHandler;
 	private final int SHIPS_SIZE = 10;
-	private HolderList<FastShot> shotHandler;
+	private HolderList<AbstractDebrisHolder, FastShot> shotHandler;
 	private final int SHOTS_SIZE = 300;
-	private HolderList<Connector> connectorHandler;
+	private HolderList<ConnectorHolder, Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
-	private HolderList<Ball> ballHandler;
+	private HolderList<BallHolder, Ball> ballHandler;
 	private final int BALLS_SIZE = 10;
-	private HolderList<Mine> mineHandler;
+	private HolderList<MineHolder, Mine> mineHandler;
 	private final int MINES_SIZE = 20;
-	private HolderList<Spark> sparkHandler;
+	private HolderList<AbstractDebrisHolder, Spark> sparkHandler;
 	private final int DEBRIS_SIZE = 200;
-	private HolderList<Missile> missileHandler;
+	private HolderList<MissileHolder, Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
 	private TimedQueue<ScoreObject> scoreObjectHandler;
 	/**
@@ -85,24 +85,24 @@ public class GameWorld {
 	
 	private void initDrawableHandlers()
 	{
-		holderLists = new ArrayList<HolderList<? extends Drawable>>();
+		holderLists = new ArrayList<HolderList<?, ? extends Drawable>>();
 
-		shotHandler = new HolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
+		shotHandler = new HolderList<AbstractDebrisHolder, FastShot>(fastShotFactory, SHOTS_SIZE);
 		holderLists.add(shotHandler);
 		
-		ballHandler = new HolderList<Ball>(ballFactory, BALLS_SIZE);
+		ballHandler = new HolderList<BallHolder, Ball>(ballFactory, BALLS_SIZE);
 		holderLists.add(ballHandler);
 		
-		connectorHandler = new HolderList<Connector>(connectorFactory, CONNECTORS_SIZE);
+		connectorHandler = new HolderList<ConnectorHolder, Connector>(connectorFactory, CONNECTORS_SIZE);
 		holderLists.add(connectorHandler);
 		
-		mineHandler = new HolderList<Mine>(mineFactory, MINES_SIZE);
+		mineHandler = new HolderList<MineHolder, Mine>(mineFactory, MINES_SIZE);
 		holderLists.add(mineHandler);
 		
-		sparkHandler = new HolderList<Spark>(sparkFactory, DEBRIS_SIZE);
+		sparkHandler = new HolderList<AbstractDebrisHolder, Spark>(sparkFactory, DEBRIS_SIZE);
 		holderLists.add(sparkHandler);
 		
-		missileHandler = new HolderList<Missile>(missileFactory, MISSILE_SIZE);
+		missileHandler = new HolderList<MissileHolder, Missile>(missileFactory, MISSILE_SIZE);
 		holderLists.add(missileHandler);
 		
 		scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
@@ -110,7 +110,7 @@ public class GameWorld {
 		//holderLists.add(scoreObjectHandler);
 		
 		
-		shipHandler = new HolderList<Ship>(shipFactory, SHIPS_SIZE);
+		shipHandler = new HolderList<ShipHolder, Ship>(shipFactory, SHIPS_SIZE);
 		holderLists.add(shipHandler);
 		
 		drawables.addAll(holderLists);
@@ -141,13 +141,13 @@ public class GameWorld {
 		}
 	}
 	
-	public HolderList<Ship> getShipHandler(){return shipHandler;}
-	public HolderList<Ball> getBallHandler(){return ballHandler;}
-	public HolderList<Connector> getConnectorHandler(){return connectorHandler;}
-	public HolderList<Mine> getMineHandler(){return mineHandler;}
-	public HolderList<Missile> getMissileHandler(){return missileHandler;}
-	public HolderList<FastShot> getShotHandler(){return shotHandler;}
-	public HolderList<Spark> getSparkHandler(){return sparkHandler;}
+	public ArrayList<Ship> getShipHandler(){return shipHandler;}
+	public ArrayList<Ball> getBallHandler(){return ballHandler;}
+	public ArrayList<Connector> getConnectorHandler(){return connectorHandler;}
+	public ArrayList<Mine> getMineHandler(){return mineHandler;}
+	public ArrayList<Missile> getMissileHandler(){return missileHandler;}
+	public ArrayList<FastShot> getShotHandler(){return shotHandler;}
+	public ArrayList<Spark> getSparkHandler(){return sparkHandler;}
 	
 	public Vector<Iterable<? extends Drawable>> getDrawables(){return drawables;}
 	
@@ -227,7 +227,15 @@ public class GameWorld {
 	
 	public void handleBase(BaseHolder b)
 	{
-		b.set(bases.get(b.getNum()));
+		for(Base base : bases)
+		{
+			if(base.getId()==b.getId())
+				base.leave();
+		}
+		
+		//b.set(bases.get(b.getNum()));
+		
+		bases.get(b.getNum()).setFrom(b);
 	}
 	
 	public void handleFuel(FuelHolder f)
@@ -246,7 +254,7 @@ public class GameWorld {
 		}
 		
 		//shots.clearShots();		
-		for (HolderList<?> d : holderLists)
+		for (HolderList<?,?> d : holderLists)
 		{
 			d.clear();
 		}
@@ -261,6 +269,7 @@ public class GameWorld {
 		private  final Color SHIP_COLOR = Color.WHITE;
 		
 		private Ellipse2D shieldShape;		
+		private Player player;
 		
 		public Ship()
 		{
@@ -268,9 +277,11 @@ public class GameWorld {
 			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 		}
 		
-		public void set(Ship other)
+		public void setFrom(ShipHolder other)
 		{
-			super.set(other);
+			super.setFrom(other);
+			
+			player = getPlayer(id);
 		}
 		
 		public void paintDrawable(Graphics2D g2d)
@@ -285,6 +296,10 @@ public class GameWorld {
 			AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(SHIP_COLOR);
+			
+			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			
 			g2d.translate(x, y);
 			
 			//need to flip g2d so nick comes out ok
@@ -325,11 +340,6 @@ public class GameWorld {
 			connector = new Connector();
 		}
 		
-		public void set(Ball other)
-		{
-			super.set(other);
-		}
-		
 		/**
 		 * Sets the connector according to the id: connects this ball to the desired ship.
 		 * @return True if the id is valid.
@@ -349,13 +359,17 @@ public class GameWorld {
 			AffineTransform saved = g2d.getTransform();
 
 			g2d.setColor(BALL_COLOR);
+			
+			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			
 			g2d.translate(x, y);
 
 			g2d.fill(ballShape);
 
 			g2d.setTransform(saved);
 
-			if (id>=0)
+			if (id!=Player.NO_ID)
 			{
 				if (setConnector());
 				connector.paintDrawable(g2d);
@@ -381,6 +395,9 @@ public class GameWorld {
 		private void checkWrap()
 		{
 			Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
+			
+			Utilities.wrapLine(map.getWidth(), map.getHeight(),
+								viewX, viewY, connectorShape);
 			//System.out.println("Wrapping connector!");
 		}
 		
@@ -409,25 +426,30 @@ public class GameWorld {
 		private final Color MINE_COLOR = Color.CYAN;
 		public static final int X_RADIUS = 10, Y_RADIUS = 5;
 		private final Ellipse2D.Float mineShape= new Ellipse2D.Float(-X_RADIUS, -Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);
+		private Player player;
+		private String name;
 		
 		public Mine getNewInstance()
 		{return new Mine();}
 		
-		public void set(Mine other)
+		public void setFrom(MineHolder other)
 		{
-			super.set(other);
+			super.setFrom(other);
+			
+			if (id==EXPIRED_MINE_ID) player = null;
+			else player = getPlayer(id);
+			
+			name = getMineName();
 		}
 		
 		private String getMineName()
 		{
 			if (id==EXPIRED_MINE_ID) return EXPIRED_MINE_NAME;
 			
-			Player p = getPlayer(id);
-			
-			if (p==null)
+			if (player==null)
 				return null;
 			
-			return p.getNick();
+			return player.getNick();
 		}
 		
 		public void paintDrawable(Graphics2D g2d)
@@ -435,13 +457,15 @@ public class GameWorld {
 			AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(MINE_COLOR);
+			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			
 			g2d.translate(x, y);
 			g2d.fill(mineShape);
 			
-			String s = getMineName();
-			if (s!=null)
+			if (name!=null)
 			{
-				Utilities.drawAdjustedStringDown(g2d, s, 0, -Y_RADIUS);
+				Utilities.drawAdjustedStringDown(g2d, name, 0, -Y_RADIUS);
 			}
 			
 			g2d.setTransform(saved);
@@ -619,7 +643,9 @@ public class GameWorld {
 			int x = super.x * MapBlock.BLOCK_SIZE;
 			int y = super.y * MapBlock.BLOCK_SIZE;
 			
-			Utilities.drawFlippedString(g2d, String.valueOf(score), x, y);
+			Utilities.drawFlippedString(g2d, String.valueOf(score),
+					Utilities.wrap(map.getWidth(), viewX, x),
+					Utilities.wrap(map.getHeight(), viewY, y));
 			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
 			
 			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
@@ -634,26 +660,32 @@ public class GameWorld {
 	 */
 	private class DrawableBase extends Base
 	{
+		private Player player;
+		
 		public DrawableBase(Base other)
 		{
 			super(other.num, other.team, other.base_type, other.x, other.y);
 		}
 		
-		private Player player;
-		
-		
+		public void setFrom(BaseHolder other)
+		{
+			super.setFrom(other);
+			
+			player = getPlayer(id);
+		}
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
+			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
+			
 			super.paintDrawable(g2d);
 			
 			if(id == Player.NO_ID) return;
 			
-			Player p = getPlayer(id);
+			if(player ==null) return;
 			
-			if(p==null) return;
-			
-			String nick = p.getNick();
+			String nick = player.getNick();
 			
 			switch(base_type)
 			{

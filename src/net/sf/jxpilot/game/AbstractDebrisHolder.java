@@ -18,8 +18,16 @@ public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder>
 		return this;
 	}
 	
+	@Override
 	public void set(AbstractDebrisHolder other)
 	{
 		other.setAbstractDebris(type, x, y);
 	}
+	
+	@Override
+	public void setFrom(Holder<AbstractDebrisHolder> other)
+	{
+		other.set(this);
+	}
+	
 }

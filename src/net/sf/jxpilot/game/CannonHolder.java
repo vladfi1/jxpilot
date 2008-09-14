@@ -30,4 +30,9 @@ public class CannonHolder implements Holder<CannonHolder>{
 	{
 		other.set(num, dead_time);
 	}
+	
+	public void setFrom(Holder<CannonHolder> other)
+	{
+		other.set(this);
+	}
 }

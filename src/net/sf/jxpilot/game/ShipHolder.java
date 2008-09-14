@@ -28,6 +28,11 @@ public class ShipHolder implements Holder<ShipHolder>
 		other.setShip(x, y, id, heading, shield, cloak, emergency_shield, phased, deflector);
 	}
 	
+	public void setFrom(Holder<ShipHolder> other)
+	{
+		other.set(this);
+	}
+	
 	//ship data
 	public short getX(){return x;}
 	public short getY(){return y;}

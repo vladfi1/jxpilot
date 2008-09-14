@@ -21,6 +21,11 @@ public class MissileHolder implements Holder<MissileHolder>
 		other.setMissile( x,  y,  len,  dir);
 	}
 	
+	public void setFrom(Holder<MissileHolder> other)
+	{
+		other.set(this);
+	}
+	
 	public short getX(){return x;}
 	public short getY(){return y;}
 	public short getLen(){return len;}

@@ -26,6 +26,11 @@ public class MineHolder implements Holder<MineHolder>{
 		other.setMine( x,  y,  team_mine,  id);
 	}
 	
+	public void setFrom(Holder<MineHolder> other)
+	{
+		other.set(this);
+	}
+	
 	public short getX(){return x;}
 	public short getY(){return y;}
 	public byte getTeamMine(){return team_mine;}
