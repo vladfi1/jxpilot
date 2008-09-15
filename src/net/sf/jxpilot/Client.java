@@ -1,17 +1,6 @@
 package net.sf.jxpilot;
 
-import net.sf.jxpilot.game.AbstractDebrisHolder;
-import net.sf.jxpilot.game.BallHolder;
-import net.sf.jxpilot.game.BaseHolder;
-import net.sf.jxpilot.game.CannonHolder;
-import net.sf.jxpilot.game.ConnectorHolder;
-import net.sf.jxpilot.game.FuelHolder;
-import net.sf.jxpilot.game.GameWorld;
-import net.sf.jxpilot.game.MineHolder;
-import net.sf.jxpilot.game.MissileHolder;
-import net.sf.jxpilot.game.Player;
-import net.sf.jxpilot.game.ScoreObjectHolder;
-import net.sf.jxpilot.game.ShipHolder;
+import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
@@ -48,11 +37,6 @@ public class Client implements AbstractClient, ClientInputListener
 	 */
 	private short eyesId = -1;
 	
-	public Player getPlayer(short id)
-	{
-		return world.getPlayer(id);
-	}
-	
 	/**
      * Creates new <code>Client</code>.
      * 
@@ -72,6 +56,7 @@ public class Client implements AbstractClient, ClientInputListener
 	}
 	
 	public BlockMap getMap(){return blockMap;}
+	public GameWorld getWorld(){return world;}
 	
 	//Abstract Client methods
 	
@@ -110,6 +95,7 @@ public class Client implements AbstractClient, ClientInputListener
 		selfY = y;
 		
 		world.setViewPosition(x, y);
+		world.setExtView(ext_view_width, ext_view_height);
 	}
 	
 	public void handleShip(ShipHolder s)
@@ -122,9 +108,9 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addPlayer(p);
 	}
 	
-	public void handleRadar(int x, int y, int size)
+	public void handleRadar(RadarHolder r)
 	{
-		
+		world.handleRadar(r);
 	}
 	
 	public void handleLeave(short id)

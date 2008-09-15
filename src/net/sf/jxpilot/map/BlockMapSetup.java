@@ -107,6 +107,11 @@ public class BlockMapSetup implements java.io.Serializable
 	public static final byte  DECOR_CLOSED =	0x20;
 	public static final byte  DECOR_BELOW =		0x40;
 
+	//game mode types
+	public static final int TEAM_PLAY = (1<<8),
+							WRAP_PLAY = (1<<9);
+
+	
 	/*
 	 * Convert a `space' map block into a dot.
 	 */
@@ -161,6 +166,7 @@ public class BlockMapSetup implements java.io.Serializable
 	 */
 	public int getMapDataLen(){return map_data_len;}
 	public int getMode(){return mode;}
+	public boolean wrapPlay(){return (mode&WRAP_PLAY) != 0;}
 	public short getLives(){return lives;}
 	/**
 	 * @return The number of blocks in the map x-wise.

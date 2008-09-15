@@ -54,10 +54,17 @@ public class GameWorld {
 	private final ArrayList<DrawableBase> bases;
 	private final ArrayList<FuelStation> fuelStations;
 	
+	private HUD hud;
+	
 	/**
 	 * The current view position.
 	 */
 	private short viewX, viewY;
+	
+	/**
+	 * View dimensions.
+	 */
+	private short ext_view_width, ext_view_height;
 	
 	public GameWorld(BlockMap map)
 	{
@@ -79,6 +86,9 @@ public class GameWorld {
 			bases.add(i, new DrawableBase(mapBases.get(i)));
 		}
 		drawables.add(bases);
+		
+		hud = new HUD(this);
+		drawables.add(hud.getRadarHandler());
 		
 		initDrawableHandlers();
 	}
@@ -140,6 +150,15 @@ public class GameWorld {
 			viewY = p.getShip().getY();
 		}
 	}
+	
+	public void setExtView(short ext_view_width, short ext_view_height)
+	{
+		this.ext_view_height = 	ext_view_height;
+		this.ext_view_width = ext_view_width;
+	}
+	
+	public short getExtViewWidth(){return ext_view_width;}
+	public short getExtViewHeight(){return ext_view_height;}
 	
 	public ArrayList<Ship> getShipHandler(){return shipHandler;}
 	public ArrayList<Ball> getBallHandler(){return ballHandler;}
@@ -243,6 +262,11 @@ public class GameWorld {
 		f.set(fuelStations.get(f.getNum()));
 	}
 	
+	public void handleRadar(RadarHolder r)
+	{
+		hud.addRadar(r);
+	}
+	
 	/**
 	 * Clears all in-game objects so that they are refreshed each frame.
 	 */
@@ -260,6 +284,8 @@ public class GameWorld {
 		}
 		
 		scoreObjectHandler.update();
+		
+		hud.update();
 	}
 	
 	//inner Drawable classes	

@@ -1,16 +1,6 @@
 package net.sf.jxpilot;
 
-import net.sf.jxpilot.game.AbstractDebrisHolder;
-import net.sf.jxpilot.game.BallHolder;
-import net.sf.jxpilot.game.BaseHolder;
-import net.sf.jxpilot.game.CannonHolder;
-import net.sf.jxpilot.game.ConnectorHolder;
-import net.sf.jxpilot.game.FuelHolder;
-import net.sf.jxpilot.game.MineHolder;
-import net.sf.jxpilot.game.MissileHolder;
-import net.sf.jxpilot.game.Player;
-import net.sf.jxpilot.game.ScoreObjectHolder;
-import net.sf.jxpilot.game.ShipHolder;
+import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.xpilotpanel.preferences.Preferences;
 
@@ -28,7 +18,7 @@ public interface AbstractClient
 	
 	public void handleShip(ShipHolder s);
 	public void handlePlayer(Player p);
-	public void handleRadar(int x, int y, int size);
+	public void handleRadar(RadarHolder r);
 	public void handleLeave(short id);
 	public void handleStart(int loops);
 	public void handleEnd(int loops);
@@ -59,8 +49,6 @@ public interface AbstractClient
      * Returns current view position y value.
      */
     public short getSelfY();
-    
-    public Player getPlayer(short id);
 
     /**
      * Preferences of this client.
@@ -68,5 +56,4 @@ public interface AbstractClient
      * @see Client#getPreferences()
      */
     public Preferences getPreferences();
-
 }

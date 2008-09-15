@@ -16,18 +16,7 @@ import java.util.*;
 import net.sf.jxpilot.AbstractClient;
 import net.sf.jxpilot.data.Items;
 import net.sf.jxpilot.data.Keys;
-import net.sf.jxpilot.game.AbstractDebrisHolder;
-import net.sf.jxpilot.game.BallHolder;
-import net.sf.jxpilot.game.BaseHolder;
-import net.sf.jxpilot.game.CannonHolder;
-import net.sf.jxpilot.game.ConnectorHolder;
-import net.sf.jxpilot.game.FuelHolder;
-import net.sf.jxpilot.game.MineHolder;
-import net.sf.jxpilot.game.MissileHolder;
-import net.sf.jxpilot.game.Player;
-import net.sf.jxpilot.game.ScoreObjectHolder;
-import net.sf.jxpilot.game.ShipHolder;
-import net.sf.jxpilot.game.ShipShape;
+import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.map.BlockMapSetup;
 import net.sf.jxpilot.util.BitVector;
@@ -771,6 +760,8 @@ public class NetClient
 
 		readers[PKT_FASTRADAR] = new PacketProcessor()
 		{
+			private RadarHolder radar = new RadarHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				byte type = in.getByte();
@@ -794,10 +785,11 @@ public class NetClient
 						size |= 0x80;
 					}
 
-					client.handleRadar(x, y, size);
+					client.handleRadar(radar.setRadar(x, y, size));
 				}
 
-				if(PRINT_PACKETS)System.out.println("\nFast Radar Packet:\ntype = " + type +
+				//if(PRINT_PACKETS)
+					System.out.println("\nFast Radar Packet:\ntype = " + type +
 						"\nn = " + n +
 						"\nbuffer advanced " + (in.position()-pos));
 			}

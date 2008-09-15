@@ -2,6 +2,8 @@ package net.sf.jxpilot.graphics;
 
 import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 
+import java.util.*;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -19,11 +21,10 @@ import net.sf.jxpilot.util.Utilities;
  */
 public class GameRenderer {
 	
-	
 	private final BlockMap blockMap;
 	private final BlockMapSetup setup;
 	private final MapBlock[][] blocks;
-	private final Iterable<? extends Iterable<? extends Drawable>> drawables;
+	private final Collection<? extends Iterable<? extends Drawable>> drawables;
 	
 	/**
 	 * Whether or not to render the game using a large buffered image for the map.
@@ -60,7 +61,7 @@ public class GameRenderer {
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
 	
-	public GameRenderer(BlockMap map, Iterable<? extends Iterable<? extends Drawable>> drawables)
+	public GameRenderer(BlockMap map, Collection<? extends Iterable<? extends Drawable>> drawables)
 	{
 		this.blockMap =map;
 		this.setup = map.getSetup();
