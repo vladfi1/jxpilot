@@ -284,7 +284,6 @@ public class GameWorld {
 		}
 		
 		scoreObjectHandler.update();
-		
 		hud.update();
 	}
 	
@@ -303,28 +302,29 @@ public class GameWorld {
 			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 		}
 		
-		public void setFrom(ShipHolder other)
+		@Override
+		public void setFrom(Holder<ShipHolder> other)
 		{
 			super.setFrom(other);
-			
-			player = getPlayer(id);
+			player = getPlayer(super.id);
 		}
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
+			/*
 			Player p = getPlayer(id);
 			
 			if (p==null)
 			{
 				System.out.println("No player matches id = " + id);
 			}
-			
-			AffineTransform saved = g2d.getTransform();
+			*/
+			//AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(SHIP_COLOR);
 			
-			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
-			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
 			
 			g2d.translate(x, y);
 			
@@ -333,7 +333,7 @@ public class GameWorld {
 			//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
 			//g2d.scale(1, -1);
 			
-			Utilities.drawAdjustedStringDown(g2d, p.getNick(), 0, -SHIP_RADIUS);
+			Utilities.drawAdjustedStringDown(g2d, player.getNick(), 0, -SHIP_RADIUS);
 			
 			if (shield)
 			{
@@ -341,11 +341,11 @@ public class GameWorld {
 			}
 			
 			g2d.rotate(getAngleFrom128(heading));
-			g2d.draw(p.getShape());
+			g2d.draw(player.getShape());
 			//g2d.rotate(-heading);
 			//g2d.translate(-x,-y);
 			//g2d.rotate(-heading, -x, -y);
-			g2d.setTransform(saved);
+			//g2d.setTransform(saved);
 		}
 	}
 	public final Factory<Ship> shipFactory = new Factory<Ship>(){
@@ -360,6 +360,10 @@ public class GameWorld {
 			new Ellipse2D.Float(-Ball_RADIUS,-Ball_RADIUS,2*Ball_RADIUS,2*Ball_RADIUS);
 		
 		private Connector connector;
+		/**
+		 * Whether this ball has a connector.
+		 */
+		private boolean hasConnector;
 		
 		public Ball()
 		{
@@ -372,6 +376,8 @@ public class GameWorld {
 		 */
 		private boolean setConnector()
 		{
+			if(id==Player.NO_ID) return false;
+			
 			Player p = getPlayer(id);
 			if (p==null) return false;
 			
@@ -380,9 +386,16 @@ public class GameWorld {
 			return true;
 		}
 		
+		@Override
+		public void setFrom(Holder<BallHolder> other)
+		{
+			super.setFrom(other);
+			hasConnector = setConnector();
+		}
+		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			AffineTransform saved = g2d.getTransform();
+			//AffineTransform saved = g2d.getTransform();
 
 			g2d.setColor(BALL_COLOR);
 			
@@ -393,13 +406,10 @@ public class GameWorld {
 
 			g2d.fill(ballShape);
 
-			g2d.setTransform(saved);
+			//g2d.setTransform(saved);
 
-			if (id!=Player.NO_ID)
-			{
-				if (setConnector());
+			if(hasConnector)
 				connector.paintDrawable(g2d);
-			}
 		}	
 	}
 	public final Factory<Ball> ballFactory = new Factory<Ball>(){
@@ -429,7 +439,7 @@ public class GameWorld {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{	
-			AffineTransform saved = g2d.getTransform();
+			//AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(CONNECTOR_COLOR);
 			
@@ -438,7 +448,7 @@ public class GameWorld {
 			
 			g2d.draw(connectorShape);
 			
-			g2d.setTransform(saved);
+			//g2d.setTransform(saved);
 		}
 	}
 	public final Factory<Connector> connectorFactory = new Factory<Connector>(){
@@ -480,8 +490,6 @@ public class GameWorld {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			AffineTransform saved = g2d.getTransform();
-			
 			g2d.setColor(MINE_COLOR);
 			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
@@ -493,8 +501,6 @@ public class GameWorld {
 			{
 				Utilities.drawAdjustedStringDown(g2d, name, 0, -Y_RADIUS);
 			}
-			
-			g2d.setTransform(saved);
 		}
 	}
 	public final Factory<Mine> mineFactory = new Factory<Mine>(){
@@ -509,16 +515,12 @@ public class GameWorld {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			AffineTransform saved = g2d.getTransform();
-			
 			g2d.setColor(MISSILE_COLOR);
 			
 			missileShape.setRect(-len/2, MISSILE_WIDTH/2, len, MISSILE_WIDTH);
 			g2d.translate(x, y);
 			g2d.rotate(Utilities.getAngleFrom128(dir));
 			g2d.fill(missileShape);
-			
-			g2d.setTransform(saved);
 		}
 	}
 	public final Factory<Missile> missileFactory = new Factory<Missile>(){
@@ -565,13 +567,9 @@ public class GameWorld {
 
 		public void paintDrawable(Graphics2D g2d)
 		{
-			AffineTransform saved = g2d.getTransform();
-			
 			g2d.setColor(COLOR);
 			g2d.translate(x+viewX+getXArea(type)*AREA_SIZE, y+viewY+getYArea(type)*AREA_SIZE);
 			g2d.fill(debrisShape);
-			
-			g2d.setTransform(saved);
 		}
 	}
 	
@@ -591,11 +589,10 @@ public class GameWorld {
 		}
 		
 		@Override
-		public FastShot setAbstractDebris(int type, short x, short y)
+		public void setFrom(Holder<AbstractDebrisHolder> other)
 		{
-			super.setAbstractDebris(type, x, y);
+			super.setFrom(other);
 			setColor();
-			return this;
 		}
 		
 		/**
@@ -632,11 +629,10 @@ public class GameWorld {
 		}
 		
 		@Override
-		public Spark setAbstractDebris(int type, short x, short y)
+		public void setFrom(Holder<AbstractDebrisHolder> other)
 		{
-			super.setAbstractDebris(type, x, y);
+			super.setFrom(other);
 			setColor();
-			return this;
 		}
 		
 		private void setColor()
@@ -700,6 +696,7 @@ public class GameWorld {
 			player = getPlayer(id);
 		}
 		
+		@Override
 		public void paintDrawable(Graphics2D g2d)
 		{
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);

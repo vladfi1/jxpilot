@@ -36,7 +36,7 @@ public class HUD {
 		X_FACTOR = (float) HUD_RADAR_WIDTH / map.getWidth();
 		Y_FACTOR = (float) HUD_RADAR_HEIGHT / map.getHeight();
 		
-		System.out.println("X Factor = " + X_FACTOR + "\nY Factor = " + Y_FACTOR);
+		//System.out.println("X Factor = " + X_FACTOR + "\nY Factor = " + Y_FACTOR);
 		
 		initRadars();
 	}
@@ -141,8 +141,7 @@ public class HUD {
 			
 			//skips if radar would be painted on ship
 			
-			if(radarX*radarX + radarY*radarY < GameWorld.Ship.SHIP_RADIUS*GameWorld.Ship.SHIP_RADIUS)
-			{return;}
+			if(radarX*radarX + radarY*radarY < GameWorld.Ship.SHIP_RADIUS*GameWorld.Ship.SHIP_RADIUS){return;}
 			
 			g2d.setColor(RADAR_COLOR);
 			

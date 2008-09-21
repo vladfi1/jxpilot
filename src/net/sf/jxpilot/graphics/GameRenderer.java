@@ -195,6 +195,10 @@ public class GameRenderer {
 	}
 	
 	/**
+	 * The AffineTransform used for drawing.
+	 */
+	private AffineTransform drawTransform = new AffineTransform();
+	/**
 	 * Paints all drawables in the GameWorld.
 	 * @param g2d The Graphics object on which to draw.
 	 * @param transform The transform used (some drawables may change the transform,
@@ -202,10 +206,13 @@ public class GameRenderer {
 	 */
 	private void paintDrawables(Graphics2D g2d, AffineTransform transform)
 	{
-		g2d.setTransform(transform);
+		drawTransform.setTransform(transform);
+		drawTransform.concatenate(flippedTransform);
+		
+		//g2d.setTransform(transform);
 		//g2d.drawImage(mapBuffer, 0, 0, this);
 		
-		g2d.transform(flippedTransform);
+		//g2d.transform(flippedTransform);
 		
 		if (drawables!=null)
 		{
@@ -220,6 +227,7 @@ public class GameRenderer {
 						//g2d.transform(flippedTransform);
 						
 						//System.out.println("\nPainting drawable: ****************************************");
+						g2d.setTransform(drawTransform);
 						d.paintDrawable(g2d);
 					}
 			}
