@@ -9,12 +9,11 @@ import java.awt.geom.*;
  */
 public class Utilities {
 	
-	private static double doubleMod;
 	public static double trueMod(double x, double m)
 	{
 		//return ((x%m)+m)%m;
 		
-		doubleMod = x%m;
+		double doubleMod = x%m;
 		return doubleMod >= 0 ? doubleMod : doubleMod+m;
 	}
 	
@@ -24,16 +23,13 @@ public class Utilities {
 	 * @param m The modulus.
 	 * @return A positive value for x mod m, since x%m sometimes returns negative values.
 	 */
-	
-	private static int intMod;
 	public static int trueMod(int x, int m)
 	{
 		//return ((x%m)+m)%m;
 		
-		intMod = x%m;
+		int intMod = x%m;
 		return intMod >= 0 ? intMod : intMod+m;
 	}
-	
 	
 	public static int getUnsignedShort(short val)
 	{
@@ -52,6 +48,30 @@ public class Utilities {
 	{
 		return Math.PI/64.0 * heading;
 	}
+	
+	public static double pow(double base, int exponent)
+	{
+		double product=1;
+		for(int i = 0;i<exponent;i++)
+		{
+			product *= base;
+		}
+		
+		return exponent>=0 ? product : 1/product;
+	}
+	
+	public static int pow(int base, int exponent)
+	{
+		int product=1;
+		for(int i = 0;i<exponent;i++)
+		{
+			product *= base;
+		}
+		
+		return exponent>=0 ? product : 1/product;
+	}
+	
+	public static int square(int base){return base*base;}
 	
 	/**
 	 * Draws a String taking into account a flip of the Graphics object.

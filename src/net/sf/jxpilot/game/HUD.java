@@ -119,6 +119,7 @@ public class HUD {
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
+			//skips allies
 			//if((super.size & 0x80) != 0) return;
 			
 			int radarX = super.x * HUD_RADAR_SCALE - (int)((world.getSelfX()) * X_FACTOR);
@@ -140,8 +141,7 @@ public class HUD {
 			}
 			
 			//skips if radar would be painted on ship
-			
-			if(radarX*radarX + radarY*radarY < GameWorld.Ship.SHIP_RADIUS*GameWorld.Ship.SHIP_RADIUS){return;}
+			if(radarX*radarX + radarY*radarY < Utilities.square(GameWorld.Ship.SHIP_RADIUS+size)){return;}
 			
 			g2d.setColor(RADAR_COLOR);
 			

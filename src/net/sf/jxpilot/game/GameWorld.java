@@ -57,7 +57,7 @@ public class GameWorld {
 	private HUD hud;
 	
 	/**
-	 * The current view position.
+	 * The current view position in XPilot pixels.
 	 */
 	private short viewX, viewY;
 	
@@ -359,11 +359,8 @@ public class GameWorld {
 		private final Ellipse2D ballShape = 
 			new Ellipse2D.Float(-Ball_RADIUS,-Ball_RADIUS,2*Ball_RADIUS,2*Ball_RADIUS);
 		
+		private Player player;
 		private Connector connector;
-		/**
-		 * Whether this ball has a connector.
-		 */
-		private boolean hasConnector;
 		
 		public Ball()
 		{
@@ -372,25 +369,37 @@ public class GameWorld {
 		
 		/**
 		 * Sets the connector according to the id: connects this ball to the desired ship.
-		 * @return True if the id is valid.
+		 * @return The player that corresponds to the id.
 		 */
-		private boolean setConnector()
+		private Player setPlayer()
+		{	
+			if(id==Player.NO_ID)
+			{
+				player = null;
+			}
+			else
+			{
+				player = getPlayer(id);
+			}
+			
+			return player;
+		}
+		
+		private void setConnector()
 		{
-			if(id==Player.NO_ID) return false;
-			
-			Player p = getPlayer(id);
-			if (p==null) return false;
-			
-			connector.setConnector(x, y, (short)p.getShip().getX(), (short)p.getShip().getY(), (byte)0);
-			
-			return true;
+			if(player!=null)
+				connector.setConnector(x, y, (short)player.getShip().getX(), (short)player.getShip().getY(), (byte)0);
 		}
 		
 		@Override
 		public void setFrom(Holder<BallHolder> other)
 		{
+			int previousPlayer = super.id;
 			super.setFrom(other);
-			hasConnector = setConnector();
+			
+			//if(previousPlayer!=super.id)
+			setPlayer();
+			setConnector();
 		}
 		
 		public void paintDrawable(Graphics2D g2d)
@@ -405,10 +414,10 @@ public class GameWorld {
 			g2d.translate(x, y);
 
 			g2d.fill(ballShape);
-
+			g2d.translate(-x, -y);
 			//g2d.setTransform(saved);
 
-			if(hasConnector)
+			if(player!=null)
 				connector.paintDrawable(g2d);
 		}	
 	}
@@ -689,37 +698,45 @@ public class GameWorld {
 			super(other.num, other.team, other.base_type, other.x, other.y);
 		}
 		
-		public void setFrom(BaseHolder other)
+		@Override
+		public void setFrom(Holder<BaseHolder> other)
 		{
 			super.setFrom(other);
 			
-			player = getPlayer(id);
+			if(super.id == Player.NO_ID)
+			{
+				player = null;
+			}
+			else
+			{
+				player = getPlayer(id);
+			}
 		}
 		
 		@Override
 		public void paintDrawable(Graphics2D g2d)
 		{
-			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
-			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
+			int x = Utilities.wrap(map.getWidth(), viewX, super.x*BLOCK_SIZE);
+			int y = Utilities.wrap(map.getHeight(), viewY, super.y*BLOCK_SIZE);
 			
 			super.paintDrawable(g2d);
 			
-			if(id == Player.NO_ID) return;
-			
-			if(player ==null) return;
-			
-			String nick = player.getNick();
-			
-			switch(base_type)
+			if(player!=null)
 			{
-			case UP: Utilities.drawAdjustedStringDown(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE/2, y*BLOCK_SIZE);
+				//System.out.println("Drawing base name");
+				String nick = player.getNick();
+
+				switch(base_type)
+				{
+				case UP: Utilities.drawAdjustedStringDown(g2d, nick, x+BLOCK_SIZE/2, y);
 				break;	
-			case DOWN: Utilities.drawAdjustedStringUp(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE/2, y*BLOCK_SIZE+BLOCK_SIZE);
+				case DOWN: Utilities.drawAdjustedStringUp(g2d, nick, x+BLOCK_SIZE/2, y+BLOCK_SIZE);
 				break;	
-			case LEFT: Utilities.drawAdjustedStringRight(g2d, nick, x*BLOCK_SIZE, y+BLOCK_SIZE/2);
+				case LEFT: Utilities.drawAdjustedStringRight(g2d, nick, x, y+BLOCK_SIZE/2);
 				break;	
-			case RIGHT: Utilities.drawAdjustedStringLeft(g2d, nick, x*BLOCK_SIZE+BLOCK_SIZE, y*BLOCK_SIZE+BLOCK_SIZE/2);
+				case RIGHT: Utilities.drawAdjustedStringLeft(g2d, nick, x+BLOCK_SIZE, y+BLOCK_SIZE/2);
 				break;
+				}
 			}
 		}
 	}

@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.regex.*;
 /**
  * Simple class that defines the basic elements of a shipshape and
- *  provides a way to turn ship into a string.
+ *  provides a way to turn ship into a string and back.
  * @author vlad
  * 
  */
@@ -131,6 +131,13 @@ public class ShipShape
 		
 		Matcher parenthesesMatcher = parenthesesPattern.matcher(shipStr);
 		
+		
+		/**
+		 * Whether or not the ship's polygon is empty.
+		 * If it is, then the other points should be added in.
+		 */
+		boolean empty = true;
+		
 		while(parenthesesMatcher.find())
 		{
 			
@@ -143,7 +150,7 @@ public class ShipShape
 			markerMatcher.find();
 			String marker = markerMatcher.group();
 			
-			if (marker.compareTo(SHIP_MARKER)==0)
+			if (marker.equals(SHIP_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				
@@ -156,32 +163,33 @@ public class ShipShape
 					Point p = parsePoint(pointStr);
 					
 					ship.shape.addPoint(p.x, p.y);
+					empty = false;
 				}
 				continue;
 			}
 			
-			if (marker.compareTo(ENGINE_MARKER)==0)
+			if (marker.equals(ENGINE_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				pointMatcher.find();
 				ship.engine = parsePoint(pointMatcher.group());
 				continue;
 			}
-			if (marker.compareTo(MAIN_GUN_MARKER)==0)
+			if (marker.equals(MAIN_GUN_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				pointMatcher.find();
 				ship.main_gun = parsePoint(pointMatcher.group());
 				continue;
 			}
-			if (marker.compareTo(LEFT_LIGHT_MARKER)==0)
+			if (marker.equals(LEFT_LIGHT_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				pointMatcher.find();
 				ship.left_light = parsePoint(pointMatcher.group());
 				continue;
 			}
-			if (marker.compareTo(RIGHT_LIGHT_MARKER)==0)
+			if (marker.equals(RIGHT_LIGHT_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				pointMatcher.find();
@@ -189,7 +197,7 @@ public class ShipShape
 				ship.right_light = parsePoint(pointMatcher.group());
 				continue;
 			}
-			if (marker.compareTo(MAIN_RACK_MARKER)==0)
+			if (marker.equals(MAIN_RACK_MARKER))
 			{
 				Matcher pointMatcher = pointPattern.matcher(parentheses);
 				pointMatcher.find();
@@ -197,7 +205,18 @@ public class ShipShape
 				ship.main_rack = parsePoint(pointMatcher.group());
 				continue;
 			}
+		}
+		
+		//makes sure ship isn't empty
+		if(empty)
+		{
+			Polygon shape = ship.shape;
 			
+			//shape.addPoint(ship.engine.x, ship.engine.y);
+			shape.addPoint(ship.main_gun.x, ship.main_gun.y);
+			shape.addPoint(ship.left_light.x, ship.left_light.y);
+			shape.addPoint(ship.right_light.x, ship.right_light.y);
+			//shape.addPoint(ship.main_gun.x, ship.main_gun.y);	
 		}
 		
 		ship.extras = extension;

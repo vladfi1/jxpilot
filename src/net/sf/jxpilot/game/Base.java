@@ -80,7 +80,7 @@ public class Base extends BaseHolder implements Drawable
 	@Override
 	public void paintDrawable(Graphics2D g2d)
 	{
-		AffineTransform saved = g2d.getTransform();
+		//AffineTransform saved = g2d.getTransform();
 		
 		int x = this.x*BLOCK_SIZE;
 		int y = this.y*BLOCK_SIZE;
@@ -89,9 +89,11 @@ public class Base extends BaseHolder implements Drawable
 		g2d.setColor(BASE_COLOR);
 		g2d.draw(baseShape);
 		
-		//g2d.translate(-x, -y);
+		//g2d.drawLine(x1, y1, x2, y2);
 		
-		g2d.setTransform(saved);
+		g2d.translate(-x, -y);
+		
+		//g2d.setTransform(saved);
 	}
 	
 	private static Line2D getBaseShape(BaseType type)
