@@ -77,7 +77,7 @@ public class JXPilot {
         if (icon == null) {
             URL u = AboutWindow.class.getClassLoader().getResource(
                     "data/JXPilotIcon.png");
-            icon = new ImageIcon(u).getImage();
+            //icon = new ImageIcon(u).getImage();
             if(icon == null)
             {
             	try

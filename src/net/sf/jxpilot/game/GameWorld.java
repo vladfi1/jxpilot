@@ -16,11 +16,12 @@ import net.sf.jxpilot.util.*;
  * All drawable objects are contained in here.
  * @author vlad
  */
-public class GameWorld {
+public class GameWorld implements Drawable{
 	
 	private BlockMap map;
 	private BlockMapSetup setup;
 	
+	private LinkedList<Drawable> drawableList;
 	private Vector<Iterable<? extends Drawable>> drawables;
 	
 	private Collection<HolderList<?, ? extends Drawable>> holderLists;
@@ -44,12 +45,7 @@ public class GameWorld {
 	private final int DEBRIS_SIZE = 200;
 	private HolderList<MissileHolder, Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
-	private TimedQueue<ScoreObject> scoreObjectHandler;
-	/**
-	 * Score objects should be displayed for 3 seconds.
-	 */
-	private final long SCORE_OBJECT_DURATION = 3*1000;
-	
+
 	private final ArrayList<Cannon> cannons;
 	private final ArrayList<DrawableBase> bases;
 	private final ArrayList<FuelStation> fuelStations;
@@ -88,9 +84,14 @@ public class GameWorld {
 		drawables.add(bases);
 		
 		hud = new HUD(this);
-		drawables.add(hud.getRadarHandler());
+		//drawables.add(hud.getRadarHandler());
+		//drawables.add(hud.getScoreObjectHandler());
 		
 		initDrawableHandlers();
+		
+		drawableList = new LinkedList<Drawable>();
+		drawableList.add(this);
+		drawableList.add(hud);
 	}
 	
 	private void initDrawableHandlers()
@@ -115,10 +116,9 @@ public class GameWorld {
 		missileHandler = new HolderList<MissileHolder, Missile>(missileFactory, MISSILE_SIZE);
 		holderLists.add(missileHandler);
 		
-		scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
-		drawables.add(scoreObjectHandler);
+		//scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
+		//drawables.add(scoreObjectHandler);
 		//holderLists.add(scoreObjectHandler);
-		
 		
 		shipHandler = new HolderList<ShipHolder, Ship>(shipFactory, SHIPS_SIZE);
 		holderLists.add(shipHandler);
@@ -168,7 +168,31 @@ public class GameWorld {
 	public ArrayList<FastShot> getShotHandler(){return shotHandler;}
 	public ArrayList<Spark> getSparkHandler(){return sparkHandler;}
 	
-	public Vector<Iterable<? extends Drawable>> getDrawables(){return drawables;}
+	public Vector<Iterable<? extends Drawable>> getAllDrawables(){return drawables;}
+	public HUD getHud(){return hud;}
+	
+	public Iterable<? extends Drawable> getDrawables()
+	{
+		return drawableList;
+	}
+	
+	/**
+	 * Paints all objects in the world. Does NOT paint the HUD.
+	 */
+	@Override
+	public void paintDrawable(Graphics2D g2d)
+	{
+		AffineTransform saved = g2d.getTransform();
+		
+		for(Iterable<? extends Drawable> i: drawables)
+		{
+			for(Drawable d : i)
+			{
+				d.paintDrawable(g2d);
+				g2d.setTransform(saved);
+			}
+		}
+	}
 	
 	//methods for manipulating game objects
 	public Player getPlayer(short id)
@@ -235,7 +259,8 @@ public class GameWorld {
 	
 	public void addScoreObject(ScoreObjectHolder s)
 	{
-		scoreObjectHandler.add(new ScoreObject(s));
+		//scoreObjectHandler.add(new ScoreObject(s));
+		hud.addScoreObject(s);
 		//System.out.println("Adding score object in GameWorld");
 	}
 	
@@ -282,8 +307,7 @@ public class GameWorld {
 		{
 			d.clear();
 		}
-		
-		scoreObjectHandler.update();
+
 		hud.update();
 	}
 	

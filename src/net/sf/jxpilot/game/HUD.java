@@ -1,8 +1,10 @@
 package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.map.*;
+import net.sf.jxpilot.game.GameWorld.ScoreObject;
 import net.sf.jxpilot.graphics.Drawable;
 import net.sf.jxpilot.util.*;
+
 import java.awt.*;
 import java.awt.geom.*;
 
@@ -12,7 +14,7 @@ import java.awt.geom.*;
  * @author Vlad
  *
  */
-public class HUD {
+public class HUD implements Drawable{
 	
 	private GameWorld world;
 	private BlockMap map;
@@ -20,6 +22,12 @@ public class HUD {
 	
 	private final int RADARS_SIZE = 10;
 	private HolderList<RadarHolder, Radar> radarHandler;
+	
+	private TimedQueue<ScoreObject> scoreObjectHandler;
+	/**
+	 * Score objects should be displayed for 3 seconds.
+	 */
+	private final long SCORE_OBJECT_DURATION = 3*1000;
 	
 	public HUD(GameWorld world)
 	{
@@ -39,6 +47,7 @@ public class HUD {
 		//System.out.println("X Factor = " + X_FACTOR + "\nY Factor = " + Y_FACTOR);
 		
 		initRadars();
+		initScoreObjects();
 	}
 	
 	private void initRadars()
@@ -48,15 +57,40 @@ public class HUD {
 	
 	public Iterable<Radar> getRadarHandler(){return radarHandler;}
 	
+	private void initScoreObjects()
+	{
+		scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
+	}
+	
+	public Iterable<ScoreObject> getScoreObjectHandler(){return scoreObjectHandler;}
 	
 	public void addRadar(RadarHolder r)
 	{
 		radarHandler.add(r);
 	}
 	
+	public void addScoreObject(ScoreObjectHolder o)
+	{
+		scoreObjectHandler.add(new ScoreObject(o));
+	}
+	
 	public void update()
 	{
 		radarHandler.clear();
+		scoreObjectHandler.update();
+	}
+	
+	@Override
+	public void paintDrawable(Graphics2D g2d)
+	{
+		for(ScoreObject o : scoreObjectHandler)
+		{
+			o.paintDrawable(g2d);
+		}
+		for(Radar r : radarHandler)
+		{
+			r.paintDrawable(g2d);
+		}
 	}
 	
 	//"static" radar data
@@ -165,5 +199,37 @@ public class HUD {
 	{
 		public Radar newInstance(){return new Radar();}
 	};
+	
+	public class ScoreObject extends ScoreObjectHolder implements Drawable
+	{
+		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
+		
+		public ScoreObject(){}
+		
+		public ScoreObject(ScoreObjectHolder holder)
+		{
+			holder.set(this);
+		}
+		
+		public void paintDrawable(Graphics2D g2d)
+		{
+			//AffineTransform saved = g2d.getTransform();
+			
+			g2d.setColor(SCORE_OBJECT_COLOR);
+			//g2d.translate(x, y);
+			
+			int x = super.x * MapBlock.BLOCK_SIZE;
+			int y = super.y * MapBlock.BLOCK_SIZE;
+			
+			Utilities.drawFlippedString(g2d, String.valueOf(score),
+					Utilities.wrap(map.getWidth(), world.getSelfX(), x),
+					Utilities.wrap(map.getHeight(), world.getSelfY(), y));
+			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
+			
+			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
+			
+			//g2d.setTransform(saved);
+		}
+	}
 	
 }

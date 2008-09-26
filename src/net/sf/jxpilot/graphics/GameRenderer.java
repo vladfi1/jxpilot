@@ -24,7 +24,7 @@ public class GameRenderer {
 	private final BlockMap blockMap;
 	private final BlockMapSetup setup;
 	private final MapBlock[][] blocks;
-	private final Collection<? extends Iterable<? extends Drawable>> drawables;
+	private final Iterable<? extends Drawable> drawables;
 	
 	/**
 	 * Whether or not to render the game using a large buffered image for the map.
@@ -61,7 +61,7 @@ public class GameRenderer {
 	private Color spaceColor = Color.BLACK;
 	private Color shipColor = Color.white;
 	
-	public GameRenderer(BlockMap map, Collection<? extends Iterable<? extends Drawable>> drawables)
+	public GameRenderer(BlockMap map, Iterable<? extends Drawable> drawables)
 	{
 		this.blockMap =map;
 		this.setup = map.getSetup();
@@ -216,21 +216,18 @@ public class GameRenderer {
 		
 		if (drawables!=null)
 		{
-			for (Iterable<? extends Drawable> c : drawables)
+			for (Drawable d : drawables)
 			{
-				if (c!=null)
-					for (Drawable d : c)
-					{
-						//g2d.setTransform(transform);
-						
-						//g2d.setTransform(transform);
-						//g2d.transform(flippedTransform);
-						
-						//System.out.println("\nPainting drawable: ****************************************");
-						g2d.setTransform(drawTransform);
-						d.paintDrawable(g2d);
-					}
+				//g2d.setTransform(transform);
+
+				//g2d.setTransform(transform);
+				//g2d.transform(flippedTransform);
+
+				//System.out.println("\nPainting drawable: ****************************************");
+				g2d.setTransform(drawTransform);
+				d.paintDrawable(g2d);
 			}
+			
 		}
 	}
 	

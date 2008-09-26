@@ -175,7 +175,7 @@ public class JXPilotFrame extends Frame
 				
 				if (userPreferences.containsKey(key))
 				{
-					optionHandlers.get(userPreferences.get(key)).fireOption();
+					//optionHandlers.get(userPreferences.get(key)).fireOption();
 					
 					//prevents user options from toggling XPilot commands
 					return;
@@ -191,6 +191,14 @@ public class JXPilotFrame extends Frame
 			public void keyReleased(KeyEvent e)
 			{
 				int key = e.getKeyCode();
+				
+				if (userPreferences.containsKey(key))
+				{
+					optionHandlers.get(userPreferences.get(key)).fireOption();
+					
+					//prevents user options from toggling XPilot commands
+					return;
+				}
 				
 				if (keyPreferences.containsKey(key))
 				{
@@ -287,21 +295,21 @@ public class JXPilotFrame extends Frame
 		{
 			if (MOUSE_RECENTERING)
 			// this event is from re-centering the mouse - ignore it
-		    if (robotMovement && centerX == e.getX()
-		        && centerY == e.getY()) {
-		    	robotMovement = false;
-		    }
-		    else
-		    {
-				clientInputListener.movePointer((short)((e.getX()-mouseX)));
-				//mouseX = e.getX();
-				if(robot!=null)
-					movePointerBack();
-				else
-				{
-					mouseX = e.getX();				
-				}
-		    }
+			    if (robotMovement && centerX == e.getX()
+			        && centerY == e.getY()) {
+			    	robotMovement = false;
+			    }
+			    else
+			    {
+					clientInputListener.movePointer((short)((e.getX()-mouseX)));
+					//mouseX = e.getX();
+					if(robot!=null)
+						movePointerBack();
+					else
+					{
+						mouseX = e.getX();				
+					}
+			    }
 			else
 			{
 				clientInputListener.movePointer((short)((e.getX()-mouseX)));
@@ -361,6 +369,16 @@ public class JXPilotFrame extends Frame
 		keyPreferences.put(KeyEvent.VK_PAUSE, 	new Byte[] {Keys.KEY_PAUSE});
 		keyPreferences.put(KeyEvent.VK_M,		new Byte[] {Keys.KEY_TALK} );
 		keyPreferences.put(KeyEvent.VK_T,		new Byte[] {Keys.KEY_TALK} );
+		keyPreferences.put(KeyEvent.VK_SPACE,	new Byte[] {Keys.KEY_SHIELD});
+		keyPreferences.put(KeyEvent.VK_BACK_SPACE, new Byte[]{Keys.KEY_CLOAK, Keys.KEY_EMERGENCY_SHIELD});
+		keyPreferences.put(KeyEvent.VK_P, 		new Byte[] {Keys.KEY_PHASING});
+		keyPreferences.put(KeyEvent.VK_Z, 		new Byte[]{Keys.KEY_DROP_BALL});
+		keyPreferences.put(KeyEvent.VK_I, 		new Byte[]{Keys.KEY_TOGGLE_IMPLOSION});
+		keyPreferences.put(KeyEvent.VK_C, 		new Byte[]{Keys.KEY_TOGGLE_CLUSTER});
+		keyPreferences.put(KeyEvent.VK_N, 		new Byte[]{Keys.KEY_TOGGLE_NUCLEAR});
+		keyPreferences.put(KeyEvent.VK_SLASH, 	new Byte[]{Keys.KEY_FIRE_LASER});
+		keyPreferences.put(KeyEvent.VK_BACK_SLASH, new Byte[]{Keys.KEY_FIRE_MISSILE});
+		
 		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
 	}
 	

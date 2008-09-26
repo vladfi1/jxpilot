@@ -23,6 +23,7 @@ public class Client implements AbstractClient, ClientInputListener
     private Preferences prefs = null;
 
 	private GameWorld world;
+	private HUD hud;
 	
 	/**
 	 * Our current position. Perhaps would be more efficient to be protected so as to allow direct access.
@@ -147,7 +148,6 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		world.addFastShot(shot);
 	}
-
 	
 	public void handleBall(BallHolder ball)
 	{
