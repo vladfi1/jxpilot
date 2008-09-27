@@ -2,15 +2,13 @@ package net.sf.jxpilot.game;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Haldles in game messages for JXPilot.
  * 
  * @author Taras Kostiak
+ * @author Vlad Firoiu
  * 
  */
 public class MessagePool {
@@ -45,13 +43,13 @@ public class MessagePool {
     /**
      * Messages stored in this pool.
      */
-    private List<TimedMessage> messages = null;
+    private LinkedList<TimedMessage> messages = null;
 
     /**
      * Creates new <code>MessagePool</code>.
      */
     public MessagePool() {
-        messages = new Vector<TimedMessage>();
+        messages = new LinkedList<TimedMessage>();
     }
 
     /**
@@ -61,7 +59,7 @@ public class MessagePool {
      *            Message, to print.
      */
     public synchronized void publishMessage(String message) {
-        messages.add(new TimedMessage(message));
+        messages.addFirst(new TimedMessage(message));
     }
 
     /**
@@ -83,7 +81,7 @@ public class MessagePool {
         private long publishTime = -1;
 
         /**
-         * Creates new <code>TimedMessage</code>, with publish time - current
+         * Creates new <code>TimedMessage</code>, with publish time = current
          * system time.
          */
         public TimedMessage(String message) {
@@ -119,18 +117,33 @@ public class MessagePool {
 
         long currentTime = System.currentTimeMillis();
 
-        boolean grayed = false;
-        boolean noMore = false;
-
-        Collection<TimedMessage> messagesToRemove = null;
-
-        g2.setColor(NEW_MESSAGE_COLOR);
-
-        int messagesSize = messages.size();
-
-        for (int i = (messagesSize - 1); i >= 0; i--) {
-            TimedMessage mess = messages.get(i);
-            if (!grayed
+        Iterator<TimedMessage> iterator = messages.iterator();
+        
+        for (int i = 0; iterator.hasNext();) {
+        	TimedMessage mess = iterator.next();
+            
+        	long messageTime = currentTime-mess.getPublishTime();
+        	
+        	if(i>MAX_MESSAGES || messageTime>MESSAGE_REMOVE_TIMEOUT)
+        	{
+        		iterator.remove();
+        	}
+        	else
+        	{
+        		if(messageTime>MESSAGE_GRAY_TIMEOUT)	
+        		{
+        			g2.setColor(GRAYED_MESSAGE_COLOR);
+        		}
+        		else
+        		{
+        			g2.setColor(NEW_MESSAGE_COLOR);
+        		}
+        		g2.drawString(mess.getMessage(), baseX, baseY+i*yDistance);
+        		i++;
+        	}
+        }
+        	/*
+        	if (!grayed
                     && (currentTime - mess.getPublishTime()) > MESSAGE_GRAY_TIMEOUT)
                 g2.setColor(GRAYED_MESSAGE_COLOR);
 
@@ -140,7 +153,7 @@ public class MessagePool {
 
             if (noMore) {
                 if (messagesToRemove == null)
-                    messagesToRemove = new ArrayList<TimedMessage>();
+                    messagesToRemove = new LinkedList<TimedMessage>();
 
                 messagesToRemove.add(mess);
             }
@@ -151,6 +164,7 @@ public class MessagePool {
 
         if (messagesToRemove != null)
             messages.removeAll(messagesToRemove);
+            */
+        
     }
-
 }

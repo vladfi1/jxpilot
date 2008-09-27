@@ -93,7 +93,7 @@ public class NetClient
 	private volatile boolean quit = false;
 	
 	/**
-	 * keeps track of how far pointer has moved since the last frame update.
+	 * keeps track of how far the mouse pointer has moved since the last frame update.
 	 */
 	private volatile short pointer_move_amount = 0;
 	
@@ -201,7 +201,8 @@ public class NetClient
 				last_loops = loops;
 				
 				
-				if(PRINT_PACKETS)System.out.println("\nStart Packet :" +
+				if(PRINT_PACKETS)
+					System.out.println("\nStart Packet :" +
 						"\ntype = " + type +
 						"\nloops = " + loops +
 						"\nkey ack = " + key_ack);
@@ -266,10 +267,10 @@ public class NetClient
                     String real = removeNullCharacter(in.getString());
                     String host = removeNullCharacter(in.getString());
 
-					ShipShape shape = ShipShape.parseShip(in.getString(), in
-                            .getString());
+					ShipShape shape = ShipShape.parseShip(in.getString(), in.getString());
 
-					if(PRINT_PACKETS)System.out.println("\nPlayer Packet\ntype = "  +type+
+					if(PRINT_PACKETS)
+						System.out.println("\nPlayer Packet\ntype = "  +type+
 							"\nid = "  + id +
 							"\nmy team = " + myTeam +
 							"\nmy char = " + myChar +
@@ -344,8 +345,8 @@ public class NetClient
 				short life = in.getShort();
 				byte myChar = in.getByte();
 
-
-				if(PRINT_PACKETS)System.out.println("\nScore Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nScore Packet\ntype = " + type +
 						"\nid = " + id +
 						"\nscore = " + score +
 						"\nlife = " + life +
@@ -517,7 +518,8 @@ public class NetClient
 					}
 				}
 
-				if(PRINT_PACKETS)System.out.println("\nSelf Items Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nSelf Items Packet\ntype = " + type +
 						"\nmask = " + String.format("%x", mask));
 
 			}
@@ -643,7 +645,8 @@ public class NetClient
 				byte type = in.getByte();
 				int loops = in.getInt();
 				
-				if(PRINT_PACKETS)System.out.println("\nEnd Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nEnd Packet\ntype = " + type +
 						"\nloops = " + loops);
 				
 				client.handleEnd(loops);
@@ -691,7 +694,6 @@ public class NetClient
 				boolean emergency_shield = (flags & 4) != 0;
 				boolean phased = (flags & 8) != 0;
 				boolean deflector = (flags & 0x10) != 0;
-
 
 				if(PRINT_PACKETS)System.out.println("\nShip Packet\ntype = " + type +
 						"\nx = " + x +
@@ -788,7 +790,7 @@ public class NetClient
 					client.handleRadar(radar.setRadar(x, y, size));
 				}
 
-				//if(PRINT_PACKETS)
+				if(PRINT_PACKETS)
 					System.out.println("\nFast Radar Packet:\ntype = " + type +
 						"\nn = " + n +
 						"\nbuffer advanced " + (in.position()-pos));
@@ -823,7 +825,8 @@ public class NetClient
 				byte size = in.getByte();
 				byte rot = in.getByte();
 
-				if(PRINT_PACKETS)System.out.println("\nWreckage Packet:\ntype = "+type +
+				if(PRINT_PACKETS)
+					System.out.println("\nWreckage Packet:\ntype = "+type +
 						"\nx = " + x +
 						"\ny = " + y +
 						"\nwreck type = " + wrecktype +
@@ -846,7 +849,8 @@ public class NetClient
 				short robot_id = in.getShort();
 				short killer_id = in.getShort();
 
-				if(PRINT_PACKETS)System.out.println("\nWar Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nWar Packet\ntype = " + type +
 						"\nRobot id = " + robot_id +
 						"\nKiller id = " + killer_id);
 
@@ -889,7 +893,8 @@ public class NetClient
 				byte type = in.getByte();
 				short id = in.getShort();
 
-				if(PRINT_PACKETS)System.out.println("\nLeave Packet\ntype = " + type +
+				if(PRINT_PACKETS)
+					System.out.println("\nLeave Packet\ntype = " + type +
 						"\nid = " + id);
 
 				client.handleLeave(id);
