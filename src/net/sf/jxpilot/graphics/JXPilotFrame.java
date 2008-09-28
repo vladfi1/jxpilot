@@ -295,8 +295,8 @@ public class JXPilotFrame extends Frame
 		{
 			if (MOUSE_RECENTERING)
 			// this event is from re-centering the mouse - ignore it
-			    if (robotMovement && centerX == e.getX()
-			        && centerY == e.getY()) {
+			    if (robotMovement && JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2 == e.getX()
+			        && JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2 == e.getY()) {
 			    	robotMovement = false;
 			    }
 			    else
@@ -320,8 +320,8 @@ public class JXPilotFrame extends Frame
 		private void movePointerBack()
 		{
 			robotMovement = true;
-			robot.mouseMove(screenSize.width/2,screenSize.height/2);
-			mouseX = screenSize.width/2;
+			robot.mouseMove(JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2,JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2);
+			mouseX = JXPilotFrame.this.getWidth()/2;
 			//robotMovement = false;
 		}
 	}
@@ -378,6 +378,11 @@ public class JXPilotFrame extends Frame
 		keyPreferences.put(KeyEvent.VK_N, 		new Byte[]{Keys.KEY_TOGGLE_NUCLEAR});
 		keyPreferences.put(KeyEvent.VK_SLASH, 	new Byte[]{Keys.KEY_FIRE_LASER});
 		keyPreferences.put(KeyEvent.VK_BACK_SLASH, new Byte[]{Keys.KEY_FIRE_MISSILE});
+		keyPreferences.put(KeyEvent.VK_LEFT, new Byte[]{Keys.KEY_LOCK_PREV});
+		keyPreferences.put(KeyEvent.VK_RIGHT, new Byte[]{Keys.KEY_LOCK_NEXT});
+		keyPreferences.put(KeyEvent.VK_UP, new Byte[]{Keys.KEY_LOCK_NEXT_CLOSE});
+		keyPreferences.put(KeyEvent.VK_UP, new Byte[]{Keys.KEY_LOCK_CLOSE});
+		
 		
 		//keyPreferences.put(KeyEvent.VK_F5, Keys.)
 	}

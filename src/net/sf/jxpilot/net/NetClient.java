@@ -6,9 +6,8 @@ import static net.sf.jxpilot.net.Packet.*;
 import static net.sf.jxpilot.net.ReplyData.readReplyData;
 import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
+import java.io.*;
+import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.util.*;
 
@@ -60,6 +59,11 @@ public class NetClient
     private String REAL_NAME = null;
     private String HOST = null;
 
+    /**
+     * Amount of time to wait for server before giving up.
+     */
+    public static final int SOCKET_TIMEOUT = 15*1000;
+    
     /**
 	 * 2^12=4096
 	 */
@@ -1172,6 +1176,7 @@ public class NetClient
 			channel = DatagramChannel.open();
 			socket = channel.socket();
 			//socket.connect(server_address);
+			socket.setSoTimeout(100);
 			channel.connect(server_address);
 			
 			System.out.println(socket.getLocalPort());
@@ -1221,75 +1226,88 @@ public class NetClient
             REAL_NAME = NICK;
         if (HOST == null || HOST.isEmpty())
             HOST = "java.client";
+        
+        try
+        {
+        	sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 
-		sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
+        	getReplyMessage(in, message);
 
-		getReplyMessage(in, message);
+        	//getReplyMessage(in, message);
+        	System.out.println(message);
 
-		//getReplyMessage(in, message);
-		System.out.println(message);
+        	while(message.getPack()!=ENTER_GAME_pack)
+        	{
+        		getReplyMessage(in, message);
+        		System.out.println(message);
+        	}
 
-		while(message.getPack()!=ENTER_GAME_pack)
-		{
-			getReplyMessage(in, message);
-			System.out.println(message);
-		}
+        	int server_port = message.getValue();
+        	System.out.println("New server port: "+server_port);
 
-		int server_port = message.getValue();
-		System.out.println("New server port: "+server_port);
+        	try
+        	{
+        		server_address = new InetSocketAddress(serverIP, server_port);
+        		channel.disconnect();
+        		channel.connect(server_address);
+        	}
+        	catch(IOException e)
+        	{
+        		e.printStackTrace();
+        		System.exit(1);
+        	}
 
-		try
-		{
-			server_address = new InetSocketAddress(serverIP, server_port);
-			channel.disconnect();
-			channel.connect(server_address);
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-			System.exit(1);
-		}
-		
-		System.out.println("Sending Verify");
-		sendVerify(out, REAL_NAME, NICK);
+        	System.out.println("Sending Verify");
+        	sendVerify(out, REAL_NAME, NICK);
 
-		ReliableDataError result=null;
-		while (result!=ReliableDataError.NO_ERROR)
-		{
-			result = getReliableData(reliable, in);
-			//System.out.println(result);
-			
-			if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
-			{
-				sendPacket(out);
-			}
-		}
-		
-		netSetup(in, map, setup, reliable);
+        	ReliableDataError result=null;
+        	while (result!=ReliableDataError.NO_ERROR)
+        	{
+        		result = getReliableData(reliable, in);
+        		//System.out.println(result);
 
-		//map.flip();
-		System.out.println(map.remaining()+"\n\nMap:\n");
+        		if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
+        		{
+        			sendPacket(out);
+        		}
+        	}
 
-		// setup.printMapData();
-		//
+        	netSetup(in, map, setup, reliable);
 
-		client.mapInit(new BlockMap(setup));
+        	//map.flip();
+        	System.out.println(map.remaining()+"\n\nMap:\n");
 
-		System.out.println("\nSending Net Start");
-		netStart(out);
+        	// setup.printMapData();
+        	//
 
-		keyboard.clearBits();
-		//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+        	client.mapInit(new BlockMap(setup));
 
-		System.out.println("\nStarting input loop.");
-		startTime = System.currentTimeMillis();
-		
-		inputLoop();
-		
-		System.out.println("\nEnd of input loop");
+        	System.out.println("\nSending Net Start");
+        	netStart(out);
+
+        	keyboard.clearBits();
+        	//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+
+        	System.out.println("\nStarting input loop.");
+        	startTime = System.currentTimeMillis();
+
+        	inputLoop();
+
+        	System.out.println("\nEnd of input loop");
+        }
+        catch (InterruptedIOException e)
+        {
+        	javax.swing.JOptionPane.showMessageDialog(null, "Server timed out!");
+        	this.quit();
+        }
 	}
 	
-	private void inputLoop()
+	/**
+	 * Main game method. Interprets server input and sends messages to client.
+	 * The pointer, keyboard, and talk info are then sent to the server.
+	 * @throws InterruptedIOException If the server takes too long.
+	 */
+	private void inputLoop() throws InterruptedIOException
 	{	
 		try
 		{
@@ -1330,7 +1348,7 @@ public class NetClient
 	 * Reads the last packet sent into in.
 	 * @param in The ByteBufferWrap in which the packet is read.
 	 */
-	private void readLatestPacket(ByteBufferWrap in)
+	private void readLatestPacket(ByteBufferWrap in) throws InterruptedIOException
 	{
 		try
 		{
@@ -1399,7 +1417,7 @@ public class NetClient
 	 * @param buf The buffer in which the input should be received.
 	 * @return The number of bytes read, or -1 if no packets available.
 	 */
-	private int readPacket(ByteBufferWrap buf)
+	private int readPacket(ByteBufferWrap buf) throws InterruptedIOException
 	{
 		buf.clear();
 		try
@@ -1410,6 +1428,10 @@ public class NetClient
 			if (PRINT_PACKETS)
 				System.out.println("\nGot Packet-number: " + numPackets + ", " + buf.position() + " bytes.");
 			return read;
+		}
+		catch(InterruptedIOException e)
+		{
+			throw e;
 		}
 		catch (IOException e)
 		{
@@ -1560,7 +1582,7 @@ public class NetClient
 	}
 	
 	
-	private  ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in)
+	private ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in) throws InterruptedIOException
 	{
 		in.clear();
 		readPacket(in);
@@ -1569,7 +1591,7 @@ public class NetClient
 		return data.readReliableData(in, this);
 	}
 	
-	private ReplyMessage getReplyMessage(ByteBufferWrap buf, ReplyMessage message)
+	private ReplyMessage getReplyMessage(ByteBufferWrap buf, ReplyMessage message) throws InterruptedIOException
 	{
 		readPacket(buf);
 		//buf.flip();
@@ -1585,7 +1607,7 @@ public class NetClient
 		return remaining;
 	}
 	
-	private int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable)
+	private int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable) throws InterruptedIOException
 	{
 		ReliableDataError error = getReliableData(reliable, in);
 		
@@ -1610,7 +1632,7 @@ public class NetClient
 		return remaining;
 	}
 	
-	private  int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
+	private  int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable) throws InterruptedIOException
 	{
 		ReliableDataError error = getReliableData(reliable, in);
 		
@@ -1665,7 +1687,7 @@ public class NetClient
 	 * Uncompresses the map if necessary.
 	 * 
 	 */
-	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
+	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable) throws InterruptedIOException
 	{
 		int i = getFirstMapPacket(in, map, setup, reliable);
 		System.out.println(setup);
@@ -1718,6 +1740,7 @@ public class NetClient
 			else
 			{
 				System.out.println("**********Unsuported type: " + type + "************");
+				in.clear();
 				break;
 			}
 		}
@@ -1728,7 +1751,7 @@ public class NetClient
 		{
 			if(PRINT_PACKETS)System.out.println("\nAttempting to read from reliableBuf");
 
-			short type = reliableBuf.peekByte();
+			short type = reliableBuf.peekUnsignedByte();
 
 			if(readers[type]!=null)
 			{
