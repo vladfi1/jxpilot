@@ -1,7 +1,6 @@
 package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.map.*;
-import net.sf.jxpilot.game.GameWorld.ScoreObject;
 import net.sf.jxpilot.graphics.Drawable;
 import net.sf.jxpilot.util.*;
 
@@ -19,6 +18,8 @@ public class HUD implements Drawable{
 	private GameWorld world;
 	private BlockMap map;
 	private BlockMapSetup setup;
+	
+	private short worldX, worldY;
 	
 	private final int RADARS_SIZE = 10;
 	private HolderList<RadarHolder, Radar> radarHandler;
@@ -78,19 +79,37 @@ public class HUD implements Drawable{
 	{
 		radarHandler.clear();
 		scoreObjectHandler.update();
+		
+		worldX = world.getSelfX();
+		worldY = world.getSelfY();
 	}
 	
 	@Override
 	public void paintDrawable(Graphics2D g2d)
 	{
-		for(ScoreObject o : scoreObjectHandler)
-		{
-			o.paintDrawable(g2d);
-		}
+		paintScoreObjects(g2d);
+		
 		for(Radar r : radarHandler)
 		{
 			r.paintDrawable(g2d);
 		}
+	}
+	
+	private void paintScoreObjects(Graphics2D g2d)
+	{
+		final int height = g2d.getFontMetrics().getHeight();
+		final int baseY = world.getSelfY() - 2*height;
+		
+		int i =0;
+		
+		for(ScoreObject o : scoreObjectHandler)
+		{
+			o.paintDrawable(g2d);
+			
+			Utilities.drawAdjustedStringDown(g2d, o.getMessage() + " " + o.getScore(), world.getSelfX(), baseY-i*height);
+			i++;
+		}
+		
 	}
 	
 	//"static" radar data
@@ -154,7 +173,7 @@ public class HUD implements Drawable{
 		public void paintDrawable(Graphics2D g2d)
 		{
 			//skips allies
-			//if((super.size & 0x80) != 0) return;
+			if((super.size & 0x80) != 0) return;
 			
 			int radarX = super.x * HUD_RADAR_SCALE - (int)((world.getSelfX()) * X_FACTOR);
 			int radarY = super.y * HUD_RADAR_SCALE - (int)((world.getSelfY()) * Y_FACTOR);
@@ -174,14 +193,16 @@ public class HUD implements Drawable{
                 }
 			}
 			
+            int size = (super.size > 0) ? super.size * HUD_RADAR_SCALE : HUD_RADAR_SCALE;
+			
 			//skips if radar would be painted on ship
 			if(radarX*radarX + radarY*radarY < Utilities.square(GameWorld.Ship.SHIP_RADIUS+size)){return;}
 			
 			g2d.setColor(RADAR_COLOR);
 			
-			radarShape.setFrame((radarX+world.getSelfX()-super.size),
-								(radarY+world.getSelfY()-super.size),
-					2*super.size, 2*super.size);
+			radarShape.setFrame((radarX+world.getSelfX()-size),
+								(radarY+world.getSelfY()-size),
+					2*size, 2*size);
 			
 			g2d.fill(radarShape);
 			
@@ -211,6 +232,7 @@ public class HUD implements Drawable{
 			holder.set(this);
 		}
 		
+		@Override
 		public void paintDrawable(Graphics2D g2d)
 		{
 			//AffineTransform saved = g2d.getTransform();
@@ -222,8 +244,8 @@ public class HUD implements Drawable{
 			int y = super.y * MapBlock.BLOCK_SIZE;
 			
 			Utilities.drawFlippedString(g2d, String.valueOf(score),
-					Utilities.wrap(map.getWidth(), world.getSelfX(), x),
-					Utilities.wrap(map.getHeight(), world.getSelfY(), y));
+					Utilities.wrap(map.getWidth(), worldX, x),
+					Utilities.wrap(map.getHeight(), worldY, y));
 			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
 			
 			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));

@@ -335,16 +335,6 @@ public class GameWorld implements Drawable{
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			/*
-			Player p = getPlayer(id);
-			
-			if (p==null)
-			{
-				System.out.println("No player matches id = " + id);
-			}
-			*/
-			//AffineTransform saved = g2d.getTransform();
-			
 			g2d.setColor(SHIP_COLOR);
 			
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
@@ -676,38 +666,6 @@ public class GameWorld implements Drawable{
 	public final Factory<Spark> sparkFactory = new Factory<Spark>(){
 		public Spark newInstance(){return new Spark();}
 	};
-	
-	public class ScoreObject extends ScoreObjectHolder implements Drawable
-	{
-		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
-		
-		public ScoreObject(){}
-		
-		public ScoreObject(ScoreObjectHolder holder)
-		{
-			holder.set(this);
-		}
-		
-		public void paintDrawable(Graphics2D g2d)
-		{
-			//AffineTransform saved = g2d.getTransform();
-			
-			g2d.setColor(SCORE_OBJECT_COLOR);
-			//g2d.translate(x, y);
-			
-			int x = super.x * MapBlock.BLOCK_SIZE;
-			int y = super.y * MapBlock.BLOCK_SIZE;
-			
-			Utilities.drawFlippedString(g2d, String.valueOf(score),
-					Utilities.wrap(map.getWidth(), viewX, x),
-					Utilities.wrap(map.getHeight(), viewY, y));
-			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
-			
-			Utilities.drawFlippedString(g2d, message, (float)(x-bounds.getWidth()/2.0), (float)(y-bounds.getHeight()));
-			
-			//g2d.setTransform(saved);
-		}
-	}
 	
 	/**
 	 * Class that extends Base to draw player names as well.
