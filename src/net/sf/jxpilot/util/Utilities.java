@@ -63,7 +63,7 @@ public class Utilities {
 	public static int pow(int base, int exponent)
 	{
 		int product=1;
-		for(int i = 0;i<exponent;i++)
+		for(int i = 0;i<Math.abs(exponent);i++)
 		{
 			product *= base;
 		}
@@ -198,7 +198,7 @@ public class Utilities {
 	
 	/**
 	 * Invokes wrap() on x2 and y2 with respect to the width/x1 and height/y1.
-	 * @param width The wraping width.
+	 * @param width The wrapping width.
 	 * @param height The wrapping height.
 	 * @param line The current line dimensions.
 	 * @return The given line.

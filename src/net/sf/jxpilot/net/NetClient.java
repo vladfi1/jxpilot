@@ -89,6 +89,9 @@ public class NetClient
 	private BitVector keyboard = new BitVector(Keys.NUM_KEYS);
 	private int last_keyboard_change=0;
 	
+	private short turn_speed;
+	private short new_speed;
+	
 	/**
 	 * Keeps track last frame update number.
 	 * This is also used for sending acknowledgements.
@@ -1762,7 +1765,8 @@ public class NetClient
 				}
 				catch (ReliableReadException e)
 				{
-					System.out.println("Fragmented reliable packet of type: " + type);
+					if(PRINT_PACKETS)
+						System.out.println("Fragmented reliable packet of type: " + type);
 					reliableBuf.position(pos);
 					break;
 				}
@@ -1836,6 +1840,23 @@ public class NetClient
 		talk_last_send = last_loops;
 	}
 
+	/**
+	 * Changes the turnspeed.
+	 */
+	public void netTurnSpeed(short new_speed)
+	{
+		this.new_speed = turn_speed;
+	}
+	
+	private void sendTurnSpeed()
+	{
+		if(new_speed != turn_speed)
+		{
+			this.putTurnSpeed(out, turn_speed);
+			//this.putTurnSpeedS(out, turn_speed);
+			new_speed = turn_speed;
+		}
+	}
 	
 	/**
 	 * Stops input loop and sends quit packets.
@@ -1878,5 +1899,12 @@ public class NetClient
 			return keyboard;
 		}
 	}
-
+	
+	public void setKey(int key, boolean value)
+	{
+		synchronized(keyboard)
+		{
+			keyboard.setBit(key, value);
+		}
+	}
 }

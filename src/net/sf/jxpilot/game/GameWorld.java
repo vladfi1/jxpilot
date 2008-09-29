@@ -445,18 +445,17 @@ public class GameWorld implements Drawable{
 		private final Color CONNECTOR_COLOR = Color.GREEN;
 		private final Line2D.Float connectorShape= new Line2D.Float();
 
-		public Connector getNewInstance()
-		{return new Connector();}
-		
 		/**
 		 * Makes sure that the connector is wrapped properly.
 		 */
 		private void checkWrap()
 		{
-			Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
+			//Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
 			
 			Utilities.wrapLine(map.getWidth(), map.getHeight(),
 								viewX, viewY, connectorShape);
+			Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
+			
 			//System.out.println("Wrapping connector!");
 		}
 		
@@ -487,9 +486,6 @@ public class GameWorld implements Drawable{
 		private final Ellipse2D.Float mineShape= new Ellipse2D.Float(-X_RADIUS, -Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);
 		private Player player;
 		private String name;
-		
-		public Mine getNewInstance()
-		{return new Mine();}
 		
 		public void setFrom(MineHolder other)
 		{
@@ -703,7 +699,7 @@ public class GameWorld implements Drawable{
 			
 			super.paintDrawable(g2d);
 			
-			if(player!=null)
+			if(player!=null && super.id !=Player.NO_ID);
 			{
 				//System.out.println("Drawing base name");
 				String nick = player.getNick();

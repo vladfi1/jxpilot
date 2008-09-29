@@ -217,10 +217,7 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void setKey(int key, boolean value)
 	{
-		synchronized(keyboard)
-		{
-			keyboard.setBit(key, value);
-		}
+		netClient.setKey(key, value);
 	}
 	
 	public void movePointer(short amount)
