@@ -699,7 +699,7 @@ public class GameWorld implements Drawable{
 			
 			super.paintDrawable(g2d);
 			
-			if(player!=null && super.id !=Player.NO_ID);
+			if(player!=null && super.id != Player.NO_ID)
 			{
 				//System.out.println("Drawing base name");
 				String nick = player.getNick();
