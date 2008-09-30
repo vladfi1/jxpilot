@@ -60,6 +60,11 @@ public class JXPilotFrame extends Frame
 	private MessagePool messagePool = null;
 	
 	/**
+	 * Table of players and scores.
+	 */
+	private PlayerTable playerTable=null;
+	
+	/**
 	 * Maps local keyboard to abstract XPilot keyboard which is sent to server.
 	 * Note that each actual key may represent multiple abstract XPilot keys.
 	 */
@@ -136,6 +141,7 @@ public class JXPilotFrame extends Frame
 		
 		
 		messagePool = new MessagePool();
+		playerTable = new PlayerTable(20, super.getHeight()/2, world.getPlayers());
 		//pack();
 		
 		this.addKeyListener(new KeyAdapter()
@@ -584,7 +590,9 @@ public class JXPilotFrame extends Frame
 	
 		screenG2D.setTransform(identity);
 		messagePool.render(screenG2D);
-
+		
+		playerTable.setY(super.getHeight()/2);
+		playerTable.paintDrawable(screenG2D);
 		//screenG2D.setTransform(currentTransform);
 		//screenG2D.drawImage(mapBuffer, 0, 0, this);
 	}

@@ -14,20 +14,18 @@ public class Player
 	 */
 	public static final short NO_ID = -1;
 	
-	public static final int SHIP_RADIUS = 16;
-	public static final Color SHIP_COLOR = Color.WHITE;
-	
 	//player data
 	private short id, my_team, my_char;
 	private String nick, real, host;
 	private ShipShape ship_shape;
+	
+	private short score, life;
 	
 	//ship data
 	/**
 	 * Whether or not to draw the ship.
 	 */
 	private boolean active=false;
-	private Ellipse2D shield;
 	
 	private ShipHolder ship;
 
@@ -41,9 +39,6 @@ public class Player
 		this.host = host;
 		this.ship_shape = shape;
 		
-		shield = new Ellipse2D.Float();
-		shield.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
-		
 		ship = new ShipHolder();
 	}
 	
@@ -56,16 +51,26 @@ public class Player
 	public String getHost(){return host;}
 	public ShipShape getShipShape(){return ship_shape;}
 
+	public void setScore(short score){this.score = score;}
+	public void setLife(short life){this.life = life;}
+	
+	public short getScore(){return score;}
+	public short getLife(){return life;}
+	
 	//ship data
 	public Polygon getShape(){return ship_shape.getShape();}
 	public void setActive(boolean b){active = b;}
 	public boolean isActive(){return active;}
 	public ShipHolder getShip(){return ship;}
 	
-	
 	public void setShip(ShipHolder s)
 	{
 		active = true;
-		s.set(ship);
+		ship.setFrom(s);
+	}
+	
+	public String toString()
+	{
+		return nick + '(' + life+')' + ' ' + score;
 	}
 }

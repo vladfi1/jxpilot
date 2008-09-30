@@ -32,6 +32,7 @@ public interface AbstractClient
 	public void handleCannon(CannonHolder c);
 	public void handleBase(BaseHolder b);
 	public void handleFuel(FuelHolder f);
+	public void handleScore(short id, short score, short life);
 	
 	/**
      * Prints message in client window.

@@ -358,7 +358,9 @@ public class NetClient
 						"\nscore = " + score +
 						"\nlife = " + life +
 						"\nmy char = " + myChar);
-
+				
+				client.handleScore(id, score, life);
+				
 			}
 
 			/*

@@ -212,6 +212,11 @@ public class GameWorld implements Drawable{
 		return playerMap.remove(p.getId());
 	}
 	
+	public Collection<Player> getPlayers()
+	{
+		return playerMap.values();
+	}
+	
 	public void addShip(ShipHolder s)
 	{
 		Player p = getPlayer(s.getId());

@@ -206,6 +206,16 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addMissile(missile);
 	}
 	
+	public void handleScore(short id, short score, short life)
+	{
+		Player p = world.getPlayer(id);
+		if(p!=null)
+		{
+			p.setScore(score);
+			p.setLife(life);
+		}
+	}
+	
 	//Client Input Listener methods
 	public void quit()
 	{
