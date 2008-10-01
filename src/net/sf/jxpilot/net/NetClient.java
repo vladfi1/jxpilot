@@ -174,7 +174,7 @@ public class NetClient
 				{
 					String reason = in.getString();
 					System.out.println("Server closed connection: " + reason);
-					System.exit(0);
+					client.handleQuit(reason);
 				}
 				catch (StringReadException e)
 				{
@@ -1181,7 +1181,7 @@ public class NetClient
 			channel = DatagramChannel.open();
 			socket = channel.socket();
 			//socket.connect(server_address);
-			socket.setSoTimeout(100);
+			socket.setSoTimeout(SOCKET_TIMEOUT);
 			channel.connect(server_address);
 			
 			System.out.println(socket.getLocalPort());
@@ -1303,7 +1303,7 @@ public class NetClient
         catch (InterruptedIOException e)
         {
         	javax.swing.JOptionPane.showMessageDialog(null, "Server timed out!");
-        	this.quit();
+        	client.handleQuit("Server timed out!");
         }
 	}
 	

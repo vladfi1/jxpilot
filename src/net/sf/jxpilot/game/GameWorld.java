@@ -418,7 +418,7 @@ public class GameWorld implements Drawable{
 			
 			//if(previousPlayer!=super.id)
 			setPlayer();
-			setConnector();
+			//setConnector();
 		}
 		
 		public void paintDrawable(Graphics2D g2d)
@@ -437,7 +437,10 @@ public class GameWorld implements Drawable{
 			//g2d.setTransform(saved);
 
 			if(player!=null)
+			{
+				setConnector();
 				connector.paintDrawable(g2d);
+			}
 		}	
 	}
 	public final Factory<Ball> ballFactory = new Factory<Ball>(){

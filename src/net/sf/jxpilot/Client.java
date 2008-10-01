@@ -73,7 +73,7 @@ public class Client implements AbstractClient, ClientInputListener
 	public void mapInit(BlockMap blockMap)
 	{
 		world = new GameWorld(blockMap);
-		
+		hud = world.getHud();
 		this.blockMap = blockMap;
 		
 		DisplayMode mode = DisplayMode.getDisplayMode(prefs.get(DisplayMode.displayModeKey));
@@ -82,6 +82,11 @@ public class Client implements AbstractClient, ClientInputListener
 		//frame.setDrawables(drawables);
 		
 		frame.setVisible(true);
+	}
+	
+	public void handleQuit(String reason)
+	{
+		this.quit();
 	}
 	
 	public void handleSelf(short x, short y, short vx, short vy, byte heading,
