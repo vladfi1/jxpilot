@@ -102,6 +102,8 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		world.setViewPosition(x, y);
 		world.setExtView(ext_view_width, ext_view_height);
+		
+		hud.setLockId(lockId);
 	}
 	
 	public void handleShip(ShipHolder s)

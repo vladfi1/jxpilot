@@ -113,9 +113,8 @@ public class HUD implements Drawable{
 		Player p = world.getPlayer(lockId);
 		if(p!=null)
 		{
-			final int height = g2d.getFontMetrics().getHeight();
-			
-			g2d.drawString(p.getNick(),world.getSelfX(), world.getSelfY()-height);
+			g2d.setColor(Color.WHITE);
+			Utilities.drawAdjustedStringDown(g2d,p.getNick(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
 		}
 	}
 	
