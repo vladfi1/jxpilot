@@ -1171,6 +1171,26 @@ public class NetClient
 				}
 			}
 		};
+		
+		readers[PKT_TIMING] = new PacketProcessor()
+		{
+			public static final int LENGTH = 1+2+2;//5
+			
+			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+			{
+				if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
+				
+				byte type = in.getByte();
+				short id = in.getShort();
+				int timing = in.getUnsignedShort();
+				
+				if(PRINT_PACKETS)
+					System.out.println("\nTiming Packet\ntype = " + type +
+										"\nid = " + id +
+										"\ntiming = " + timing);
+				
+			}
+		};
 	}
 
 	public void runClient(String serverIP, int serverPort)

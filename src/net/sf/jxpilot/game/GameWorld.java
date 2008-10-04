@@ -320,7 +320,8 @@ public class GameWorld implements Drawable{
 	protected class Ship extends ShipHolder implements Drawable
 	{
 		public static final int SHIP_RADIUS = 16;
-		private  final Color SHIP_COLOR = Color.WHITE;
+		private final Color SHIP_COLOR = Color.WHITE;
+		private final Color LAST_LIFE_COLOR = Color.RED;
 		
 		private Ellipse2D shieldShape;		
 		private Player player;
@@ -340,7 +341,12 @@ public class GameWorld implements Drawable{
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			g2d.setColor(SHIP_COLOR);
+			if(player.getLife()>=1)
+			{
+				g2d.setColor(SHIP_COLOR);
+			}
+			else
+				g2d.setColor(LAST_LIFE_COLOR);
 			
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
