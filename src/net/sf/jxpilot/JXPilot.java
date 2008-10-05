@@ -3,7 +3,9 @@ package net.sf.jxpilot;
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
 import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.xpilotpanel.client.ClientRunner;
 
+import java.lang.reflect.*;
 import java.awt.Image;
 import java.net.URL;
 import java.util.HashMap;
@@ -38,7 +40,14 @@ public class JXPilot {
     private static Image icon = null;
 		
 	public static void main(String[] args)
-	{
+	{		
+		XPilotPanelRun(new DefaultClientRunner());
+
+        //runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
+	}
+
+	public static void XPilotPanelRun(ClientRunner runner)
+	{	
 		
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
@@ -49,21 +58,18 @@ public class JXPilot {
                     getJXPilotIcon());
             xpilotpanelEmbeddedParams.put(
                     XPilotPanel.EMBEDDED_PARAMETER_CLIENT_LAUNCH_METHOD,
-                    JXPilot.class.getDeclaredMethod("runClient", String.class,
-                            int.class, Preferences.class));
+                    runner);
 
             XPilotPanel.embeddedLaunch(xpilotpanelEmbeddedParams);
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-		
-		
-        //runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
+        }	
 	}
 	
 	public static void runClient(String serverIP, int serverPort, Preferences prefs)
-	{	
+	{
+		System.out.println("Running client!");
 		new Client(prefs).runClient(serverIP, serverPort);
 	}
 	

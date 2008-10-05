@@ -1,0 +1,12 @@
+package net.sf.jxpilot;
+
+import net.sf.xpilotpanel.client.ClientRunner;
+import net.sf.xpilotpanel.preferences.Preferences;
+
+public class DefaultClientRunner implements ClientRunner{
+	public void runClient(String serverIP, int serverPort, Preferences prefs)
+	{
+		System.out.println("Running client!");
+		new Client(prefs).runClient(serverIP, serverPort);
+	}
+}
