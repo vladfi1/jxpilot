@@ -22,6 +22,7 @@ public class HUD implements Drawable{
 	private short worldX, worldY;
 	
 	private short lockId=Player.NO_ID;
+	private Player lockPlayer = null;
 	
 	private final int RADARS_SIZE = 10;
 	private HolderList<RadarHolder, Radar> radarHandler;
@@ -80,9 +81,15 @@ public class HUD implements Drawable{
 	public void setLockId(short lockId)
 	{
 		this.lockId=lockId;
+		if(lockId != Player.NO_ID)
+		{
+			lockPlayer = world.getPlayer(lockId);
+		}
+		else
+		{
+			lockPlayer = null;
+		}
 	}
-	
-	
 	
 	public void update()
 	{
@@ -108,13 +115,10 @@ public class HUD implements Drawable{
 	
 	private void paintLockedPlayer(Graphics2D g2d)
 	{
-		if(lockId==Player.NO_ID) return;
-		
-		Player p = world.getPlayer(lockId);
-		if(p!=null)
+		if(lockPlayer!=null)
 		{
 			g2d.setColor(Color.WHITE);
-			Utilities.drawAdjustedStringDown(g2d,p.getNick(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
+			Utilities.drawAdjustedStringDown(g2d,lockPlayer.getNick(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
 		}
 	}
 	

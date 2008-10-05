@@ -1193,6 +1193,10 @@ public class NetClient
 		};
 	}
 
+	public String getNick(){return NICK;}
+	public String getRealName(){return REAL_NAME;}
+	public String getHost(){return HOST;}
+	
 	public void runClient(String serverIP, int serverPort)
 	{
 		try{
@@ -1210,32 +1214,6 @@ public class NetClient
 		{
 			e.printStackTrace();
 		}
-
-
-
-		//creates first message
-		//putJoinRequest(out, "vlad", PORT, "Vlad","xxx", 0x0000FFFF);
-
-		//byte[] first_packet = 
-		//{0x4F, 0x15, (byte)0xF4, (byte)0xED, 0x76, 0x6C, 0x61, 0x64, 0x00, 0x04, 0x12, 0x31};
-
-		//{0x4f, 0x15, (byte)0xf4, (byte)0xed, 0x76, 0x6c, 0x61, 0x64, 0x00, 0x04, 0x13, 0x01, 0x56, 0x6c, 0x61, 0x64, 0x00, 0x00, 0x78, 0x78, 0x78, 0x00, 0x00, 0x00, (byte)0xff, (byte)0xff};
-
-		//4f15f4ed766c616400041301566c61640000787878000000ffff
-
-		/*
-			out.flip();
-			for(int i=0;i < bytes.length;i++)
-			{
-				System.out.printf("Buffer : %x Actual %x\n", out.getByte(), bytes[i]);
-			}
-		 */
-
-
-
-		//channel.send(ByteBufferWrap.wrap(first_packet), server_address);
-
-		//receivePacket(in);
 
 		// Processing preferences for this client.
 		Preferences prefs = client.getPreferences();

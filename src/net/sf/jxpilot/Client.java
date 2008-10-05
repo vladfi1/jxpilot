@@ -14,7 +14,6 @@ public class Client implements AbstractClient, ClientInputListener
 	private NetClient netClient;
 	private BlockMap blockMap;
 	private JXPilotFrame frame;
-	private BitVector keyboard;
 
 	/**
      * "Preferences" sent by XPilotPanel.<br>
@@ -33,6 +32,12 @@ public class Client implements AbstractClient, ClientInputListener
 	public short getSelfX(){return selfX;}
 	public short getSelfY(){return selfY;}
 	
+	
+	/**
+	 * The Player object representing us.
+	 */
+	private Player self;
+	
 	/**
 	 * The id of the player we are watching, or -1 if we aren't dead.
 	 */
@@ -48,7 +53,6 @@ public class Client implements AbstractClient, ClientInputListener
     public Client(Preferences p) {
         prefs = p;
         netClient = new NetClient(this);
-        keyboard = netClient.getKeyboard();
     }
 
 	public void runClient(String serverIP, int serverPort)
@@ -58,9 +62,11 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public BlockMap getMap(){return blockMap;}
 	public GameWorld getWorld(){return world;}
+	public JXPilotFrame getFrame(){return frame;}
+	public HUD getHUD(){return hud;}
+	public Player getSelf(){return self;}
 	
 	//Abstract Client methods
-	
 	public void handlePacketEnd()
 	{
 		//frame.activeRender();
@@ -113,6 +119,13 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	public void handlePlayer(Player p)
 	{
+		if(p.getNick().equalsIgnoreCase(netClient.getNick()))
+		{
+			self = p;
+			world.setSelf(p);
+			System.out.println("Found self!");
+		}
+		
 		world.addPlayer(p);
 	}
 	

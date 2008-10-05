@@ -52,6 +52,8 @@ public class GameWorld implements Drawable{
 	
 	private HUD hud;
 	
+	private Player self;
+	
 	/**
 	 * The current view position in XPilot pixels.
 	 */
@@ -159,6 +161,9 @@ public class GameWorld implements Drawable{
 	
 	public short getExtViewWidth(){return ext_view_width;}
 	public short getExtViewHeight(){return ext_view_height;}
+	
+	public void setSelf(Player p){self=p;}
+	public Player getSelf(){return self;}
 	
 	public ArrayList<Ship> getShipHandler(){return shipHandler;}
 	public ArrayList<Ball> getBallHandler(){return ballHandler;}
@@ -320,8 +325,11 @@ public class GameWorld implements Drawable{
 	protected class Ship extends ShipHolder implements Drawable
 	{
 		public static final int SHIP_RADIUS = 16;
-		private final Color SHIP_COLOR = Color.WHITE;
-		private final Color LAST_LIFE_COLOR = Color.RED;
+		private final Color SELF_COLOR = Color.WHITE;
+		private final Color ENEMY_COLOR = Color.WHITE;
+		private final Color LAST_LIFE_COLOR = Color.ORANGE;
+		private final Color ALLY_COLOR = Color.BLUE;
+		private final Color NAME_COLOR = Color.WHITE;
 		
 		private Ellipse2D shieldShape;		
 		private Player player;
@@ -341,24 +349,35 @@ public class GameWorld implements Drawable{
 		
 		public void paintDrawable(Graphics2D g2d)
 		{
-			if(player.getLife()>=1)
-			{
-				g2d.setColor(SHIP_COLOR);
-			}
-			else
-				g2d.setColor(LAST_LIFE_COLOR);
 			
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
 			
 			g2d.translate(x, y);
 			
-			//need to flip g2d so nick comes out ok
-			//g2d.scale(1, -1);
-			//g2d.drawString(nick, (float)-bounds.getWidth()/2, SHIP_RADIUS + (float)bounds.getHeight()/2);
-			//g2d.scale(1, -1);
-			
+			g2d.setColor(NAME_COLOR);
 			Utilities.drawAdjustedStringDown(g2d, player.getNick(), 0, -SHIP_RADIUS);
+			
+			
+			if(player.getLife()==0)
+			{
+				g2d.setColor(LAST_LIFE_COLOR);
+			}
+			else
+			{
+				if(player == self)
+				{
+					g2d.setColor(SELF_COLOR);
+				}
+				else if(self!=null && player.getTeam()==self.getTeam())
+				{
+					g2d.setColor(ALLY_COLOR);
+				}
+				else
+				{
+					g2d.setColor(ENEMY_COLOR);
+				}
+			}
 			
 			if (shield)
 			{
