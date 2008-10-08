@@ -95,21 +95,16 @@ public class Client implements AbstractClient, ClientInputListener
 		this.quit();
 	}
 	
-	public void handleSelf(short x, short y, short vx, short vy, byte heading,
-			byte power, byte turnspeed, byte turnresistance,
-			short lockId, short lockDist, byte lockDir, byte nextCheckPoint,
-			byte currentTank, short fuelSum, short fuelMax,
-			short ext_view_width, short ext_view_height,
-			byte debris_colors, byte stat, byte autopilot_light)
+	public void handleSelf(SelfHolder self)
 	{
 		eyesId = -1;
-		selfX = x;
-		selfY = y;
+		selfX = self.getX();
+		selfY = self.getY();
 		
-		world.setViewPosition(x, y);
-		world.setExtView(ext_view_width, ext_view_height);
-		
-		hud.setLockId(lockId);
+		world.setViewPosition(selfX, selfY);
+		world.setExtView(self.getExtViewWidth(), self.getExtViewHeight());
+
+		hud.setSelf(self);
 	}
 	
 	public void handleShip(ShipHolder s)
@@ -250,6 +245,9 @@ public class Client implements AbstractClient, ClientInputListener
 		netClient.setKey(key, value);
 	}
 	
+	/**
+	 * The amount of degrees (in 128 degree mode) that the ship moves is amount*turnspeed/64.
+	 */
 	public void movePointer(short amount)
 	{
 		netClient.movePointer(amount);

@@ -40,7 +40,7 @@ public class NetClient
 	public static final int TEAM = 0x0000FFFF;
 	public static final String DISPLAY = "";
 	public static final short POWER = 55;
-	public static final short TURN_SPEED = 10;
+	public static final short TURN_SPEED = 8;
 	public static final short TURN_RESISTANCE = 0;
 	public static final byte MAX_FPS = (byte)50;
 	public static final byte[] MOTD_BYTES = {0,0,0x47,2,0,0x43,3};
@@ -572,6 +572,8 @@ public class NetClient
 			public static final int LENGTH = 
 				(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
 
+			private final SelfHolder self = new SelfHolder();
+			
 			public void processPacket(ByteBufferWrap in, AbstractClient client)
 			{
 				if (in.remaining()<LENGTH)
@@ -605,12 +607,13 @@ public class NetClient
 				byte stat = in.getByte();
 				byte autopilot_light = in.getByte();
 
-				client.handleSelf(x, y, vx, vy, 
+				client.handleSelf(self.setSelf(x, y, vx, vy, 
 						heading, power, turnspeed, turnresistance, 
-						lockId, lockDist, lockDir, nextCheckPoint, 
-						currentTank, fuelSum, fuelMax,
-						ext_view_width, ext_view_height,
-						debris_colors, stat, autopilot_light);
+						lockId, lockDist, lockDir, 
+						nextCheckPoint, 
+						currentTank, fuelSum, fuelMax, 
+						ext_view_width, ext_view_height, 
+						debris_colors, stat, autopilot_light));
 
 				if(PRINT_PACKETS)
 					System.out.println("\nPacket Self\ntype = " + type +

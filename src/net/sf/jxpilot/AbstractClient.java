@@ -9,12 +9,7 @@ public interface AbstractClient
 	public void handlePacketEnd();
 	
 	public void mapInit(BlockMap blockMap);
-	public void handleSelf(short x, short y, short vx, short vy, byte heading,
-							byte power, byte turnspeed, byte turnresistance,
-							short lockId, short lockDist, byte lockDir, byte nextCheckPoint,
-							byte currentTank, short fuelSum, short fuelMax,
-							short ext_view_width, short ext_view_height,
-							byte debris_colors, byte stat, byte autopilot_light);
+	public void handleSelf(SelfHolder self);
 	public void handleQuit(String reason);
 	public void handleShip(ShipHolder s);
 	public void handlePlayer(Player p);

@@ -19,9 +19,10 @@ public class HUD implements Drawable{
 	private BlockMap map;
 	private BlockMapSetup setup;
 	
+	private SelfHolder self=new SelfHolder();
+	
 	private short worldX, worldY;
 	
-	private short lockId=Player.NO_ID;
 	private Player lockPlayer = null;
 	
 	private final int RADARS_SIZE = 10;
@@ -78,9 +79,14 @@ public class HUD implements Drawable{
 		scoreObjectHandler.add(new ScoreObject(o));
 	}
 	
+	public void setSelf(SelfHolder s)
+	{
+		self.setFrom(s);
+		this.setLockId(self.getLockId());
+	}
+	
 	public void setLockId(short lockId)
 	{
-		this.lockId=lockId;
 		if(lockId != Player.NO_ID)
 		{
 			lockPlayer = world.getPlayer(lockId);
@@ -89,6 +95,13 @@ public class HUD implements Drawable{
 		{
 			lockPlayer = null;
 		}
+	}
+	
+	public Player getLockedPlayer(){return lockPlayer;}
+	
+	public SelfHolder getSelf()
+	{
+		return self;
 	}
 	
 	public void update()

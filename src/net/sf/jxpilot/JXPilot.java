@@ -5,12 +5,9 @@ import net.sf.xpilotpanel.gui.AboutWindow;
 import net.sf.xpilotpanel.preferences.Preferences;
 import net.sf.xpilotpanel.client.ClientRunner;
 
-import java.lang.reflect.*;
 import java.awt.Image;
 import java.net.URL;
 import java.util.HashMap;
-
-import javax.swing.ImageIcon;
 
 public class JXPilot {
 
@@ -47,8 +44,7 @@ public class JXPilot {
 	}
 
 	public static void XPilotPanelRun(ClientRunner runner)
-	{	
-		
+	{
         try {
             java.util.Map<String, Object> xpilotpanelEmbeddedParams = new HashMap<String, Object>();
             xpilotpanelEmbeddedParams.put(
@@ -83,15 +79,17 @@ public class JXPilot {
         if (icon == null) {
             URL u = AboutWindow.class.getClassLoader().getResource(
                     "data/JXPilotIcon.png");
-            //icon = new ImageIcon(u).getImage();
-            if(icon == null)
+            if(u != null)
             {
-            	try
-            	{
-            		icon = javax.imageio.ImageIO.read(new java.io.File("data/JXPilotIcon.png"));
-            	}
-            	catch(Exception e){e.printStackTrace();}
+                icon = new javax.swing.ImageIcon(u).getImage();
             }
+            else
+        	try
+        	{
+        		icon = javax.imageio.ImageIO.read(new java.io.File("data/JXPilotIcon.png"));
+        	}
+        	catch(Exception e){e.printStackTrace();}
+        
         }
         
         return icon;
