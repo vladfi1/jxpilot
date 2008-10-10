@@ -3,13 +3,10 @@ package net.sf.jxpilot.graphics;
 import java.util.*;
 import java.awt.event.*;
 import net.sf.jxpilot.data.Keys;
-import net.sf.jxpilot.map.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 import javax.swing.*;
-import static net.sf.jxpilot.map.MapBlock.*;
-import static net.sf.jxpilot.util.Utilities.*;
 import net.sf.jxpilot.user.*;
 import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
@@ -263,13 +260,15 @@ public class JXPilotFrame extends Frame
 		private int centerX = screenSize.width/2,
 					centerY = screenSize.height/2;
 		
+		private int margin = 50;
+		
 		public MouseMotionHandler()
 		{
 			if (MOUSE_RECENTERING)
 			try
 			{
 				robot = new Robot();
-				this.movePointerBack();
+				//this.movePointerBack();
 				//mouseX = screenSize.width/2;
 			}
 			catch(AWTException e)
@@ -277,6 +276,15 @@ public class JXPilotFrame extends Frame
 				System.out.println("Can't control mouse movements :(");
 				robot = null;
 			}
+		}
+		
+		/**
+		 * @param e The mouse location.
+		 * @return
+		 */
+		private boolean inBounds(MouseEvent e)
+		{
+			return (e.getX()>margin &&e.getX()< JXPilotFrame.this.getWidth()-margin);
 		}
 		
 		public void mouseMoved(MouseEvent e)
@@ -300,22 +308,23 @@ public class JXPilotFrame extends Frame
 		private void handleMove(MouseEvent e)
 		{
 			if (MOUSE_RECENTERING)
+			{
 			// this event is from re-centering the mouse - ignore it
-			    if (robotMovement && JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2 == e.getX()
-			        && JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2 == e.getY()) {
+			    if (robotMovement && mouseX == e.getX()) {
 			    	robotMovement = false;
 			    }
 			    else
 			    {
 					clientInputListener.movePointer((short)((e.getX()-mouseX)));
 					//mouseX = e.getX();
-					if(robot!=null)
-						movePointerBack();
+					if(robot!=null && !inBounds(e))
+						movePointerBack(e);
 					else
 					{
 						mouseX = e.getX();				
 					}
 			    }
+			}
 			else
 			{
 				clientInputListener.movePointer((short)((e.getX()-mouseX)));
@@ -323,10 +332,10 @@ public class JXPilotFrame extends Frame
 			}
 		}
 		
-		private void movePointerBack()
+		private void movePointerBack(MouseEvent e)
 		{
 			robotMovement = true;
-			robot.mouseMove(JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2,JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2);
+			robot.mouseMove(JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2,e.getYOnScreen());
 			mouseX = JXPilotFrame.this.getWidth()/2;
 			//robotMovement = false;
 		}
