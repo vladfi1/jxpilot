@@ -260,7 +260,7 @@ public class JXPilotFrame extends Frame
 		private int centerX = screenSize.width/2,
 					centerY = screenSize.height/2;
 		
-		private int margin = 50;
+		private int margin = 100;
 		
 		public MouseMotionHandler()
 		{
@@ -284,7 +284,8 @@ public class JXPilotFrame extends Frame
 		 */
 		private boolean inBounds(MouseEvent e)
 		{
-			return (e.getX()>margin &&e.getX()< JXPilotFrame.this.getWidth()-margin);
+			return (e.getX()>margin &&e.getX()< JXPilotFrame.this.getWidth()-margin) &&
+					(e.getY()>margin &&e.getY()< JXPilotFrame.this.getHeight()-margin);
 		}
 		
 		public void mouseMoved(MouseEvent e)
@@ -310,18 +311,18 @@ public class JXPilotFrame extends Frame
 			if (MOUSE_RECENTERING)
 			{
 			// this event is from re-centering the mouse - ignore it
-			    if (robotMovement && mouseX == e.getX()) {
-			    	robotMovement = false;
+			    if (robotMovement) {
+			    	if(e.getXOnScreen()==mouseX) robotMovement = false;
 			    }
 			    else
 			    {
-					clientInputListener.movePointer((short)((e.getX()-mouseX)));
+					clientInputListener.movePointer((short)((e.getXOnScreen()-mouseX)));
 					//mouseX = e.getX();
 					if(robot!=null && !inBounds(e))
 						movePointerBack(e);
 					else
 					{
-						mouseX = e.getX();				
+						mouseX = e.getXOnScreen();
 					}
 			    }
 			}
@@ -335,8 +336,8 @@ public class JXPilotFrame extends Frame
 		private void movePointerBack(MouseEvent e)
 		{
 			robotMovement = true;
-			robot.mouseMove(JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2,e.getYOnScreen());
-			mouseX = JXPilotFrame.this.getWidth()/2;
+			mouseX = JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2;
+			robot.mouseMove(mouseX,JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2);
 			//robotMovement = false;
 		}
 	}
