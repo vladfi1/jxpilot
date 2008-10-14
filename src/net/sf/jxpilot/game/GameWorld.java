@@ -579,7 +579,7 @@ public class GameWorld implements Drawable{
 		public Missile newInstance(){return new Missile();}
 	};
 	
-	private abstract class AbstractDebris<T extends AbstractDebris<T>> extends AbstractDebrisHolder implements Drawable
+	public abstract class AbstractDebris<T extends AbstractDebris<T>> extends AbstractDebrisHolder implements Drawable
 	{
 
 		//drawing info
@@ -609,7 +609,18 @@ public class GameWorld implements Drawable{
 		{
 			return type / 4 - 6;
 		}
-
+		
+		@Override
+		public int getX()
+		{
+			return x+viewX + getXArea(type)*AREA_SIZE;
+		}
+		@Override
+		public int getY()
+		{
+			return y+viewY + getYArea(type)*AREA_SIZE;	
+		}
+		
 		public AbstractDebris(){}
 		public AbstractDebris(Color c, Ellipse2D shape)
 		{
@@ -620,7 +631,7 @@ public class GameWorld implements Drawable{
 		public void paintDrawable(Graphics2D g2d)
 		{
 			g2d.setColor(COLOR);
-			g2d.translate(x+viewX+getXArea(type)*AREA_SIZE, y+viewY+getYArea(type)*AREA_SIZE);
+			g2d.translate(getX(), getY());
 			g2d.fill(debrisShape);
 		}
 	}

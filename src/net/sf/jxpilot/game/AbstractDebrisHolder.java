@@ -30,4 +30,7 @@ public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder>
 		other.set(this);
 	}
 	
+	//these methods should be overridden to return the real x and y values.
+	public int getX(){return x;}
+	public int getY(){return y;}
 }
