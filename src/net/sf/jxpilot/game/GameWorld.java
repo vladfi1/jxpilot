@@ -322,7 +322,7 @@ public class GameWorld implements Drawable{
 	}
 	
 	//inner Drawable classes	
-	protected class Ship extends ShipHolder implements Drawable
+	public class Ship extends ShipHolder implements Drawable
 	{
 		public static final int SHIP_RADIUS = 16;
 		private final Color SELF_COLOR = Color.WHITE;

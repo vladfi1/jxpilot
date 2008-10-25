@@ -255,7 +255,7 @@ public class JXPilotFrame extends Frame
 	{
 
 		private Robot robot;
-		private int mouseX;
+		private int mouseX, mouseY;
 		private boolean robotMovement;
 		private int centerX = screenSize.width/2,
 					centerY = screenSize.height/2;
@@ -312,7 +312,8 @@ public class JXPilotFrame extends Frame
 			{
 			// this event is from re-centering the mouse - ignore it
 			    if (robotMovement) {
-			    	if(e.getXOnScreen()==mouseX) robotMovement = false;
+			    	if(e.getXOnScreen()==mouseX && e.getYOnScreen()==mouseY) robotMovement = false;
+			    	else if(!inBounds(e)) movePointerBack(e);
 			    }
 			    else
 			    {
@@ -337,7 +338,8 @@ public class JXPilotFrame extends Frame
 		{
 			robotMovement = true;
 			mouseX = JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2;
-			robot.mouseMove(mouseX,JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2);
+			mouseY = JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2;
+			robot.mouseMove(mouseX,mouseY);
 			//robotMovement = false;
 		}
 	}
