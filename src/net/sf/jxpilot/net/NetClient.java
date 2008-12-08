@@ -9,8 +9,6 @@ import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 import java.io.*;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
-import java.util.*;
-
 
 import net.sf.jxpilot.AbstractClient;
 import net.sf.jxpilot.data.Items;
@@ -24,7 +22,7 @@ import net.sf.xpilotpanel.preferences.Preferences;
 
 public class NetClient
 {
-	private final Random rnd = new Random();
+	//private final Random rnd = new Random();
 	
 	/**
 	 * MAGIC = 0x4401F4ED
@@ -94,7 +92,7 @@ public class NetClient
 	
 	/**
 	 * Keeps track last frame update number.
-	 * This is also used for sending acknowledgements.
+	 * This is also used for sending acknowledgments.
 	 */
 	private int last_loops;
 	private volatile boolean quit = false;
@@ -125,1075 +123,69 @@ public class NetClient
 	{
 		this.client = client;
 		
-		//sets function to handle packets
+		//sets functions to handle packets
 		
-		//have to be careful here, not all the reliable data may be in packet
-		readers[PKT_RELIABLE] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				in.setReading();
-				if(PRINT_PACKETS)
-				{
-					System.out.println(reliable.readReliableData(in, NetClient.this, reliableBuf));
-				}
-				else
-				{
-					reliable.readReliableData(in, NetClient.this, reliableBuf);
-				}
-				//in.clear();
-			}
-		};
-
-		readers[PKT_REPLY] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if (in.remaining()<ReplyData.LENGTH)
-				{
-					throw reliableReadException;
-				}
-
-				if(PRINT_PACKETS)
-				{
-					System.out.println(readReplyData(in, reply));
-				}
-				else
-				{
-					readReplyData(in, reply);
-				}
-			}
-		};
-
-		readers[PKT_QUIT] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				byte type = in.getByte();
-				try
-				{
-					String reason = in.getString();
-					System.out.println("Server closed connection: " + reason);
-					client.handleQuit(reason);
-				}
-				catch (StringReadException e)
-				{
-					//e.printStackTrace();
-					throw reliableReadException;
-				}
-
-			}
-		};
-
-		readers[PKT_START] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 4 + 4;//9
-
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				
-				byte type = in.getByte();
-				int loops = in.getInt();
-				int key_ack = in.getInt();
-
-				numFrames++;
-				
-				//packet is duplicate or out of order
-				if (last_loops >= loops)
-				{
-					in.clear();
-					return;
-				}
-				
-				last_loops = loops;
-				
-				
-				if(PRINT_PACKETS)
-					System.out.println("\nStart Packet :" +
-						"\ntype = " + type +
-						"\nloops = " + loops +
-						"\nkey ack = " + key_ack);
-				client.handleStart(loops);
-			}
-			
-			/*
-				int		n;
-				long	loops;
-				u_byte	ch;
-				long	key_ack;
-
-				if ((n = Packet_scanf(&rbuf,
-						"%c%ld%ld",
-						&ch, &loops, &key_ack)) <= 0) {
-					return n;
-				}
-				if (last_loops >= loops) {
-
-					// Packet is duplicate or out of order.
-
-					Net_measurement(loops, PACKET_DROP);
-					printf("ignoring frame (%ld)\n", last_loops - loops);
-					return 0;
-				}
-				last_loops = loops;
-				if (key_ack > last_keyboard_ack) {
-					if (key_ack > last_keyboard_change) {
-						printf("Premature keyboard ack by server (%ld,%ld,%ld)\n",
-								last_keyboard_change, last_keyboard_ack, key_ack);
-
-						 // Packet could be corrupt???
-						 // Some blokes turn off checksumming.
-
-						return 0;
-					}
-					else {
-						last_keyboard_ack = key_ack;
-					}
-				}
-				Net_lag_measurement(key_ack);
-				if ((n = Handle_start(loops)) == -1) {
-					return -1;
-				}
-				return 1;
-			}
-			 */
-		};
-
-		readers[PKT_PLAYER] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				int pos = in.position();
-				try
-				{
-					byte type = in.getByte();
-					short id = in.getShort();
-					short myTeam = in.getUnsignedByte();
-					short myChar = in.getUnsignedByte();
-					String name = removeNullCharacter(in.getString());
-                    String real = removeNullCharacter(in.getString());
-                    String host = removeNullCharacter(in.getString());
-
-					ShipShape shape = ShipShape.parseShip(in.getString(), in.getString());
-
-					if(PRINT_PACKETS)
-						System.out.println("\nPlayer Packet\ntype = "  +type+
-							"\nid = "  + id +
-							"\nmy team = " + myTeam +
-							"\nmy char = " + myChar +
-							"\n name = " + name +
-							"\nreal = " + real +
-							"\nhost = " + host +
-							"\nship = " + shape);
-
-					client.handlePlayer(new Player(id, myTeam, myChar, name, real, host, shape));
-				}
-				catch(StringReadException e)
-				{
-					//e.printStackTrace();
-					in.position(pos);
-					throw reliableReadException;
-				}
-			}
-
-			/*
-				int Receive_player(void)
-				{
-					int			n;
-					short		id;
-					u_byte		ch, myteam, mychar;
-					char		name[MAX_CHARS],
-					real[MAX_CHARS],
-					host[MAX_CHARS],
-					shape[2*MSG_LEN],
-			 *cbuf_ptr = cbuf.ptr;
-
-					if ((n = Packet_scanf(&cbuf,
-							"%c%hd%c%c" "%s%s%s" "%S",
-							&ch, &id, &myteam, &mychar,
-							name, real, host,
-							shape)) <= 0) {
-						return n;
-					}
-					name[MAX_NAME_LEN - 1] = '\0';
-					real[MAX_NAME_LEN - 1] = '\0';
-					host[MAX_HOST_LEN - 1] = '\0';
-					if (version > 0x3200) {
-						if ((n = Packet_scanf(&cbuf, "%S", &shape[strlen(shape)])) <= 0) {
-							cbuf.ptr = cbuf_ptr;
-							return n;
-						}
-					}
-					if ((n = Handle_player(id, myteam, mychar, name, real, host, shape)) == -1) {
-						return -1;
-					}
-					return 1;
-				}
-			 */
-		};
-
-		readers[PKT_SCORE] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1+2+2+2+1;
-
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if (in.remaining()<LENGTH)
-				{
-					//if(PRINT_PACKETS)System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
-
-					//in.clear();
-					throw reliableReadException;
-				}
-
-				byte type = in.getByte();
-				short id = in.getShort();
-				short score = in.getShort();
-				short life = in.getShort();
-				byte myChar = in.getByte();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nScore Packet\ntype = " + type +
-						"\nid = " + id +
-						"\nscore = " + score +
-						"\nlife = " + life +
-						"\nmy char = " + myChar);
-				
-				client.handleScore(id, score, life);
-				
-			}
-
-			/*
-				int Receive_score(void)
-				{
-					int			n;
-					short		id, life;
-					DFLOAT		score = 0;
-					u_byte		ch, mychar, alliance = ' ';
-
-					if (version < 0x4500) {
-						short	rcv_score;
-						n = Packet_scanf(&cbuf, "%c%hd%hd%hd%c", &ch,
-								&id, &rcv_score, &life, &mychar);
-						score = rcv_score;
-						alliance = ' ';
-					} else {
-						// newer servers send scores with two decimals 
-						int	rcv_score;
-						n = Packet_scanf(&cbuf, "%c%hd%d%hd%c%c", &ch,
-								&id, &rcv_score, &life, &mychar, &alliance);
-						score = (DFLOAT)rcv_score / 100;
-					}
-					if (n <= 0) {
-						return n;
-					}
-					if ((n = Handle_score(id, score, life, mychar, alliance)) == -1) {
-						return -1;
-					}
-					return 1;
-				}
-
-			 */
-		};
-
-		readers[PKT_BASE] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2 + 4;//7
-
-			private BaseHolder b = new BaseHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if (in.remaining()<LENGTH)
-				{
-					if(PRINT_PACKETS)
-						System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
-					throw reliableReadException;
-				}
-
-				byte type = in.getByte();
-				short id = in.getShort();
-				int num = in.getUnsignedShort();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nBase Packet\ntype = " + type +
-						"\nid = " + id +
-						"\nnum = " + num);
-				
-				client.handleBase(b.setBase(id, num));
-			}
-		};
-
-		readers[PKT_MESSAGE] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				int pos = in.position();
-
-                // Message to print in client.
-                String message = null;
-
-                try {
-                    byte type = in.getByte();
-                    message = in.getString();
-                    if (PRINT_PACKETS)
-                        System.out.println("\nMessage Packet\n" + message);
-                }
-                catch (StringReadException e) {
-                    // e.printStackTrace();
-                    in.position(pos);
-                    throw reliableReadException;
-                }
-
-                if (message != null) {
-                    message = removeNullCharacter(message);
-                    client.handleMessage(message);
-                }
-			}
-		};
-
-
-		PacketProcessor debrisReader = new PacketProcessor()
-		{
-			private AbstractDebrisHolder d = new AbstractDebrisHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				//if(in.remaining()<2) return;
-
-				int type = in.getUnsignedByte();
-				int num = in.getUnsignedByte();
-
-
-				if(PRINT_PACKETS)
-					System.out.println("\nDebris Packet" +
-						"\ntype = " + type +
-						"\nnum = " + num);
-				
-				for (int i = 0;i<num;i++)
-				{
-					client.handleDebris(d.setAbstractDebris(type-DEBRIS_TYPES, in.getUnsignedByte(), in.getUnsignedByte()));
-				}
-				
-				//in.position(in.position()+2*num);
-
-			}
-		};
-
+		readers[PKT_EYES]	= new EyesProcessor();
+		readers[PKT_TIME_LEFT]	= null;
+		readers[PKT_AUDIO]	= null;
+		readers[PKT_START]	= new StartProcessor();
+		readers[PKT_END]	= new EndProcessor();
+		readers[PKT_SELF]	= new SelfProcessor();
+		readers[PKT_DAMAGED]	= new DamagedProcessor();
+		readers[PKT_CONNECTOR]	= new ConnectorProcessor();
+		readers[PKT_LASER]	= new LaserProcessor();
+		readers[PKT_REFUEL]	= new RefuelProcessor();
+		readers[PKT_SHIP]	= new ShipProcessor();
+		readers[PKT_ECM]	= new ECMProcessor();
+		readers[PKT_TRANS]	= null;
+		readers[PKT_PAUSED]	= new PausedProcessor();
+		readers[PKT_ITEM]	= new ItemProcessor();
+		readers[PKT_MINE]	= new MineProcessor();
+		readers[PKT_BALL]	= new BallProcessor();
+		readers[PKT_MISSILE]	= new MissileProcessor();
+		readers[PKT_SHUTDOWN]	= null;
+		readers[PKT_DESTRUCT]	= null;
+		readers[PKT_SELF_ITEMS]	= new SelfItemsProcessor();
+		readers[PKT_FUEL]	= new FuelProcessor();
+		readers[PKT_CANNON]	= new CannonProcessor();
+		readers[PKT_TARGET]	= new TargetProcessor();
+		readers[PKT_RADAR]	= null;//new RadarProcessor();
+		readers[PKT_FASTRADAR]	= new FastRadarProcessor();
+		readers[PKT_RELIABLE]	= new ReliableProcessor();
+		readers[PKT_QUIT]	= new QuitProcessor();
+		readers[PKT_MODIFIERS]  = new ModifiersProcessor();
+		readers[PKT_FASTSHOT]	= new FastShotProcessor();
+		readers[PKT_THRUSTTIME] = null;
+		readers[PKT_SHIELDTIME] = null;
+		readers[PKT_PHASINGTIME]= null;
+		readers[PKT_ROUNDDELAY] = null;
+		readers[PKT_LOSEITEM]	= null;
+		readers[PKT_WRECKAGE]	= new WreckageProcessor();
+		readers[PKT_ASTEROID]	= null;
+		readers[PKT_WORMHOLE]	= null;
+		
+		PacketProcessor debrisReader = new DebrisProcessor();	
 		int pkt_debris = Utilities.getUnsignedByte(PKT_DEBRIS);
 
-		for (int i = 0;i<DEBRIS_TYPES;i++)
-		{
+		for (int i = 0;i<DEBRIS_TYPES;i++) {
 			readers[i+pkt_debris] = debrisReader;
 		}
-
-
-		/*
-			int Receive_debris(void)
-			{
-				int			n, r, type;
-
-				if (rbuf.ptr - rbuf.buf + 2 >= rbuf.len) {
-					return 0;
-				}
-				type = (*rbuf.ptr++ & 0xFF);
-				n = (*rbuf.ptr++ & 0xFF);
-				if (rbuf.ptr - rbuf.buf + (n * 2) > rbuf.len) {
-					return 0;
-				}
-				r = Handle_debris(type - PKT_DEBRIS, (u_byte*)rbuf.ptr, n);
-				rbuf.ptr += n * 2;
-
-				return (r == -1) ? -1 : 1;
-			}
-		 */
-
-		readers[PKT_SELF_ITEMS] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				int mask = in.getInt();
-				byte[] num_items = new byte[Items.NUM_ITEMS];
-
-				for (int i = 0; mask != 0; i++) {
-					if ((mask & (1 << i))!=0) {
-						mask ^= (1 << i);
-						if (i < Items.NUM_ITEMS) {
-							num_items[i] = in.getByte();
-						} else {
-							in.getByte();
-						}
-					}
-				}
-
-				if(PRINT_PACKETS)
-					System.out.println("\nSelf Items Packet\ntype = " + type +
-						"\nmask = " + String.format("%x", mask));
-
-			}
-		};
-
-		/*
-			int Receive_self_items(void)
-			{
-				unsigned		mask;
-				int			i, n;
-				u_byte		ch;
-				char		*rbuf_ptr_start = rbuf.ptr;
-				u_byte		num_items[NUM_ITEMS];
-
-				n = Packet_scanf(&rbuf, "%c%u", &ch, &mask);
-				if (n <= 0) {
-					return n;
-				}
-				memset(num_items, 0, sizeof num_items);
-				for (i = 0; mask != 0; i++) {
-					if (mask & (1 << i)) {
-						mask ^= (1 << i);
-						if (rbuf.ptr - rbuf.buf < rbuf.len) {
-							if (i < NUM_ITEMS) {
-								num_items[i] = *rbuf.ptr++;
-							} else {
-								rbuf.ptr++;
-							}
-						}
-					}
-				}
-
-				Handle_self_items(num_items);
-				return (rbuf.ptr - rbuf_ptr_start);
-			}
-		 */
-
-		readers[PKT_SELF] = new PacketProcessor()
-		{
-
-			public static final int LENGTH = 
-				(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
-
-			private final SelfHolder self = new SelfHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				if (in.remaining()<LENGTH)
-				{
-					System.out.println("\nPacket Self ("+in.remaining()+") is too small ("+ LENGTH+")!");
-					in.clear();
-					return;
-				}
-
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short vx = in.getShort();
-				short vy = in.getShort();
-				byte heading = in.getByte();
-
-				byte power = in.getByte();
-				byte turnspeed = in.getByte();
-				byte turnresistance = in.getByte();
-				short lockId = in.getShort();
-				short lockDist = in.getShort();
-				byte lockDir = in.getByte();
-				byte nextCheckPoint = in.getByte();
-
-				byte currentTank = in.getByte();
-				short fuelSum = in.getShort();
-				short fuelMax = in.getShort();
-				short ext_view_width = in.getShort();
-				short ext_view_height = in.getShort();
-				byte debris_colors = in.getByte();
-				byte stat = in.getByte();
-				byte autopilot_light = in.getByte();
-
-				client.handleSelf(self.setSelf(x, y, vx, vy, 
-						heading, power, turnspeed, turnresistance, 
-						lockId, lockDist, lockDir, 
-						nextCheckPoint, 
-						currentTank, fuelSum, fuelMax, 
-						ext_view_width, ext_view_height, 
-						debris_colors, stat, autopilot_light));
-
-				if(PRINT_PACKETS)
-					System.out.println("\nPacket Self\ntype = " + type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nvx = " + vx +
-						"\nvy = " + vy +
-						"\nheading = " + heading +
-						"\nautopilotLight = " + autopilot_light);
-			}
-		};
-
-
-		readers[PKT_MODIFIERS] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-
-				int pos = in.position();
-				try
-				{
-					byte type = in.getByte();
-					String mods = in.getString();
-
-					if(PRINT_PACKETS)System.out.println("\nModifiers Packet\ntype = " + type +
-							"\nmodifiers: " + mods);					
-				}
-				catch (StringReadException e)
-				{
-					e.printStackTrace();
-					in.position(pos);
-				}
-			}
-		};
-
-
-		readers[PKT_END] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				int loops = in.getInt();
-				
-				if(PRINT_PACKETS)
-					System.out.println("\nEnd Packet\ntype = " + type +
-						"\nloops = " + loops);
-				
-				client.handleEnd(loops);
-			}
-		};
-
-		readers[PKT_BALL] = new PacketProcessor()
-		{
-			private BallHolder b = new BallHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short id = in.getShort();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nBall Packet\ntype = " + type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nid = " + id);
-				
-				client.handleBall(b.setBall(x, y, id));
-			}
-		};
-
-		readers[PKT_SHIP] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
-
-			private ShipHolder ship = new ShipHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short id = in.getShort();
-				byte dir = in.getByte();
-				byte flags = in.getByte();
-
-				boolean shield = (flags & 1) != 0;
-				boolean cloak = (flags & 2) != 0;
-				boolean emergency_shield = (flags & 4) != 0;
-				boolean phased = (flags & 8) != 0;
-				boolean deflector = (flags & 0x10) != 0;
-
-				if(PRINT_PACKETS)System.out.println("\nShip Packet\ntype = " + type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nid = " + id +
-						"\ndir = " + dir +
-						"\nshield: " + shield +
-						"\ncloak: " + cloak +
-						"\nemergency shield: " + emergency_shield +
-						"\nphased: " + phased +
-						"\ndeflector: " + deflector);
-
-				client.handleShip(ship.setShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector));
-			}
-		};
-
-		readers[PKT_FASTSHOT] = new PacketProcessor()
-		{
-			private AbstractDebrisHolder s = new AbstractDebrisHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
-			{
-				byte pkt = in.getByte();
-				byte type = in.getByte();
-				short num = in.getUnsignedByte();
-
-				if (in.remaining()<2*num)
-				{
-					in.clear();
-					throw new PacketReadException();
-				}
-
-				//in.position(in.position()+2*num);
-
-				if(PRINT_PACKETS)
-					System.out.println("\nFastShot Packet\npkt = " + pkt +
-										"\ntype = " + type +
-										"\nnum = " + num);
-				
-				for(int i = 0;i<num;i++)
-				{
-					client.handleFastShot(s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte()));
-				}
-			}
-		};
-
-		readers[PKT_ITEM] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2 + 2 + 1;//6
-
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte pkt = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				byte type = in.getByte();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nItem Packet\npkt = " + pkt +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\ntype = " + type);
-
-			}
-		};
-
-		readers[PKT_FASTRADAR] = new PacketProcessor()
-		{
-			private RadarHolder radar = new RadarHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				int n = (in.getByte() & 0xFF);
-				int x, y, size;
-
-				int pos = in.position();
-
-				for (int i =0;i<n;i++)
-				{
-					x = in.getUnsignedByte();
-					y= in.getUnsignedByte();
-
-					byte b = in.getByte();
-
-					y |= (b&0xC0) << 2;
-
-					size = (b & 0x07);
-					if ((b & 0x20)!=0)
-					{
-						size |= 0x80;
-					}
-
-					client.handleRadar(radar.setRadar(x, y, size));
-				}
-
-				if(PRINT_PACKETS)
-					System.out.println("\nFast Radar Packet:\ntype = " + type +
-						"\nn = " + n +
-						"\nbuffer advanced " + (in.position()-pos));
-			}
-
-		};
-
-		readers[PKT_PAUSED] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short count = in.getShort();
-
-				if(PRINT_PACKETS)System.out.println("\nPaused Packet:\ntype = " +type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\ncount = " + count);
-			}
-		};
-
-		readers[PKT_WRECKAGE] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x= in.getShort();
-				short y = in.getShort();
-				byte wrecktype = in.getByte();
-				byte size = in.getByte();
-				byte rot = in.getByte();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nWreckage Packet:\ntype = "+type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nwreck type = " + wrecktype +
-						"\nsize = " + size +
-						"\nrot = " + rot);
-
-			}
-		};
-
-		readers[PKT_WAR] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2 + 2;//5
-
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-
-				if (in.remaining()<LENGTH) throw reliableReadException;
-
-				byte type = in.getByte();
-				short robot_id = in.getShort();
-				short killer_id = in.getShort();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nWar Packet\ntype = " + type +
-						"\nRobot id = " + robot_id +
-						"\nKiller id = " + killer_id);
-
-			}
-		};
-
-		readers[PKT_CONNECTOR] = new PacketProcessor()
-		{
-			private ConnectorHolder c = new ConnectorHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x0 = in.getShort();
-				short y0 = in.getShort();
-				short x1 = in.getShort();
-				short y1 = in.getShort();
-				byte tractor = in.getByte();
-
-				if(PRINT_PACKETS)
-						System.out.println("\nConnector Packet\ntype = " + type +
-						"\nx0 = " + x0 +
-						"\ny0 = " + y0 +
-						"\nx1 = " + x1 +
-						"\ny1 = " + y1 +
-						"\ntractor = " + tractor);
-				
-				client.handleConnector(c.setConnector(x0, y0, x1, y1, tractor));
-			}
-		};
-
-		readers[PKT_LEAVE] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2;//3
-
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if (in.remaining()<LENGTH) throw reliableReadException;
-
-				byte type = in.getByte();
-				short id = in.getShort();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nLeave Packet\ntype = " + type +
-						"\nid = " + id);
-
-				client.handleLeave(id);
-			}
-		};
-
-		readers[PKT_SCORE_OBJECT] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
-			
-			private ScoreObjectHolder scoreObject = new ScoreObjectHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if (in.remaining()<LENGTH) throw reliableReadException;
-
-				try
-				{
-					byte type = in.getByte();
-					//float score = (float)(in.getInt()/100.0);
-					short score = in.getShort();
-					int x  = in.getUnsignedShort();
-					int y = in.getUnsignedShort();
-					String message = in.getString();
-
-					if(PRINT_PACKETS)
-						System.out.println("\nScore Object Packet\ntype = " + type +
-							"\nscore = " + score +
-							"\nx = " + x +
-							"\ny = " + y +
-							"\nmessage: " + message);
-					
-					client.handleScoreObject(scoreObject.setScoreObject(score, x, y, message));
-				}
-				catch (StringReadException e)
-				{
-					throw reliableReadException;
-				}
-			}
-			/*
-				int Receive_score_object(void)
-				{
-					int			n;
-					unsigned short	x, y;
-					DFLOAT		score = 0;
-					char		msg[MAX_CHARS];
-					u_byte		ch;
-
-					if (version < 0x4500) {
-						short	rcv_score;
-						n = Packet_scanf(&cbuf, "%c%hd%hu%hu%s",
-								&ch, &rcv_score, &x, &y, msg);
-						score = rcv_score;
-					} else {
-						// newer servers send scores with two decimals
-						int	rcv_score;
-						n = Packet_scanf(&cbuf, "%c%d%hu%hu%s",
-								&ch, &rcv_score, &x, &y, msg);
-						score = (DFLOAT)rcv_score / 100;
-					}
-					if (n <= 0)
-						return n;
-					if ((n = Handle_score_object(score, x, y, msg)) == -1) {
-						return -1;
-					}
-
-					return 1;
-				} 
-			 */
-		};
-
-		readers[PKT_MINE] = new PacketProcessor()
-		{
-			private MineHolder m = new MineHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				byte team_mine = in.getByte();
-				short id = in.getShort();
-
-				if(PRINT_PACKETS)System.out.println("\nMine Packet\ntype = " + type +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nteam mine = " + team_mine +
-						"\nid = " + id);
-				
-				client.handleMine(m.setMine(x, y, team_mine, id));
-			}
-		};
-
-		readers[PKT_CANNON] = new PacketProcessor()
-		{
-			private CannonHolder cannon = new CannonHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				int num = in.getUnsignedShort();
-				int dead_time = in.getUnsignedShort();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nCannon Packet\ntype = " + type + 
-						"\nnum = " + num +
-						"\ndead time = " + dead_time);
-				
-				
-				
-				out.putByte(PKT_ACK_CANNON);
-				out.putInt(last_loops);
-				out.putShort((short)num);
-				
-				client.handleCannon(cannon.set(num, dead_time));
-			}
-		};
 		
-		readers[PKT_FUEL] = new PacketProcessor()
-		{
-			private FuelHolder f = new FuelHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				int num = in.getUnsignedShort();
-				int fuel = in.getUnsignedShort();
-				
-				if(PRINT_PACKETS)
-					System.out.println("\nFuel Packet\ntype = " + type +
-										"\nnum = " + num +
-										"\nfuel = " + fuel);
-				
-				
-				out.putByte(PKT_ACK_FUEL);
-				out.putInt(last_loops);
-				out.putShort((short)num);
-				
-				client.handleFuel(f.setFuel(num, fuel));
-			}
-		};
-		
-		readers[PKT_MISSILE] = new PacketProcessor()
-		{
-			private MissileHolder m = new MissileHolder();
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short len = in.getUnsignedByte();
-				short dir = in.getUnsignedByte();
-				
-				if(PRINT_PACKETS)
-				{
-					System.out.println("\nMissile Packet\ntype = " + type +
-										"\nx = " + x +
-										"\ny = " + y +
-										"\nlen = " + len +
-										"\ndir = " + dir);
-				}
-				
-				client.handleMissile(m.setMissile(x, y, len, dir));
-			}
-		};
-		
-		readers[PKT_DAMAGED] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short damaged = in.getUnsignedByte();
-				
-				if (PRINT_PACKETS)
-				{
-					System.out.println("\nDamaged Packet\ntype = " + type +
-										"\ndamaged = " + damaged);
-				}
-			}
-		};
-		
-		readers[PKT_LASER] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				
-				byte color = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short len = in.getShort();
-				short dir = in.getUnsignedByte();
-				
-				if(PRINT_PACKETS)
-				{
-					System.out.println("\nLaser Packet\ntype = " + type +
-										"\ncolor = " + color +
-										"\nx = " + x +
-										"\ny = " + y +
-										"\nlen = " + len +
-										"\ndir = " + dir);
-				}
-			}
-		};
-		
-		readers[PKT_ECM] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x = in.getShort();
-				short y = in.getShort();
-				short size = in.getShort();
-				
-				if (PRINT_PACKETS)
-				{
-					System.out.println("\nECM Packet\ntype = " + type +
-										"\nx = " + x +
-										"\ny = " + y +
-										"\nsize = " + size);
-				}
-			}
-		};
-		
-		readers[PKT_REFUEL] = new PacketProcessor()
-		{
-			public void processPacket(ByteBufferWrap in, AbstractClient client)
-			{
-				byte type = in.getByte();
-				short x0 = in.getShort();
-				short y0 = in.getShort();
-				short x1 = in.getShort();
-				short y1 = in.getShort();
-				
-				if(PRINT_PACKETS)
-				{
-					System.out.println("\nRefuel Packet\ntype = " + type +
-										"\nx0 = " + x0 +
-										"\ny0 = " + y0 +
-										"\nx1 = " + x1 +
-										"\ny1 = " + y1);
-				}
-				
-			}
-		};
-		
-		readers[PKT_TALK_ACK] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1+4;//5
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
-				
-				byte type = in.getByte();
-				int talk_ack = in.getInt();
-				
-				if(PRINT_PACKETS)
-					System.out.println("\nTalk Ack Packet\ntype = " + type +
-										"\ntalk ack = " + talk_ack);
-				
-				if (talk_ack >= talk_pending) {
-					talk_pending = 0;
-				}
-			}
-		};
-		
-		readers[PKT_TIMING] = new PacketProcessor()
-		{
-			public static final int LENGTH = 1+2+2;//5
-			
-			public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-			{
-				if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
-				
-				byte type = in.getByte();
-				short id = in.getShort();
-				int timing = in.getUnsignedShort();
-				
-				if(PRINT_PACKETS)
-					System.out.println("\nTiming Packet\ntype = " + type +
-										"\nid = " + id +
-										"\ntiming = " + timing);
-				
-			}
-		};
+		//reliable types
+		readers[PKT_MOTD]	= null;
+		readers[PKT_MESSAGE]	= new MessageProcessor();
+		readers[PKT_TEAM_SCORE] = null;
+		readers[PKT_PLAYER]	= new PlayerProcessor();
+		readers[PKT_SCORE]	= new ScoreProcessor();
+		readers[PKT_TIMING]	= new TimingProcessor();
+		readers[PKT_LEAVE]	= new LeaveProcessor();
+		readers[PKT_WAR]	= new WarProcessor();
+		readers[PKT_SEEK]	= null;
+		readers[PKT_BASE]	= new BaseProcessor();
+		readers[PKT_QUIT]	= new QuitProcessor();
+		readers[PKT_STRING]	= null;
+		readers[PKT_SCORE_OBJECT] = new ScoreObjectProcessor();
+		readers[PKT_TALK_ACK]	= new TalkAckProcessor();
 	}
 
 	public String getNick(){return NICK;}
@@ -1908,6 +900,1098 @@ public class NetClient
 		synchronized(keyboard)
 		{
 			keyboard.setBit(key, value);
+		}
+	}
+	
+	
+	//various classes to handle different packet types
+	protected class ReliableProcessor implements PacketProcessor {
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			in.setReading();
+			if(PRINT_PACKETS)
+			{
+				System.out.println(reliable.readReliableData(in, NetClient.this, reliableBuf));
+			}
+			else
+			{
+				reliable.readReliableData(in, NetClient.this, reliableBuf);
+			}
+			//in.clear();
+		}
+	}
+
+	protected class ReplyProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if (in.remaining()<ReplyData.LENGTH)
+			{
+				throw reliableReadException;
+			}
+
+			if(PRINT_PACKETS)
+			{
+				System.out.println(readReplyData(in, reply));
+			}
+			else
+			{
+				readReplyData(in, reply);
+			}
+		}
+	}
+
+	protected class QuitProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			byte type = in.getByte();
+			try
+			{
+				String reason = in.getString();
+				System.out.println("Server closed connection: " + reason);
+				client.handleQuit(reason);
+			}
+			catch (StringReadException e)
+			{
+				//e.printStackTrace();
+				throw reliableReadException;
+			}
+
+		}
+	}
+
+	protected class StartProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 4 + 4;//9
+
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			
+			byte type = in.getByte();
+			int loops = in.getInt();
+			int key_ack = in.getInt();
+
+			numFrames++;
+			
+			//packet is duplicate or out of order
+			if (last_loops >= loops)
+			{
+				in.clear();
+				return;
+			}
+			
+			last_loops = loops;
+			
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nStart Packet :" +
+					"\ntype = " + type +
+					"\nloops = " + loops +
+					"\nkey ack = " + key_ack);
+			client.handleStart(loops);
+		}
+		
+		/*
+			int		n;
+			long	loops;
+			u_byte	ch;
+			long	key_ack;
+
+			if ((n = Packet_scanf(&rbuf,
+					"%c%ld%ld",
+					&ch, &loops, &key_ack)) <= 0) {
+				return n;
+			}
+			if (last_loops >= loops) {
+
+				// Packet is duplicate or out of order.
+
+				Net_measurement(loops, PACKET_DROP);
+				printf("ignoring frame (%ld)\n", last_loops - loops);
+				return 0;
+			}
+			last_loops = loops;
+			if (key_ack > last_keyboard_ack) {
+				if (key_ack > last_keyboard_change) {
+					printf("Premature keyboard ack by server (%ld,%ld,%ld)\n",
+							last_keyboard_change, last_keyboard_ack, key_ack);
+
+					 // Packet could be corrupt???
+					 // Some blokes turn off checksumming.
+
+					return 0;
+				}
+				else {
+					last_keyboard_ack = key_ack;
+				}
+			}
+			Net_lag_measurement(key_ack);
+			if ((n = Handle_start(loops)) == -1) {
+				return -1;
+			}
+			return 1;
+		}
+		 */
+	}
+
+	protected class PlayerProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			int pos = in.position();
+			try
+			{
+				byte type = in.getByte();
+				short id = in.getShort();
+				short myTeam = in.getUnsignedByte();
+				short myChar = in.getUnsignedByte();
+				String name = removeNullCharacter(in.getString());
+                String real = removeNullCharacter(in.getString());
+                String host = removeNullCharacter(in.getString());
+
+				ShipShape shape = ShipShape.parseShip(in.getString(), in.getString());
+
+				if(PRINT_PACKETS)
+					System.out.println("\nPlayer Packet\ntype = "  +type+
+						"\nid = "  + id +
+						"\nmy team = " + myTeam +
+						"\nmy char = " + myChar +
+						"\n name = " + name +
+						"\nreal = " + real +
+						"\nhost = " + host +
+						"\nship = " + shape);
+
+				client.handlePlayer(new Player(id, myTeam, myChar, name, real, host, shape));
+			}
+			catch(StringReadException e)
+			{
+				//e.printStackTrace();
+				in.position(pos);
+				throw reliableReadException;
+			}
+		}
+
+		/*
+			int Receive_player(void)
+			{
+				int			n;
+				short		id;
+				u_byte		ch, myteam, mychar;
+				char		name[MAX_CHARS],
+				real[MAX_CHARS],
+				host[MAX_CHARS],
+				shape[2*MSG_LEN],
+		 *cbuf_ptr = cbuf.ptr;
+
+				if ((n = Packet_scanf(&cbuf,
+						"%c%hd%c%c" "%s%s%s" "%S",
+						&ch, &id, &myteam, &mychar,
+						name, real, host,
+						shape)) <= 0) {
+					return n;
+				}
+				name[MAX_NAME_LEN - 1] = '\0';
+				real[MAX_NAME_LEN - 1] = '\0';
+				host[MAX_HOST_LEN - 1] = '\0';
+				if (version > 0x3200) {
+					if ((n = Packet_scanf(&cbuf, "%S", &shape[strlen(shape)])) <= 0) {
+						cbuf.ptr = cbuf_ptr;
+						return n;
+					}
+				}
+				if ((n = Handle_player(id, myteam, mychar, name, real, host, shape)) == -1) {
+					return -1;
+				}
+				return 1;
+			}
+		 */
+	}
+
+	protected class ScoreProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1+2+2+2+1;
+
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if (in.remaining()<LENGTH)
+			{
+				//if(PRINT_PACKETS)System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
+
+				//in.clear();
+				throw reliableReadException;
+			}
+
+			byte type = in.getByte();
+			short id = in.getShort();
+			short score = in.getShort();
+			short life = in.getShort();
+			byte myChar = in.getByte();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nScore Packet\ntype = " + type +
+					"\nid = " + id +
+					"\nscore = " + score +
+					"\nlife = " + life +
+					"\nmy char = " + myChar);
+			
+			client.handleScore(id, score, life);
+			
+		}
+
+		/*
+			int Receive_score(void)
+			{
+				int			n;
+				short		id, life;
+				DFLOAT		score = 0;
+				u_byte		ch, mychar, alliance = ' ';
+
+				if (version < 0x4500) {
+					short	rcv_score;
+					n = Packet_scanf(&cbuf, "%c%hd%hd%hd%c", &ch,
+							&id, &rcv_score, &life, &mychar);
+					score = rcv_score;
+					alliance = ' ';
+				} else {
+					// newer servers send scores with two decimals 
+					int	rcv_score;
+					n = Packet_scanf(&cbuf, "%c%hd%d%hd%c%c", &ch,
+							&id, &rcv_score, &life, &mychar, &alliance);
+					score = (DFLOAT)rcv_score / 100;
+				}
+				if (n <= 0) {
+					return n;
+				}
+				if ((n = Handle_score(id, score, life, mychar, alliance)) == -1) {
+					return -1;
+				}
+				return 1;
+			}
+
+		 */
+	}
+
+	protected class BaseProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2 + 4;//7
+
+		private BaseHolder b = new BaseHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if (in.remaining()<LENGTH)
+			{
+				if(PRINT_PACKETS)
+					System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
+				throw reliableReadException;
+			}
+
+			byte type = in.getByte();
+			short id = in.getShort();
+			int num = in.getUnsignedShort();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nBase Packet\ntype = " + type +
+					"\nid = " + id +
+					"\nnum = " + num);
+			
+			client.handleBase(b.setBase(id, num));
+		}
+	}
+
+	protected class MessageProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			int pos = in.position();
+
+            // Message to print in client.
+            String message = null;
+
+            try {
+                byte type = in.getByte();
+                message = in.getString();
+                if (PRINT_PACKETS)
+                    System.out.println("\nMessage Packet\n" + message);
+            }
+            catch (StringReadException e) {
+                // e.printStackTrace();
+                in.position(pos);
+                throw reliableReadException;
+            }
+
+            if (message != null) {
+                message = removeNullCharacter(message);
+                client.handleMessage(message);
+            }
+		}
+	}
+
+	protected class DebrisProcessor implements PacketProcessor
+	{
+		private AbstractDebrisHolder d = new AbstractDebrisHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			//if(in.remaining()<2) return;
+
+			int type = in.getUnsignedByte();
+			int num = in.getUnsignedByte();
+
+
+			if(PRINT_PACKETS)
+				System.out.println("\nDebris Packet" +
+					"\ntype = " + type +
+					"\nnum = " + num);
+			
+			for (int i = 0;i<num;i++)
+			{
+				client.handleDebris(d.setAbstractDebris(type-DEBRIS_TYPES, in.getUnsignedByte(), in.getUnsignedByte()));
+			}
+			
+			//in.position(in.position()+2*num);
+
+		}
+	}
+
+	/*
+		int Receive_debris(void)
+		{
+			int			n, r, type;
+
+			if (rbuf.ptr - rbuf.buf + 2 >= rbuf.len) {
+				return 0;
+			}
+			type = (*rbuf.ptr++ & 0xFF);
+			n = (*rbuf.ptr++ & 0xFF);
+			if (rbuf.ptr - rbuf.buf + (n * 2) > rbuf.len) {
+				return 0;
+			}
+			r = Handle_debris(type - PKT_DEBRIS, (u_byte*)rbuf.ptr, n);
+			rbuf.ptr += n * 2;
+
+			return (r == -1) ? -1 : 1;
+		}
+	 */
+
+	protected class SelfItemsProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			int mask = in.getInt();
+			byte[] num_items = new byte[Items.NUM_ITEMS];
+
+			for (int i = 0; mask != 0; i++) {
+				if ((mask & (1 << i))!=0) {
+					mask ^= (1 << i);
+					if (i < Items.NUM_ITEMS) {
+						num_items[i] = in.getByte();
+					} else {
+						in.getByte();
+					}
+				}
+			}
+
+			if(PRINT_PACKETS)
+				System.out.println("\nSelf Items Packet\ntype = " + type +
+					"\nmask = " + String.format("%x", mask));
+
+		}
+	}
+
+	/*
+		int Receive_self_items(void)
+		{
+			unsigned		mask;
+			int			i, n;
+			u_byte		ch;
+			char		*rbuf_ptr_start = rbuf.ptr;
+			u_byte		num_items[NUM_ITEMS];
+
+			n = Packet_scanf(&rbuf, "%c%u", &ch, &mask);
+			if (n <= 0) {
+				return n;
+			}
+			memset(num_items, 0, sizeof num_items);
+			for (i = 0; mask != 0; i++) {
+				if (mask & (1 << i)) {
+					mask ^= (1 << i);
+					if (rbuf.ptr - rbuf.buf < rbuf.len) {
+						if (i < NUM_ITEMS) {
+							num_items[i] = *rbuf.ptr++;
+						} else {
+							rbuf.ptr++;
+						}
+					}
+				}
+			}
+
+			Handle_self_items(num_items);
+			return (rbuf.ptr - rbuf_ptr_start);
+		}
+	 */
+
+	protected class SelfProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 
+			(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
+
+		private final SelfHolder self = new SelfHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			if (in.remaining()<LENGTH)
+			{
+				System.out.println("\nPacket Self ("+in.remaining()+") is too small ("+ LENGTH+")!");
+				in.clear();
+				return;
+			}
+
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short vx = in.getShort();
+			short vy = in.getShort();
+			byte heading = in.getByte();
+
+			byte power = in.getByte();
+			byte turnspeed = in.getByte();
+			byte turnresistance = in.getByte();
+			short lockId = in.getShort();
+			short lockDist = in.getShort();
+			byte lockDir = in.getByte();
+			byte nextCheckPoint = in.getByte();
+
+			byte currentTank = in.getByte();
+			short fuelSum = in.getShort();
+			short fuelMax = in.getShort();
+			short ext_view_width = in.getShort();
+			short ext_view_height = in.getShort();
+			byte debris_colors = in.getByte();
+			byte stat = in.getByte();
+			byte autopilot_light = in.getByte();
+
+			client.handleSelf(self.setSelf(x, y, vx, vy, 
+					heading, power, turnspeed, turnresistance, 
+					lockId, lockDist, lockDir, 
+					nextCheckPoint, 
+					currentTank, fuelSum, fuelMax, 
+					ext_view_width, ext_view_height, 
+					debris_colors, stat, autopilot_light));
+
+			if(PRINT_PACKETS)
+				System.out.println("\nPacket Self\ntype = " + type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nvx = " + vx +
+					"\nvy = " + vy +
+					"\nheading = " + heading +
+					"\nautopilotLight = " + autopilot_light);
+		}
+	}
+
+	protected class ModifiersProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+
+			int pos = in.position();
+			try
+			{
+				byte type = in.getByte();
+				String mods = in.getString();
+
+				if(PRINT_PACKETS)System.out.println("\nModifiers Packet\ntype = " + type +
+						"\nmodifiers: " + mods);					
+			}
+			catch (StringReadException e)
+			{
+				e.printStackTrace();
+				in.position(pos);
+			}
+		}
+	}
+
+	protected class EndProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			int loops = in.getInt();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nEnd Packet\ntype = " + type +
+					"\nloops = " + loops);
+			
+			client.handleEnd(loops);
+		}
+	}
+
+	protected class BallProcessor implements PacketProcessor
+	{
+		private BallHolder b = new BallHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short id = in.getShort();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nBall Packet\ntype = " + type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nid = " + id);
+			
+			client.handleBall(b.setBall(x, y, id));
+		}
+	};
+
+	protected class ShipProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
+
+		private ShipHolder ship = new ShipHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short id = in.getShort();
+			byte dir = in.getByte();
+			byte flags = in.getByte();
+
+			boolean shield = (flags & 1) != 0;
+			boolean cloak = (flags & 2) != 0;
+			boolean emergency_shield = (flags & 4) != 0;
+			boolean phased = (flags & 8) != 0;
+			boolean deflector = (flags & 0x10) != 0;
+
+			if(PRINT_PACKETS)System.out.println("\nShip Packet\ntype = " + type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nid = " + id +
+					"\ndir = " + dir +
+					"\nshield: " + shield +
+					"\ncloak: " + cloak +
+					"\nemergency shield: " + emergency_shield +
+					"\nphased: " + phased +
+					"\ndeflector: " + deflector);
+
+			client.handleShip(ship.setShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector));
+		}
+	};
+
+	protected class FastShotProcessor implements PacketProcessor
+	{
+		private AbstractDebrisHolder s = new AbstractDebrisHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
+		{
+			byte pkt = in.getByte();
+			byte type = in.getByte();
+			short num = in.getUnsignedByte();
+
+			if (in.remaining()<2*num)
+			{
+				in.clear();
+				throw new PacketReadException();
+			}
+
+			//in.position(in.position()+2*num);
+
+			if(PRINT_PACKETS)
+				System.out.println("\nFastShot Packet\npkt = " + pkt +
+									"\ntype = " + type +
+									"\nnum = " + num);
+			
+			for(int i = 0;i<num;i++)
+			{
+				client.handleFastShot(s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte()));
+			}
+		}
+	}
+
+	protected class ItemProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2 + 2 + 1;//6
+
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte pkt = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			byte type = in.getByte();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nItem Packet\npkt = " + pkt +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\ntype = " + type);
+
+		}
+	}
+
+	protected class FastRadarProcessor implements PacketProcessor
+	{
+		private RadarHolder radar = new RadarHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			int n = (in.getByte() & 0xFF);
+			int x, y, size;
+
+			int pos = in.position();
+
+			for (int i =0;i<n;i++)
+			{
+				x = in.getUnsignedByte();
+				y= in.getUnsignedByte();
+
+				byte b = in.getByte();
+
+				y |= (b&0xC0) << 2;
+
+				size = (b & 0x07);
+				if ((b & 0x20)!=0)
+				{
+					size |= 0x80;
+				}
+
+				client.handleRadar(radar.setRadar(x, y, size));
+			}
+
+			if(PRINT_PACKETS)
+				System.out.println("\nFast Radar Packet:\ntype = " + type +
+					"\nn = " + n +
+					"\nbuffer advanced " + (in.position()-pos));
+		}
+
+	}
+
+	protected class PausedProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short count = in.getShort();
+
+			if(PRINT_PACKETS)System.out.println("\nPaused Packet:\ntype = " +type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\ncount = " + count);
+		}
+	}
+
+	protected class WreckageProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x= in.getShort();
+			short y = in.getShort();
+			byte wrecktype = in.getByte();
+			byte size = in.getByte();
+			byte rot = in.getByte();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nWreckage Packet:\ntype = "+type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nwreck type = " + wrecktype +
+					"\nsize = " + size +
+					"\nrot = " + rot);
+
+		}
+	}
+
+	protected class WarProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2 + 2;//5
+
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+
+			if (in.remaining()<LENGTH) throw reliableReadException;
+
+			byte type = in.getByte();
+			short robot_id = in.getShort();
+			short killer_id = in.getShort();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nWar Packet\ntype = " + type +
+					"\nRobot id = " + robot_id +
+					"\nKiller id = " + killer_id);
+
+		}
+	};
+
+	protected class ConnectorProcessor implements PacketProcessor
+	{
+		private ConnectorHolder c = new ConnectorHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x0 = in.getShort();
+			short y0 = in.getShort();
+			short x1 = in.getShort();
+			short y1 = in.getShort();
+			byte tractor = in.getByte();
+
+			if(PRINT_PACKETS)
+					System.out.println("\nConnector Packet\ntype = " + type +
+					"\nx0 = " + x0 +
+					"\ny0 = " + y0 +
+					"\nx1 = " + x1 +
+					"\ny1 = " + y1 +
+					"\ntractor = " + tractor);
+			
+			client.handleConnector(c.setConnector(x0, y0, x1, y1, tractor));
+		}
+	}
+
+	protected class LeaveProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2;//3
+
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if (in.remaining()<LENGTH) throw reliableReadException;
+
+			byte type = in.getByte();
+			short id = in.getShort();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nLeave Packet\ntype = " + type +
+					"\nid = " + id);
+
+			client.handleLeave(id);
+		}
+	};
+
+	protected class ScoreObjectProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
+		
+		private ScoreObjectHolder scoreObject = new ScoreObjectHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if (in.remaining()<LENGTH) throw reliableReadException;
+
+			try
+			{
+				byte type = in.getByte();
+				//float score = (float)(in.getInt()/100.0);
+				short score = in.getShort();
+				int x  = in.getUnsignedShort();
+				int y = in.getUnsignedShort();
+				String message = in.getString();
+
+				if(PRINT_PACKETS)
+					System.out.println("\nScore Object Packet\ntype = " + type +
+						"\nscore = " + score +
+						"\nx = " + x +
+						"\ny = " + y +
+						"\nmessage: " + message);
+				
+				client.handleScoreObject(scoreObject.setScoreObject(score, x, y, message));
+			}
+			catch (StringReadException e)
+			{
+				throw reliableReadException;
+			}
+		}
+		/*
+			int Receive_score_object(void)
+			{
+				int			n;
+				unsigned short	x, y;
+				DFLOAT		score = 0;
+				char		msg[MAX_CHARS];
+				u_byte		ch;
+
+				if (version < 0x4500) {
+					short	rcv_score;
+					n = Packet_scanf(&cbuf, "%c%hd%hu%hu%s",
+							&ch, &rcv_score, &x, &y, msg);
+					score = rcv_score;
+				} else {
+					// newer servers send scores with two decimals
+					int	rcv_score;
+					n = Packet_scanf(&cbuf, "%c%d%hu%hu%s",
+							&ch, &rcv_score, &x, &y, msg);
+					score = (DFLOAT)rcv_score / 100;
+				}
+				if (n <= 0)
+					return n;
+				if ((n = Handle_score_object(score, x, y, msg)) == -1) {
+					return -1;
+				}
+
+				return 1;
+			} 
+		 */
+	}
+
+	protected class MineProcessor implements PacketProcessor
+	{
+		private MineHolder m = new MineHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			byte team_mine = in.getByte();
+			short id = in.getShort();
+
+			if(PRINT_PACKETS)System.out.println("\nMine Packet\ntype = " + type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nteam mine = " + team_mine +
+					"\nid = " + id);
+			
+			client.handleMine(m.setMine(x, y, team_mine, id));
+		}
+	}
+
+	protected class CannonProcessor implements PacketProcessor
+	{
+		private CannonHolder cannon = new CannonHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			int num = in.getUnsignedShort();
+			int dead_time = in.getUnsignedShort();
+
+			if(PRINT_PACKETS)
+				System.out.println("\nCannon Packet\ntype = " + type + 
+					"\nnum = " + num +
+					"\ndead time = " + dead_time);
+			
+			
+			
+			out.putByte(PKT_ACK_CANNON);
+			out.putInt(last_loops);
+			out.putShort((short)num);
+			
+			client.handleCannon(cannon.set(num, dead_time));
+		}
+	}
+	
+	protected class FuelProcessor implements PacketProcessor
+	{
+		private FuelHolder f = new FuelHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			int num = in.getUnsignedShort();
+			int fuel = in.getUnsignedShort();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nFuel Packet\ntype = " + type +
+									"\nnum = " + num +
+									"\nfuel = " + fuel);
+			
+			
+			out.putByte(PKT_ACK_FUEL);
+			out.putInt(last_loops);
+			out.putShort((short)num);
+			
+			client.handleFuel(f.setFuel(num, fuel));
+		}
+	}
+	
+	protected class MissileProcessor implements PacketProcessor
+	{
+		private MissileHolder m = new MissileHolder();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short len = in.getUnsignedByte();
+			short dir = in.getUnsignedByte();
+			
+			if(PRINT_PACKETS)
+			{
+				System.out.println("\nMissile Packet\ntype = " + type +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\nlen = " + len +
+									"\ndir = " + dir);
+			}
+			
+			client.handleMissile(m.setMissile(x, y, len, dir));
+		}
+	}
+	
+	protected class DamagedProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short damaged = in.getUnsignedByte();
+			
+			if (PRINT_PACKETS)
+			{
+				System.out.println("\nDamaged Packet\ntype = " + type +
+									"\ndamaged = " + damaged);
+			}
+		}
+	}
+	
+	protected class LaserProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			
+			byte color = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short len = in.getShort();
+			short dir = in.getUnsignedByte();
+			
+			if(PRINT_PACKETS)
+			{
+				System.out.println("\nLaser Packet\ntype = " + type +
+									"\ncolor = " + color +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\nlen = " + len +
+									"\ndir = " + dir);
+			}
+		}
+	}
+	
+	protected class ECMProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x = in.getShort();
+			short y = in.getShort();
+			short size = in.getShort();
+			
+			if (PRINT_PACKETS)
+			{
+				System.out.println("\nECM Packet\ntype = " + type +
+									"\nx = " + x +
+									"\ny = " + y +
+									"\nsize = " + size);
+			}
+		}
+	}
+	
+	protected class RefuelProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short x0 = in.getShort();
+			short y0 = in.getShort();
+			short x1 = in.getShort();
+			short y1 = in.getShort();
+			
+			if(PRINT_PACKETS)
+			{
+				System.out.println("\nRefuel Packet\ntype = " + type +
+									"\nx0 = " + x0 +
+									"\ny0 = " + y0 +
+									"\nx1 = " + x1 +
+									"\ny1 = " + y1);
+			}
+			
+		}
+	}
+	
+	protected class TalkAckProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1+4;//5
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
+			
+			byte type = in.getByte();
+			int talk_ack = in.getInt();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nTalk Ack Packet\ntype = " + type +
+									"\ntalk ack = " + talk_ack);
+			
+			if (talk_ack >= talk_pending) {
+				talk_pending = 0;
+			}
+		}
+	}
+	
+	protected class TimingProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1+2+2;//5
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
+		{
+			if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
+			
+			byte type = in.getByte();
+			short id = in.getShort();
+			int timing = in.getUnsignedShort();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nTiming Packet\ntype = " + type +
+									"\nid = " + id +
+									"\ntiming = " + timing);
+			
+		}
+	}
+	
+	protected class TargetProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+			byte type = in.getByte();
+			short num = in.getShort();
+			short dead_time = in.getShort();
+			short damage = in.getShort();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nTarget Packet\ntype = " + type +
+									"\nnum = " + num +
+									"\ndead time = " + dead_time +
+									"\ndamage = " + damage);
+			
+			//acks target packet
+			out.putByte(PKT_ACK_TARGET).putInt(last_loops).putShort(num);
+		}
+	}
+	
+	/**
+	 * TODO: implement handling
+	 * @author Vlad Firoiu
+	 */
+	protected class EyesProcessor implements PacketProcessor
+	{
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		{
+			byte type = in.getByte();
+			short id = in.getShort();
+			
+			if(PRINT_PACKETS)
+				System.out.println("\nEyes Packet\ntype = " + type +
+									"\nid = " + id);
 		}
 	}
 }

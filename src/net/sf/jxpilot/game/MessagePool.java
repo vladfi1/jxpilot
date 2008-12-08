@@ -68,7 +68,7 @@ public class MessagePool {
      * @author Taras Kostiak
      * 
      */
-    private class TimedMessage {
+    private static class TimedMessage {
 
         /**
          * Stored message.
