@@ -87,8 +87,7 @@ public class NetClient
 	private BitVector keyboard = new BitVector(Keys.NUM_KEYS);
 	private int last_keyboard_change=0;
 	
-	private short turn_speed;
-	private short new_speed;
+	private short turn_speed, new_speed;
 	
 	/**
 	 * Keeps track last frame update number.
@@ -125,6 +124,7 @@ public class NetClient
 		
 		//sets functions to handle packets
 		
+		//unreliable types
 		readers[PKT_EYES]	= new EyesProcessor();
 		readers[PKT_TIME_LEFT]	= null;
 		readers[PKT_AUDIO]	= null;
@@ -784,10 +784,8 @@ public class NetClient
 		}
 	}
 	
-	private interface PacketProcessor
-	{
+	protected interface PacketProcessor {
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
-		
 		static final ReliableReadException reliableReadException = new ReliableReadException();
 	}
 	
@@ -847,7 +845,7 @@ public class NetClient
 	{
 		if(new_speed != turn_speed)
 		{
-			this.putTurnSpeed(out, turn_speed);
+			this.putTurnSpeed(out, new_speed);
 			//this.putTurnSpeedS(out, turn_speed);
 			new_speed = turn_speed;
 		}
@@ -881,8 +879,6 @@ public class NetClient
 							numPacketsReceived + " packets were received.\n" +
 							numFrames + " frames were received.\n" +
 							"Average fps = " + (double)numFrames/runTime);
-		
-		
 	}
 	
 	
