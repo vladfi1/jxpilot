@@ -1,7 +1,5 @@
 package net.sf.jxpilot.net;
 
-
-
 class ReplyData
 {
 	public static final int LENGTH = 1 + 1 + 1;//3

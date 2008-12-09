@@ -1,6 +1,5 @@
 package net.sf.jxpilot.net;
 
-
 public class ReplyMessage
 {
 	private int magic;
