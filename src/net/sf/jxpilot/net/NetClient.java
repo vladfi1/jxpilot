@@ -143,8 +143,8 @@ public class NetClient
 		readers[PKT_MINE]		= new MineProcessor();
 		readers[PKT_BALL]		= new BallProcessor();
 		readers[PKT_MISSILE]	= new MissileProcessor();
-		readers[PKT_SHUTDOWN]	= null;
-		readers[PKT_DESTRUCT]	= null;
+		readers[PKT_SHUTDOWN]	= getShutdownProcessor();
+		readers[PKT_DESTRUCT]	= getDestructProcessor();
 		readers[PKT_SELF_ITEMS]	= new SelfItemsProcessor();
 		readers[PKT_FUEL]		= new FuelProcessor();
 		readers[PKT_CANNON]		= new CannonProcessor();
@@ -2562,4 +2562,85 @@ public class NetClient
 	 * @return A new RadarProcessor object.
 	 */
 	protected RadarProcessor getRadarProcessor(){return new RadarProcessor();}
+
+	/**
+	 * Processes destruct packets.
+	 * TODO: Implement handling of destruct.
+	 * @author Vlad Firoiu
+	 */
+	protected class DestructProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count;
+		
+		public byte getPacketType(){return pkt_type;}
+		public short getCount(){return count;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Destruct Packet\npacket type = " + pkt_type +
+					"\ncount = " + count;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate destruct
+	 * processor is to be used.
+	 * @return A new DestructProcessor object.
+	 */	
+	protected DestructProcessor getDestructProcessor(){return new DestructProcessor();}
+	
+	/**
+	 * Processes shutdown packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ShutdownProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count, delay;
+		
+		public byte getPacketType(){return pkt_type;}
+		public short getCount(){return count;}
+		public short getDelay(){return delay;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+			delay = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+			client.handleQuit("Server shutdown!");
+		}
+		
+		@Override
+		public String toString() {
+			return "Shutdown Packet\npacket type = " + pkt_type +
+					"\ncount = " + count +
+					"\ndelay = " + delay;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate shutdown
+	 * processor is to be used.
+	 * @return A new ShutdownProcessor object.
+	 */	
+	protected ShutdownProcessor getShutdownProcessor(){return new ShutdownProcessor();}
 }
