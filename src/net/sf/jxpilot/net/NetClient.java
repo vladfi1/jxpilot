@@ -125,67 +125,67 @@ public class NetClient
 		//sets functions to handle packets
 		
 		//unreliable types
-		readers[PKT_EYES]	= new EyesProcessor();
+		readers[PKT_EYES]		= getEyesProcessor();
 		readers[PKT_TIME_LEFT]	= null;
-		readers[PKT_AUDIO]	= null;
-		readers[PKT_START]	= new StartProcessor();
-		readers[PKT_END]	= new EndProcessor();
-		readers[PKT_SELF]	= new SelfProcessor();
+		readers[PKT_AUDIO]		= null;
+		readers[PKT_START]		= new StartProcessor();
+		readers[PKT_END]		= new EndProcessor();
+		readers[PKT_SELF]		= new SelfProcessor();
 		readers[PKT_DAMAGED]	= new DamagedProcessor();
 		readers[PKT_CONNECTOR]	= new ConnectorProcessor();
-		readers[PKT_LASER]	= new LaserProcessor();
-		readers[PKT_REFUEL]	= new RefuelProcessor();
-		readers[PKT_SHIP]	= new ShipProcessor();
-		readers[PKT_ECM]	= new ECMProcessor();
-		readers[PKT_TRANS]	= null;
-		readers[PKT_PAUSED]	= new PausedProcessor();
-		readers[PKT_ITEM]	= new ItemProcessor();
-		readers[PKT_MINE]	= new MineProcessor();
-		readers[PKT_BALL]	= new BallProcessor();
+		readers[PKT_LASER]		= new LaserProcessor();
+		readers[PKT_REFUEL]		= new RefuelProcessor();
+		readers[PKT_SHIP]		= new ShipProcessor();
+		readers[PKT_ECM]		= new ECMProcessor();
+		readers[PKT_TRANS]		= null;
+		readers[PKT_PAUSED]		= new PausedProcessor();
+		readers[PKT_ITEM]		= new ItemProcessor();
+		readers[PKT_MINE]		= new MineProcessor();
+		readers[PKT_BALL]		= new BallProcessor();
 		readers[PKT_MISSILE]	= new MissileProcessor();
 		readers[PKT_SHUTDOWN]	= null;
 		readers[PKT_DESTRUCT]	= null;
 		readers[PKT_SELF_ITEMS]	= new SelfItemsProcessor();
-		readers[PKT_FUEL]	= new FuelProcessor();
-		readers[PKT_CANNON]	= new CannonProcessor();
-		readers[PKT_TARGET]	= new TargetProcessor();
-		readers[PKT_RADAR]	= null;//new RadarProcessor();
+		readers[PKT_FUEL]		= new FuelProcessor();
+		readers[PKT_CANNON]		= new CannonProcessor();
+		readers[PKT_TARGET]		= new TargetProcessor();
+		readers[PKT_RADAR]		= getRadarProcessor();
 		readers[PKT_FASTRADAR]	= new FastRadarProcessor();
 		readers[PKT_RELIABLE]	= new ReliableProcessor();
-		readers[PKT_QUIT]	= new QuitProcessor();
+		readers[PKT_QUIT]		= new QuitProcessor();
 		readers[PKT_MODIFIERS]  = new ModifiersProcessor();
 		readers[PKT_FASTSHOT]	= new FastShotProcessor();
-		readers[PKT_THRUSTTIME] = null;
-		readers[PKT_SHIELDTIME] = null;
-		readers[PKT_PHASINGTIME]= null;
-		readers[PKT_ROUNDDELAY] = null;
-		readers[PKT_LOSEITEM]	= null;
+		readers[PKT_THRUSTTIME] = getThrustTimeProcessor();
+		readers[PKT_SHIELDTIME] = getShieldTimeProcessor();
+		readers[PKT_PHASINGTIME]= getPhasingTimeProcessor();
+		readers[PKT_ROUNDDELAY] = getRoundDelayProcessor();
+		readers[PKT_LOSEITEM]	= getLoseItemProcessor();
 		readers[PKT_WRECKAGE]	= new WreckageProcessor();
-		readers[PKT_ASTEROID]	= null;
-		readers[PKT_WORMHOLE]	= null;
+		readers[PKT_ASTEROID]	= getAsteroidProcessor();
+		readers[PKT_WORMHOLE]	= getWormholeProcessor();
 		
 		PacketProcessor debrisReader = new DebrisProcessor();	
 		int pkt_debris = Utilities.getUnsignedByte(PKT_DEBRIS);
-
 		for (int i = 0;i<DEBRIS_TYPES;i++) {
 			readers[i+pkt_debris] = debrisReader;
 		}
 		
 		//reliable types
-		readers[PKT_MOTD]	= null;
+		readers[PKT_MOTD]		= getMOTDProcessor();
 		readers[PKT_MESSAGE]	= new MessageProcessor();
-		readers[PKT_TEAM_SCORE] = null;
-		readers[PKT_PLAYER]	= new PlayerProcessor();
-		readers[PKT_SCORE]	= new ScoreProcessor();
-		readers[PKT_TIMING]	= new TimingProcessor();
-		readers[PKT_LEAVE]	= new LeaveProcessor();
-		readers[PKT_WAR]	= new WarProcessor();
-		readers[PKT_SEEK]	= null;
-		readers[PKT_BASE]	= new BaseProcessor();
-		readers[PKT_QUIT]	= new QuitProcessor();
-		readers[PKT_STRING]	= null;
-		readers[PKT_SCORE_OBJECT] = new ScoreObjectProcessor();
+		readers[PKT_TEAM_SCORE] = getTeamScoreProcessor();
+		readers[PKT_PLAYER]		= new PlayerProcessor();
+		readers[PKT_SCORE]		= new ScoreProcessor();
+		readers[PKT_TIMING]		= new TimingProcessor();
+		readers[PKT_LEAVE]		= new LeaveProcessor();
+		readers[PKT_WAR]		= new WarProcessor();
+		readers[PKT_SEEK]		= getSeekProcessor();
+		readers[PKT_BASE]		= new BaseProcessor();
+		readers[PKT_QUIT]		= new QuitProcessor();
+		readers[PKT_STRING]		= getStringProcessor();
+		readers[PKT_SCORE_OBJECT]= new ScoreObjectProcessor();
 		readers[PKT_TALK_ACK]	= new TalkAckProcessor();
+		readers[PKT_REPLY]		= new ReplyProcessor();
 	}
 
 	public String getNick(){return NICK;}
@@ -194,7 +194,8 @@ public class NetClient
 	
 	public void runClient(String serverIP, int serverPort)
 	{
-		try{
+		try
+		{
 			server_address = new InetSocketAddress(serverIP, serverPort);
 
 			channel = DatagramChannel.open();
@@ -202,102 +203,103 @@ public class NetClient
 			//socket.connect(server_address);
 			socket.setSoTimeout(SOCKET_TIMEOUT);
 			channel.connect(server_address);
-			
+
 			System.out.println(socket.getLocalPort());
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
+			System.exit(1);
 		}
 
 		// Processing preferences for this client.
 		Preferences prefs = client.getPreferences();
-        if (prefs != null) {
-            NICK = prefs.get("XPilotName");
-            REAL_NAME = prefs.get("XPilotUser");
-            HOST = prefs.get("XPilotHost");
-        }
+		if (prefs != null) {
+			NICK = prefs.get("XPilotName");
+			REAL_NAME = prefs.get("XPilotUser");
+			HOST = prefs.get("XPilotHost");
+		}
 
-        if (NICK == null || NICK.isEmpty())
-            NICK = System.getProperty("user.name");
-        if (REAL_NAME == null || REAL_NAME.isEmpty())
-            REAL_NAME = NICK;
-        if (HOST == null || HOST.isEmpty())
-            HOST = "java.client";
-        
-        try
-        {
-        	sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
+		if (NICK == null || NICK.isEmpty())
+			NICK = System.getProperty("user.name");
+		if (REAL_NAME == null || REAL_NAME.isEmpty())
+			REAL_NAME = NICK;
+		if (HOST == null || HOST.isEmpty())
+			HOST = "java.client";
 
-        	getReplyMessage(in, message);
+		try
+		{
+			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
 
-        	//getReplyMessage(in, message);
-        	System.out.println(message);
+			getReplyMessage(in, message);
 
-        	while(message.getPack()!=ENTER_GAME_pack)
-        	{
-        		getReplyMessage(in, message);
-        		System.out.println(message);
-        	}
+			//getReplyMessage(in, message);
+			System.out.println(message);
 
-        	int server_port = message.getValue();
-        	System.out.println("New server port: "+server_port);
+			while(message.getPack()!=ENTER_GAME_pack)
+			{
+				getReplyMessage(in, message);
+				System.out.println(message);
+			}
 
-        	try
-        	{
-        		server_address = new InetSocketAddress(serverIP, server_port);
-        		channel.disconnect();
-        		channel.connect(server_address);
-        	}
-        	catch(IOException e)
-        	{
-        		e.printStackTrace();
-        		System.exit(1);
-        	}
+			int server_port = message.getValue();
+			System.out.println("New server port: "+server_port);
 
-        	System.out.println("Sending Verify");
-        	sendVerify(out, REAL_NAME, NICK);
+			try
+			{
+				server_address = new InetSocketAddress(serverIP, server_port);
+				channel.disconnect();
+				channel.connect(server_address);
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+				System.exit(1);
+			}
 
-        	ReliableDataError result=null;
-        	while (result!=ReliableDataError.NO_ERROR)
-        	{
-        		result = getReliableData(reliable, in);
-        		//System.out.println(result);
+			System.out.println("Sending Verify");
+			sendVerify(out, REAL_NAME, NICK);
 
-        		if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
-        		{
-        			sendPacket(out);
-        		}
-        	}
+			ReliableDataError result=null;
+			while (result!=ReliableDataError.NO_ERROR)
+			{
+				result = getReliableData(reliable, in);
+				//System.out.println(result);
 
-        	netSetup(in, map, setup, reliable);
+				if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
+				{
+					sendPacket(out);
+				}
+			}
 
-        	//map.flip();
-        	System.out.println(map.remaining()+"\n\nMap:\n");
+			netSetup(in, map, setup, reliable);
 
-        	// setup.printMapData();
-        	//
+			//map.flip();
+			System.out.println(map.remaining()+"\n\nMap:\n");
 
-        	client.mapInit(new BlockMap(setup));
+			if(PRINT_PACKETS)
+				setup.printMapData();
 
-        	System.out.println("\nSending Net Start");
-        	netStart(out);
+			client.mapInit(new BlockMap(setup));
 
-        	keyboard.clearBits();
-        	//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
+			System.out.println("\nSending Net Start");
+			netStart(out);
 
-        	System.out.println("\nStarting input loop.");
-        	startTime = System.currentTimeMillis();
+			//keyboard.clearBits();
+			//keyboard.setBit(Keys.KEY_TURN_RIGHT, true);
 
-        	inputLoop();
+			System.out.println("\nStarting input loop.");
+			startTime = System.currentTimeMillis();
 
-        	System.out.println("\nEnd of input loop");
-        }
-        catch (InterruptedIOException e)
-        {
-        	javax.swing.JOptionPane.showMessageDialog(null, "Server timed out!");
-        	client.handleQuit("Server timed out!");
-        }
+			inputLoop();
+
+			System.out.println("\nEnd of input loop");
+		}
+		catch (InterruptedIOException e)
+		{
+			javax.swing.JOptionPane.showMessageDialog(null, "Server timed out!");
+			client.handleQuit("Server timed out!");
+		}
 	}
 	
 	/**
@@ -329,8 +331,6 @@ public class NetClient
 			
 			client.handlePacketEnd();
 			
-			//this.netTalk("Hello");
-			
 			putPointerMove(out);
 			putKeyboard(out, keyboard);
 			sendTalk(out);
@@ -341,35 +341,30 @@ public class NetClient
 		sendQuit();
 	}
 	
+	/**
+	 * Temporary buffer used to store packets read from network.
+	 */
 	private ByteBufferWrap temp = new ByteBufferWrap(MAX_PACKET_SIZE);
 	/**
 	 * Reads the last packet sent into in.
 	 * @param in The ByteBufferWrap in which the packet is read.
 	 */
-	private void readLatestPacket(ByteBufferWrap in) throws InterruptedIOException
-	{
-		try
-		{
+	private void readLatestPacket(ByteBufferWrap in) throws InterruptedIOException {
+		try {
 			channel.configureBlocking(true);
-		}
-		catch(IOException e)
-		{
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 		
 		readPacket(in);
 		
-		try
-		{
+		try {
 			channel.configureBlocking(false);
-		}
-		catch(IOException e)
-		{
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 		
-		do
-		{
+		do {
 			temp.clear();
 			temp.putBytes(in);
 		}while(readPacket(in)>0);
@@ -439,7 +434,7 @@ public class NetClient
 	}
 	
 	/**
-	 * Note that this method clears buf.
+	 * Note that this method clears the buffer.
 	 * @param buf The buffer from which the output should be sent.
 	 */
 	private void sendPacket(ByteBufferWrap buf)
@@ -737,7 +732,7 @@ public class NetClient
 			}
 			else
 			{
-				System.out.println("**********Unsuported type: " + type + "************");
+				System.out.println("**********Unsupported type: " + type + "************");
 				in.clear();
 				break;
 			}
@@ -754,18 +749,17 @@ public class NetClient
 			if(readers[type]!=null)
 			{
 				int pos = reliableBuf.position();
-				try
-				{
+				try {
 					readers[type].processPacket(reliableBuf, client);
 				}
-				catch (ReliableReadException e)
+				catch (ReliableReadException e) //happens if reliable data is broken up
 				{
 					if(PRINT_PACKETS)
 						System.out.println("Fragmented reliable packet of type: " + type);
 					reliableBuf.position(pos);
 					break;
 				}
-				catch(PacketReadException e)
+				catch(PacketReadException e)//this should not happen
 				{
 					e.printStackTrace();
 					break;
@@ -773,7 +767,7 @@ public class NetClient
 			}
 			else
 			{
-				System.out.println("**********Unsuported Reliable type: " + type + "************");
+				System.out.println("**********Unsupported Reliable type: " + type + "************");
 				break;
 			}	
 		}
@@ -916,7 +910,8 @@ public class NetClient
 			//in.clear();
 		}
 	}
-
+	
+	
 	protected class ReplyProcessor implements PacketProcessor
 	{
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
@@ -936,7 +931,7 @@ public class NetClient
 			}
 		}
 	}
-
+	
 	protected class QuitProcessor implements PacketProcessor
 	{
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
@@ -1975,19 +1970,596 @@ public class NetClient
 	}
 	
 	/**
-	 * TODO: implement handling
+	 * Processes eyes packets.
 	 * @author Vlad Firoiu
 	 */
 	protected class EyesProcessor implements PacketProcessor
 	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short id = in.getShort();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nEyes Packet\ntype = " + type +
-									"\nid = " + id);
+		protected byte pkt_type;
+		protected short id;
+		
+		public byte getPacketType(){return pkt_type;}
+		public short getId(){return id;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			id = in.getShort();
+		}
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+			client.handleEyes(id);
+		}
+		
+		@Override
+		public String toString() {
+			return "Eyes Packet\npacket type = " + pkt_type +
+			"\nid = " + id;
 		}
 	}
+	/**
+	 * Note that subclasses should override this method if a separate eyes
+	 * processor is to be used.
+	 * @return A new EyesProcessor object.
+	 */
+	protected EyesProcessor getEyesProcessor(){return new EyesProcessor();}
+	
+	/**
+	 * Processes Team Score packets.
+	 * TODO: Implement handling of team score.
+	 * @author Vlad Firoiu
+	 */
+	protected class TeamScoreProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short team;
+		protected double score;
+		
+		public byte getPacketType() {return pkt_type;}
+		public short getTeam() {return team;}
+		public double getScore() {return score;}
+		
+		/**
+		 * Reads the type, team, and score.
+		 * @param in The buffer from which to read the data.
+		 */
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			team = in.getShort();
+			score = (double)in.getInt()/100.0;
+		}
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+			readPacket(in);
+			
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Eyes Packet\ntype = " + pkt_type +
+					"\nteam = " + team +
+					"\nscore = " + score;
+		}
+	}
+	/**
+	 * Note that subclasses should override this method if a separate team
+	 * score processor is to be used.
+	 * @return A new TeamScoreProcessor object.
+	 */
+	protected TeamScoreProcessor getTeamScoreProcessor(){return new TeamScoreProcessor();}
+	
+	/**
+	 * Processes Seek Packets.
+	 * TODO: Implement handling of packet data.
+	 * @author Vlad Firoiu
+	 */
+	protected class SeekProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short programmer_id, robot_id, sought_id;
+		
+		public byte getPacketType(){return pkt_type;}
+		public short getProgrammerId(){return this.programmer_id;}
+		public short getRobotId(){return this.robot_id;}
+		public short getSoughtId(){return this.sought_id;}
+		
+		/**
+		 * Reads the packet type, the programmer id, the robot id, and the
+		 * sought id.
+		 * @param in The buffer to read from.
+		 */
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			programmer_id = in.getShort();
+			robot_id = in.getShort();
+			sought_id = in.getShort();
+		}
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+			readPacket(in);
+			
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Seek Packet\ntype = " + pkt_type +
+					"\nprogrammer id = " + this.programmer_id +
+					"\nrobot id = " + this.robot_id +
+					"\nsought id = " + this.sought_id;
+		}
+	}
+	/**
+	 * Note that subclasses should override this method if a separate seek
+	 * processor is to be used.
+	 * @return A new SeekProcessor object.
+	 */
+	protected SeekProcessor getSeekProcessor(){return new SeekProcessor();}
+	
+	/**
+	 * Processes String packets. Note that this has no function,
+	 * as it is an experimental packet type.
+	 * @author Vlad Firoiu
+	 */
+	protected class StringProcessor implements PacketProcessor {
+		protected byte pkt_type, type;
+		protected int arg1, arg2;
+		
+		public byte getPacketType(){return pkt_type;}
+		public byte getType(){return type;}
+		public int getArg1(){return arg1;}
+		public int getArg2(){return arg2;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			type = in.getByte();
+			arg1 = in.getUnsignedShort();
+			arg2 = in.getUnsignedShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "String Packet\npacket type = " + pkt_type +
+					"\ntype = " + type +
+					"\narg1 = " + arg1 + 
+					"\narg2 = " + arg2;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate string
+	 * processor is to be used.
+	 * @return A new StringProcessor object.
+	 */
+	protected StringProcessor getStringProcessor(){return new StringProcessor();}
+	
+	/**
+	 * Processes wormhole packets.
+	 * TODO: Implement handling of wormholes.
+	 * @author Vlad Firoiu
+	 * @since xpilot version 4.5.0
+	 */
+	protected class WormholeProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short x, y;
+
+		public byte getPacketType(){return pkt_type;}
+		public short getX(){return x;}
+		public short getY(){return y;}
+		
+		/**
+		 * Reads the packet type, x and y.
+		 * @param in The buffer to read from.
+		 */
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			x = in.getShort();
+			y = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Wormhole Packet\ntype = " + pkt_type +
+					"\nx = " + x +
+					"\ny = " + y;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate wormhole
+	 * processor is to be used.
+	 * @return A new WormholeProcessor object.
+	 * @since xpilot version 4.5.0
+	 */
+	protected WormholeProcessor getWormholeProcessor(){return new WormholeProcessor();}
+	
+	/**
+	 * Processes asteroid packets.
+	 * TODO: Implement handling of asteroids.
+	 * @author Vlad Firoiu
+	 * @since xpilot version 4.4.0
+	 */
+	protected class AsteroidProcessor implements PacketProcessor
+	{
+		protected byte pkt_type, 
+		type_size, type, 
+		size, rot;
+		protected short x, y;
+		
+		public byte getPacketType(){return pkt_type;}
+		public byte getType(){return type;}
+		public byte getSize(){return size;}
+		public byte getRot(){return rot;}
+		public short getX(){return x;}
+		public short getY(){return y;}
+		
+		/**
+		 * Reads the packet type, x, y, type, size, and  rotation.
+		 * @param in The buffer to read from.
+		 */
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			x = in.getShort();
+			y = in.getShort();
+			type_size = in.getByte();
+			rot = in.getByte();
+			
+			type = (byte) ((type_size >> 4) & 0x0F);
+			size = (byte) (type_size & 0x0F);
+		}
+
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Asteroid Packet\npacket type = " + type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\ntype = " + type +
+					"\nsize = " + size +
+					"\nrot = " + rot;
+		}
+	}
+	/**
+	 * Note that subclasses should override this method if a separate asteroid
+	 * processor is to be used.
+	 * @return A new AsteroidProcessor object.
+	 * @since xpilot version 4.4.0
+	 */
+	protected AsteroidProcessor getAsteroidProcessor(){return new AsteroidProcessor();}
+	
+	/**
+	 * Processes lose item packets.
+	 * TODO: Implement handling of lose items.
+	 * @author Vlad Firoiu
+	 */
+	protected class LoseItemProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short lose_item;//unsigned byte
+		
+		public byte getPacketType(){return pkt_type;}
+		public short getLoseItem(){return lose_item;}
+
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			lose_item = in.getUnsignedByte();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n'+this.toString());
+		}
+		
+		public String toString() {
+			return "Lose Item Packet\npacket type = " + pkt_type +
+					"\nlose item = " + lose_item;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate lose
+	 * item processor is to be used.
+	 * @return A new LoseItemProcessor object.
+	 */
+	protected LoseItemProcessor getLoseItemProcessor(){return new LoseItemProcessor();}
+	
+	/**
+	 * Processes round delay packets.
+	 * TODO: Implement handling of round delay.
+	 * @author Vlad Firoiu
+	 */
+	protected class RoundDelayProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count, max;
+		
+		public byte getPacketType(){return pkt_type;}
+		protected short getCount(){return count;}
+		public short getMax(){return max;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+			max = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Round Delay Packet\npacket type = " + pkt_type +
+					"\ncount = " + count +
+					"\nmax = " + max;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate round
+	 * delay processor is to be used.
+	 * @return A new RoundDelayProcessor object.
+	 */
+	protected RoundDelayProcessor getRoundDelayProcessor(){return new RoundDelayProcessor();}
+	
+	/**
+	 * Processes phasing time packets.
+	 * TODO: Implement handling of phasing time.
+	 * @author Vlad Firoiu
+	 */
+	protected class PhasingTimeProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count, max;
+		
+		public byte getPacketType(){return pkt_type;}
+		protected short getCount(){return count;}
+		public short getMax(){return max;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+			max = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Phasing Time Packet\npacket type = " + pkt_type +
+					"\ncount = " + count +
+					"\nmax = " + max;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate phasing
+	 * time processor is to be used.
+	 * @return A new PhasingTimeProcessor object.
+	 */
+	protected PhasingTimeProcessor getPhasingTimeProcessor(){return new PhasingTimeProcessor();}
+	
+	/**
+	 * Processes thrust time packets.
+	 * TODO: Implement handling of thrust time.
+	 * @author Vlad Firoiu
+	 */
+	protected class ThrustTimeProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count, max;
+		
+		public byte getPacketType(){return pkt_type;}
+		protected short getCount(){return count;}
+		public short getMax(){return max;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+			max = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Thrust Time Packet\npacket type = " + pkt_type +
+					"\ncount = " + count +
+					"\nmax = " + max;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate thrust
+	 * time processor is to be used.
+	 * @return A new ThrustTimeProcessor object.
+	 */
+	protected ThrustTimeProcessor getThrustTimeProcessor(){return new ThrustTimeProcessor();}
+	
+	/**
+	 * Processes shield time packets.
+	 * TODO: Implement handling of shield time.
+	 * @author Vlad Firoiu
+	 */
+	protected class ShieldTimeProcessor implements PacketProcessor
+	{
+		protected byte pkt_type;
+		protected short count, max;
+		
+		public byte getPacketType(){return pkt_type;}
+		protected short getCount(){return count;}
+		public short getMax(){return max;}
+		
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			count = in.getShort();
+			max = in.getShort();
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "Shield Time Packet\npacket type = " + pkt_type +
+					"\ncount = " + count +
+					"\nmax = " + max;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate shield
+	 * time processor is to be used.
+	 * @return A new ShieldTimeProcessor object.
+	 */
+	protected ShieldTimeProcessor getShieldTimeProcessor(){return new ShieldTimeProcessor();}
+	
+	/**
+	 * Processes MOTD (Message of the Day) packets.
+	 * @TODO: Implement handling of motd.
+	 * @author Vlad Firoiu
+	 */
+	protected class MOTDProcessor implements PacketProcessor
+	{
+		public static final int LENGTH = 1 + 4 + 2 + 4;//11
+		
+		protected byte pkt_type;
+		protected int offset, size;
+		protected short length;
+		protected String motd;
+		
+		public byte getPacketType(){return pkt_type;}
+		public int getOffset(){return offset;}
+		public short getLength(){return length;}
+		public int getSize(){return size;}
+		public String getMOTD(){return motd;}
+		
+		protected void readPacket(ByteBufferWrap in) throws ReliableReadException {
+			in.setReading();
+			if(in.remaining()<=LENGTH) throw reliableReadException;
+			pkt_type = in.getByte();
+			offset = in.getInt();
+			length = in.getShort();
+			size = in.getInt();
+			
+			try {
+				motd = in.getString();
+			} catch(StringReadException e) {
+				throw reliableReadException;
+			}
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws ReliableReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+		}
+		
+		@Override
+		public String toString() {
+			return "MOTD Packet\npacket type = " + pkt_type +
+					"\noffset = " + offset +
+					"\nlength = " + length +
+					"\nsize = " + size +
+					"\nmotd = " + motd;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate motd
+	 * processor is to be used.
+	 * @return A new MOTDProcessor object.
+	 */
+	protected MOTDProcessor getMOTDProcessor(){return new MOTDProcessor();}
+	
+	/**
+	 * Processes radar packets.
+	 * TODO: Implement handling of radar.
+	 * @author Vlad Firoiu
+	 */
+	protected class RadarProcessor extends RadarHolder implements PacketProcessor
+	{
+		protected byte pkt_type;
+		
+		public byte getPacketType(){return pkt_type;}
+		
+		/**
+		 * Reads the packet type, x, y, and size.
+		 * @param in The buffer to read from.
+		 */
+		protected void readPacket(ByteBufferWrap in) {
+			pkt_type = in.getByte();
+			x = in.getShort();
+			y = in.getShort();
+			size= in.getUnsignedByte();
+			
+			//x = (int)((double)(x * 256) / Setup->width + 0.5);
+			//y = (int)((double)(y * RadarHeight) / Setup->height + 0.5);
+		}
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client)
+				throws PacketReadException {
+			readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+			client.handleRadar(this);
+		}
+		
+		@Override
+		public String toString() {
+			return "Radar Packet\npacket type = " + pkt_type +
+					"\nx = " + x +
+					"\ny = " + y +
+					"\nsize = " + size;
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate radar
+	 * processor is to be used.
+	 * @return A new RadarProcessor object.
+	 */
+	protected RadarProcessor getRadarProcessor(){return new RadarProcessor();}
 }

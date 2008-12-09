@@ -34,5 +34,4 @@ public class RadarHolder implements Holder<RadarHolder>{
 	public int getX(){return x;}
 	public int getY(){return y;}
 	public int getSize(){return size;}
-	
 }
