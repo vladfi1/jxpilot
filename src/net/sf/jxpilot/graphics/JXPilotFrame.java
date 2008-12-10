@@ -52,6 +52,11 @@ public class JXPilotFrame extends Frame
 	private int viewSize;
 
 	/**
+	 * Whether or not the player is typing a message.
+	 */
+	private boolean typing = false;
+	
+	/**
 	 * Messages to draw.
 	 */
 	private MessagePool messagePool = null;
@@ -174,6 +179,8 @@ public class JXPilotFrame extends Frame
 				}
 				*/
 				
+				if(typing) return;
+				
 				int key = e.getKeyCode();
 				
 				if (userPreferences.containsKey(key))
@@ -193,6 +200,8 @@ public class JXPilotFrame extends Frame
 
 			public void keyReleased(KeyEvent e)
 			{
+				if(typing) return;
+				
 				int key = e.getKeyCode();
 				
 				if (userPreferences.containsKey(key))
@@ -216,7 +225,7 @@ public class JXPilotFrame extends Frame
 			
 			public void mousePressed(MouseEvent e)
 			{
-				if (!mouseControl) return;
+				if (!mouseControl || typing) return;
 				
 				int button = e.getButton();
 				if (mousePreferences.containsKey(button))
@@ -230,7 +239,7 @@ public class JXPilotFrame extends Frame
 			
 			public void mouseReleased(MouseEvent e)
 			{
-				if (!mouseControl) return;
+				if (!mouseControl || typing) return;
 				
 				int button = e.getButton();
 				if (mousePreferences.containsKey(button))
@@ -290,8 +299,7 @@ public class JXPilotFrame extends Frame
 		
 		public void mouseMoved(MouseEvent e)
 		{
-			if (!mouseControl) return;
-			
+			if (!mouseControl || typing) return;
 			
 			//if (!robotMovement) 
 				handleMove(e);
@@ -299,7 +307,7 @@ public class JXPilotFrame extends Frame
 		
 		public void mouseDragged(MouseEvent e)
 		{
-			if (!mouseControl) return;
+			if (!mouseControl || typing) return;
 			
 			//if (!robotMovement) 
 				handleMove(e);
@@ -429,7 +437,7 @@ public class JXPilotFrame extends Frame
 				else
 				{
 					hideCursor();
-					mouseControl = true;	
+					mouseControl = true;
 				}
 			}
 		});
@@ -440,9 +448,11 @@ public class JXPilotFrame extends Frame
 			{
 				if(displayMode != DisplayMode.FSEM)
 				{
+					typing = true;
 					String message = JOptionPane.showInputDialog(JXPilotFrame.this, "Enter a message: ");
-					if(message != null)
+					if(message != null && !message.isEmpty())
 						clientInputListener.talk(message);
+					typing = false;
 				}
 			}
 		});
