@@ -2,7 +2,7 @@ package net.sf.jxpilot;
 
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
-import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.jgamelibrary.preferences.Preferences;
 
 public interface AbstractClient
 {

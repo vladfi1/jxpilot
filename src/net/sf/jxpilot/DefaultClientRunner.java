@@ -1,7 +1,7 @@
 package net.sf.jxpilot;
 
 import net.sf.xpilotpanel.client.ClientRunner;
-import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.jgamelibrary.preferences.Preferences;
 
 public class DefaultClientRunner implements ClientRunner{
 	private Client client;

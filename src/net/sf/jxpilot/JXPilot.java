@@ -2,7 +2,7 @@ package net.sf.jxpilot;
 
 import net.sf.xpilotpanel.XPilotPanel;
 import net.sf.xpilotpanel.gui.AboutWindow;
-import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.jgamelibrary.preferences.Preferences;
 import net.sf.xpilotpanel.client.ClientRunner;
 
 import java.awt.Image;

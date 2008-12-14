@@ -5,7 +5,7 @@ import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
 import net.sf.jxpilot.util.BitVector;
-import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.jgamelibrary.preferences.Preferences;
 
 public class Client implements AbstractClient, ClientInputListener
 {

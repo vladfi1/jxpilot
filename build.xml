@@ -12,7 +12,7 @@
 
 	<property name="jar.file" value="${basedir}/jxpilot.jar" />
 
-	<property name="class.path" value="${lib.dir}/xpilotpanel-lib.jar" />
+	<property name="class.path" value="${lib.dir}/xpilotpanel.jar:${lib.dir}/jgamelibrary.jar" />
 
 	<target name="init">
 		<tstamp />

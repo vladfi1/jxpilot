@@ -18,7 +18,7 @@ import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.map.BlockMapSetup;
 import net.sf.jxpilot.util.BitVector;
 import net.sf.jxpilot.util.Utilities;
-import net.sf.xpilotpanel.preferences.Preferences;
+import net.sf.jgamelibrary.preferences.Preferences;
 
 public class NetClient
 {
