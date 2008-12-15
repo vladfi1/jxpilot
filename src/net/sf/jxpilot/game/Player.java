@@ -1,14 +1,12 @@
 package net.sf.jxpilot.game;
 
 import java.awt.*;
-import java.awt.geom.*;
 
 /**
  * Holds all Player information.
  * @author vlad
  */
-public class Player
-{
+public class Player {
 	/**
 	 * This id indicates that the player does not exist.
 	 */

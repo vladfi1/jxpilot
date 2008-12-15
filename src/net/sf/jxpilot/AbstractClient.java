@@ -3,16 +3,19 @@ package net.sf.jxpilot;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jgamelibrary.preferences.Preferences;
+import net.sf.jxpilot.net.*;
 
 public interface AbstractClient
 {
 	public void handlePacketEnd();
 	
+	public void handleTimeout();
+	public void handleShutdown(ShutdownPacket s);
 	public void mapInit(BlockMap blockMap);
 	public void handleSelf(SelfHolder self);
-	public void handleQuit(String reason);
+	public void handleQuit(QuitPacket q);
 	public void handleShip(ShipHolder s);
-	public void handlePlayer(Player p);
+	public void handlePlayer(PlayerPacket p);
 	public void handleRadar(RadarHolder r);
 	public void handleLeave(short id);
 	public void handleStart(int loops);

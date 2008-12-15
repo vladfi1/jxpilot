@@ -270,7 +270,7 @@ public class ByteBufferWrap
 					}
 					System.out.println("So far getString() has read:\n" +soFar);
 				 */
-				throw stringReadException;
+				throw STRING_READ_EXCEPTION;
 			}
 
 
@@ -286,5 +286,8 @@ public class ByteBufferWrap
 		return b.toString();
 	}
 	
-	private static StringReadException stringReadException = new StringReadException();
+	/**
+	 * Default string read exception to throw. Prevents needless creation of objects.
+	 */
+	private final StringReadException STRING_READ_EXCEPTION = new StringReadException();
 }

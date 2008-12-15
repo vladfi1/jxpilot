@@ -1,9 +1,14 @@
 package net.sf.jxpilot;
 
+import javax.swing.JOptionPane;
+
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
+import net.sf.jxpilot.net.PlayerPacket;
+import net.sf.jxpilot.net.QuitPacket;
+import net.sf.jxpilot.net.ShutdownPacket;
 import net.sf.jxpilot.util.BitVector;
 import net.sf.jgamelibrary.preferences.Preferences;
 
@@ -67,9 +72,21 @@ public class Client implements AbstractClient, ClientInputListener
 	public Player getSelf(){return self;}
 	
 	//Abstract Client methods
-	public void handlePacketEnd()
-	{
+	@Override
+	public void handlePacketEnd() {
 		//frame.activeRender();
+	}
+	
+	@Override
+	public void handleTimeout() {
+		JOptionPane.showMessageDialog(frame, "Server timed out!");
+		quit();
+	}
+	
+	@Override
+	public void handleShutdown(ShutdownPacket s) {
+		JOptionPane.showMessageDialog(frame, "Server shut down!");
+		quit();
 	}
 	
 	/**
@@ -82,7 +99,9 @@ public class Client implements AbstractClient, ClientInputListener
 		hud = world.getHud();
 		this.blockMap = blockMap;
 		
-		DisplayMode mode = DisplayMode.getDisplayMode(prefs.get(DisplayMode.displayModeKey));
+		DisplayMode mode = prefs!=null ?
+				DisplayMode.getDisplayMode(prefs.get(DisplayMode.displayModeKey))
+				: DisplayMode.FSEM;
 		
 		frame = new JXPilotFrame(mode, world, this);
 		//frame.setDrawables(drawables);
@@ -90,13 +109,12 @@ public class Client implements AbstractClient, ClientInputListener
 		frame.setVisible(true);
 	}
 	
-	public void handleQuit(String reason)
-	{
+	public void handleQuit(QuitPacket q) {
+		JOptionPane.showMessageDialog(frame, "Server closed connection:\n" + q.getReason());
 		this.quit();
 	}
 	
-	public void handleSelf(SelfHolder self)
-	{
+	public void handleSelf(SelfHolder self) {
 		eyesId = -1;
 		selfX = self.getX();
 		selfY = self.getY();
@@ -112,16 +130,17 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addShip(s);
 	}
 	
-	public void handlePlayer(Player p)
-	{
-		if(p.getNick().equalsIgnoreCase(netClient.getNick()))
+	public void handlePlayer(PlayerPacket p) {
+		Player player = new Player(p.getId(), p.getTeam(), p.getChar(), p.getName(), p.getReal(), p.getHost(), p.getShipShape());
+		
+		if(player.getNick().equalsIgnoreCase(netClient.getNick()))
 		{
-			self = p;
-			world.setSelf(p);
+			self = player;
+			world.setSelf(player);
 			System.out.println("Found self!");
 		}
 		
-		world.addPlayer(p);
+		world.addPlayer(player);
 	}
 	
 	public void handleRadar(RadarHolder r)
@@ -258,14 +277,13 @@ public class Client implements AbstractClient, ClientInputListener
 		netClient.netTalk(message);
 	}
 	
-    /**
-     * Returns preferences of this client or <code>null</code>, if it was
-     * launched w/o XPilotPanel.
-     * 
-     * @return Client's preferences.
-     */
-    public Preferences getPreferences() {
-        return prefs;
-    }
-    
+	/**
+	 * Returns preferences of this client or <code>null</code>, if it was
+	 * launched w/o XPilotPanel.
+	 * 
+	 * @return Client's preferences.
+	 */
+	public Preferences getPreferences() {
+		return prefs;
+	}
 }

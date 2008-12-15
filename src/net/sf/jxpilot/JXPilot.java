@@ -29,7 +29,7 @@ public class JXPilot {
 	public static final String CHAOS_ADDRESS = "129.13.108.207";
 	public static final String BURKEN_ADDRESS = "83.168.206.7";
 	public static final String LOCAL_LOOPBACK_ADDRESS = "127.0.0.1";
-	public static final String SERVER_IP_ADDRESS = LKRAUSS_ADDRESS;
+	public static final String SERVER_IP_ADDRESS = LOCAL_LOOPBACK_ADDRESS;
 	
 	/**
      * JXPilot's windows icon.

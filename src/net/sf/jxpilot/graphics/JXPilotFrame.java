@@ -297,22 +297,35 @@ public class JXPilotFrame extends Frame
 					(e.getY()>margin &&e.getY()< JXPilotFrame.this.getHeight()-margin);
 		}
 		
-		public void mouseMoved(MouseEvent e)
-		{
+		private Point lastMousePosition = new Point();
+		
+		@Override
+		public void mouseMoved(MouseEvent e) {
 			if (!mouseControl || typing) return;
 			
+			lastMousePosition.setLocation(e.getLocationOnScreen());
 			//if (!robotMovement) 
 				handleMove(e);
 		}
 		
-		public void mouseDragged(MouseEvent e)
-		{
+		@Override
+		public void mouseDragged(MouseEvent e) {
 			if (!mouseControl || typing) return;
 			
+			lastMousePosition.setLocation(e.getLocationOnScreen());
 			//if (!robotMovement) 
 				handleMove(e);
 		}
 		
+		/**
+		 * Amount of time to let pointer move back, in nanoseconds.
+		 */
+		private final long pointer_delay = 1000*10;//10ms
+		
+		/**
+		 * Time of last move pointer back, in nanoseconds.
+		 */
+		private long last_move;
 		
 		private void handleMove(MouseEvent e)
 		{
@@ -320,7 +333,8 @@ public class JXPilotFrame extends Frame
 			{
 			// this event is from re-centering the mouse - ignore it
 			    if (robotMovement) {
-			    	if(e.getXOnScreen()==mouseX && e.getYOnScreen()==mouseY) robotMovement = false;
+			    	if(this.inBounds(e))
+			    		robotMovement = false;
 			    	else if(!inBounds(e)) movePointerBack(e);
 			    }
 			    else
@@ -342,12 +356,16 @@ public class JXPilotFrame extends Frame
 			}
 		}
 		
-		private void movePointerBack(MouseEvent e)
-		{
+		private void movePointerBack(MouseEvent e) {
+			movePointerBack();
+		}
+		
+		private void movePointerBack() {
 			robotMovement = true;
 			mouseX = JXPilotFrame.this.getX()+JXPilotFrame.this.getWidth()/2;
 			mouseY = JXPilotFrame.this.getY()+JXPilotFrame.this.getHeight()/2;
 			robot.mouseMove(mouseX,mouseY);
+			last_move = System.nanoTime();
 			//robotMovement = false;
 		}
 	}
