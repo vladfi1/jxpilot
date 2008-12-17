@@ -1,14 +1,14 @@
 package net.sf.jxpilot.util;
 
 /**
- * 
- * @author vlad
+ * Holds data for a certain type of class.
+ * @author Vlad Firoiu
  *
  * @param <T> The subclass type.
  */
 public interface Holder<T extends Holder<T>> {
-	/**
-	 * @param other Sets another object to have the same information as this Holder.
+	/**Sets another object to have the same information as this Holder.
+	 * @param other The other object.
 	 */
 	public void set(T other);
 	

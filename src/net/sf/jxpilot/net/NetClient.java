@@ -10,6 +10,8 @@ import java.io.*;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 
+import javax.swing.JOptionPane;
+
 import net.sf.jxpilot.AbstractClient;
 import net.sf.jxpilot.data.Items;
 import net.sf.jxpilot.data.Keys;
@@ -128,7 +130,7 @@ public class NetClient
 		readers[PKT_EYES]		= getEyesProcessor();
 		readers[PKT_TIME_LEFT]	= getTimeLeftProcessor();
 		readers[PKT_AUDIO]		= getAudioProcessor();
-		readers[PKT_START]		= new StartProcessor();
+		readers[PKT_START]		= getStartProcessor();
 		readers[PKT_END]		= new EndProcessor();
 		readers[PKT_SELF]		= new SelfProcessor();
 		readers[PKT_DAMAGED]	= new DamagedProcessor();
@@ -151,8 +153,8 @@ public class NetClient
 		readers[PKT_TARGET]		= new TargetProcessor();
 		readers[PKT_RADAR]		= getRadarProcessor();
 		readers[PKT_FASTRADAR]	= new FastRadarProcessor();
-		readers[PKT_RELIABLE]	= new ReliableProcessor();
-		readers[PKT_QUIT]		= new QuitProcessor();
+		readers[PKT_RELIABLE]	= getReliableProcessor();
+		readers[PKT_QUIT]		= getQuitProcessor();
 		readers[PKT_MODIFIERS]  = new ModifiersProcessor();
 		readers[PKT_FASTSHOT]	= new FastShotProcessor();
 		readers[PKT_THRUSTTIME] = getThrustTimeProcessor();
@@ -174,18 +176,18 @@ public class NetClient
 		readers[PKT_MOTD]		= getMOTDProcessor();
 		readers[PKT_MESSAGE]	= new MessageProcessor();
 		readers[PKT_TEAM_SCORE] = getTeamScoreProcessor();
-		readers[PKT_PLAYER]		= new PlayerProcessor();
-		readers[PKT_SCORE]		= new ScoreProcessor();
+		readers[PKT_PLAYER]		= getPlayerProcessor();
+		readers[PKT_SCORE]		= getScoreProcessor();
 		readers[PKT_TIMING]		= new TimingProcessor();
 		readers[PKT_LEAVE]		= new LeaveProcessor();
 		readers[PKT_WAR]		= new WarProcessor();
 		readers[PKT_SEEK]		= getSeekProcessor();
-		readers[PKT_BASE]		= new BaseProcessor();
+		readers[PKT_BASE]		= getBaseProcessor();
 		readers[PKT_QUIT]		= new QuitProcessor();
 		readers[PKT_STRING]		= getStringProcessor();
 		readers[PKT_SCORE_OBJECT]=new ScoreObjectProcessor();
 		readers[PKT_TALK_ACK]	= new TalkAckProcessor();
-		readers[PKT_REPLY]		= new ReplyProcessor();
+		readers[PKT_REPLY]		= getReplyProcessor();
 	}
 
 	public String getNick(){return NICK;}
@@ -261,13 +263,11 @@ public class NetClient
 			sendVerify(out, REAL_NAME, NICK);
 
 			ReliableDataError result=null;
-			while (result!=ReliableDataError.NO_ERROR)
-			{
+			while (result!=ReliableDataError.NO_ERROR) {
 				result = getReliableData(reliable, in);
 				//System.out.println(result);
 
-				if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA)
-				{
+				if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA) {
 					sendPacket(out);
 				}
 			}
@@ -277,8 +277,7 @@ public class NetClient
 			//map.flip();
 			System.out.println(map.remaining()+"\n\nMap:\n");
 
-			if(PRINT_PACKETS)
-				setup.printMapData();
+			if(PRINT_PACKETS) setup.printMapData();
 
 			client.mapInit(new BlockMap(setup));
 
@@ -297,7 +296,7 @@ public class NetClient
 		}
 		catch (InterruptedIOException e)
 		{
-			javax.swing.JOptionPane.showMessageDialog(null, "Server timed out!");
+			JOptionPane.showMessageDialog(null, "Server timed out!");
 			client.handleTimeout();
 		}
 	}
@@ -309,11 +308,9 @@ public class NetClient
 	 */
 	private void inputLoop() throws InterruptedIOException
 	{	
-		try
-		{
+		try {
 			channel.configureBlocking(true);
-		}
-		catch(IOException e){
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 		
@@ -321,8 +318,7 @@ public class NetClient
 		//long min_interval = 1000000000/MAX_FPS;
 		//long currentFrameTime;
 		
-		while(!quit)
-		{
+		while(!quit) {
 			
 			//readPacket(in);
 			readLatestPacket(in);
@@ -367,7 +363,7 @@ public class NetClient
 		do {
 			temp.clear();
 			temp.putBytes(in);
-		}while(readPacket(in)>0);
+		} while(readPacket(in)>0);
 		
 		in.clear();
 		in.putBytes(temp);
@@ -739,7 +735,6 @@ public class NetClient
 		}
 
 		reliableBuf.setReading();
-
 		while (reliableBuf.remaining()>0)
 		{
 			if(PRINT_PACKETS)System.out.println("\nAttempting to read from reliableBuf");
@@ -772,12 +767,15 @@ public class NetClient
 			}	
 		}
 		
-		if (reliableBuf.remaining()<=0)
-		{
+		if (reliableBuf.remaining()<=0) {
 			reliableBuf.clear();
 		}
 	}
 	
+	/**
+	 * Processes XPilot packets.
+	 * @author Vlad Firoiu
+	 */
 	protected interface PacketProcessor {
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
 		static final ReliableReadException reliableReadException = new ReliableReadException();
@@ -895,13 +893,27 @@ public class NetClient
 	
 	
 	//various classes to handle different packet types
+	/**
+	 * Processes reliable packets.
+	 * @author Vlad Firoiu
+	 */
 	protected class ReliableProcessor implements PacketProcessor {
 		public void processPacket(ByteBufferWrap in, AbstractClient client) {
 			ReliableDataError error = reliable.readReliableData(in, NetClient.this, reliableBuf);
 			if(PRINT_PACKETS) System.out.println(error);
 		}
 	}
+	/**
+	 * Note that subclasses should override this method if a separate reliable
+	 * processor is to be used.
+	 * @return A new {@code ReliableProcessor} object.
+	 */
+	protected PacketProcessor getReliableProcessor() {return new ReliableProcessor();}
 	
+	/**
+	 * Processes reply packets.
+	 * @author Vlad Firoiu
+	 */
 	protected class ReplyProcessor implements PacketProcessor {
 		@Override
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
@@ -910,44 +922,59 @@ public class NetClient
 		}
 	}
 	
-	protected class QuitProcessor extends QuitPacket implements PacketProcessor {
+	/**
+	 * Note that subclasses should override this method if a separate reply
+	 * processor is to be used.
+	 * @return A new {@code ReplyProcessor} object.
+	 */
+	protected PacketProcessor getReplyProcessor() {return new ReplyProcessor();}
+	
+	/**
+	 * Processes quit packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class QuitProcessor implements PacketProcessor {
+		protected QuitPacket quitPacket = new QuitPacket();
 		@Override
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
-			super.readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n'+super.toString());
-			client.handleQuit(this);
-			System.out.println("Server closed connection: " + super.reason);
+			quitPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n'+quitPacket.toString());
+			client.handleQuit(quitPacket);
+			System.out.println("Server closed connection: " + quitPacket.getReason());
 		}
 	}
 
+	/**
+	 * Note that subclasses should override this method if a separate quit
+	 * processor is to be used.
+	 * @return A new {@code QuitProcessor} object.
+	 */
+	protected PacketProcessor getQuitProcessor() {return new QuitProcessor();}
+	
+	/**
+	 * Processes start packets.
+	 * @author Vlad Firoiu
+	 */
 	protected class StartProcessor implements PacketProcessor {
-		public static final int LENGTH = 1 + 4 + 4;//9
-
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			
-			byte type = in.getByte();
-			int loops = in.getInt();
-			int key_ack = in.getInt();
+		protected StartPacket startPacket = new StartPacket();
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			startPacket.readPacket(in);
 
 			numFrames++;
 			
 			//packet is duplicate or out of order
-			if (last_loops >= loops)
-			{
+			if (last_loops >= startPacket.getLoops()) {
 				in.clear();
 				return;
 			}
 			
-			last_loops = loops;
+			last_loops = startPacket.getLoops();
 			
+			if(PRINT_PACKETS) System.out.println('\n' + startPacket.toString());
 			
-			if(PRINT_PACKETS)
-				System.out.println("\nStart Packet :" +
-					"\ntype = " + type +
-					"\nloops = " + loops +
-					"\nkey ack = " + key_ack);
-			client.handleStart(loops);
+			client.handleStart(startPacket.getLoops());
 		}
 		
 		/*
@@ -994,48 +1021,45 @@ public class NetClient
 	}
 
 	/**
+	 * Note that subclasses should override this method if a separate start
+	 * start is to be used.
+	 * @return A new {@code ReliableProcessor} object.
+	 */
+	protected PacketProcessor getStartProcessor(){return new StartProcessor();}
+	
+	/**
 	 * Processes Player packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class PlayerProcessor extends PlayerPacket implements PacketProcessor {
+	protected class PlayerProcessor implements PacketProcessor {
+		protected PlayerPacket playerPacket = new PlayerPacket();
 		@Override
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
-			super.readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + super.toString());
-			client.handlePlayer(this);
+			playerPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + playerPacket.toString());
+			client.handlePlayer(playerPacket);
 		}
-
 	}
 
-	protected class ScoreProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1+2+2+2+1;
+	/**
+	 * Note that subclasses should override this method if a separate player
+	 * processor is to be used.
+	 * @return A new {@code PlayerProcessor} object.
+	 */
+	protected PacketProcessor getPlayerProcessor(){return new PlayerProcessor();}
+	
+	/**
+	 * Processes score packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ScoreProcessor implements PacketProcessor {
+		protected ScorePacket scorePacket = new ScorePacket();
 
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if (in.remaining()<LENGTH)
-			{
-				//if(PRINT_PACKETS)System.out.println("\nPacket Score ("+in.remaining()+") is too small ("+ LENGTH+")!");
-
-				//in.clear();
-				throw reliableReadException;
-			}
-
-			byte type = in.getByte();
-			short id = in.getShort();
-			short score = in.getShort();
-			short life = in.getShort();
-			byte myChar = in.getByte();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nScore Packet\ntype = " + type +
-					"\nid = " + id +
-					"\nscore = " + score +
-					"\nlife = " + life +
-					"\nmy char = " + myChar);
-			
-			client.handleScore(id, score, life);
-			
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			scorePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + scorePacket.toString());
+			client.handleScore(scorePacket.getId(), scorePacket.getScore(), scorePacket.getLife());
 		}
 
 		/*
@@ -1071,34 +1095,35 @@ public class NetClient
 		 */
 	}
 
-	protected class BaseProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2 + 4;//7
-
-		private BaseHolder b = new BaseHolder();
+	/**
+	 * Note that subclasses should override this method if a separate score
+	 * processor is to be used.
+	 * @return A new {@code ScoreProcessor} object.
+	 */
+	protected PacketProcessor getScoreProcessor(){return new ScoreProcessor();}
+	
+	/**
+	 * Processes base packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class BaseProcessor implements PacketProcessor {
+		protected BasePacket basePacket = new BasePacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if (in.remaining()<LENGTH)
-			{
-				if(PRINT_PACKETS)
-					System.out.println("\nBase Packet must read " + LENGTH +", only " + in.remaining() + " left.");
-				throw reliableReadException;
-			}
-
-			byte type = in.getByte();
-			short id = in.getShort();
-			int num = in.getUnsignedShort();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nBase Packet\ntype = " + type +
-					"\nid = " + id +
-					"\nnum = " + num);
-			
-			client.handleBase(b.setBase(id, num));
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			basePacket.readPacket(in);
+			if(PRINT_PACKETS)System.out.println('\n' + basePacket.toString());
+			client.handleBase(basePacket);
 		}
 	}
 
+	/**
+	 * Note that subclasses should override this method if a separate base
+	 * processor is to be used.
+	 * @return A new {@code BaseProcessor} object.
+	 */
+	protected PacketProcessor getBaseProcessor(){return new BaseProcessor();}
+	
 	protected class MessageProcessor implements PacketProcessor
 	{
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException

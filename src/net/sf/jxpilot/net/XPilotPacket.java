@@ -1,9 +1,20 @@
 package net.sf.jxpilot.net;
 
-public abstract class XPilotPacket {
-	protected byte pkt_type;
-	
-	public byte getPacketType(){return pkt_type;}
-	
+/**
+ * Holds data for an XPilot packet.
+ * @author Vlad Firoiu
+ */
+public interface XPilotPacket {
+	/**
+	 * XPilot packets are always preceded by a 1-byte code representing
+	 * the type of packet.
+	 * @return The unique byte representing this packet type.
+	 */
+	public byte getPacketType();
+	/**
+	 * Reads an XPilot packet from the input buffer.
+	 * @param in The input buffer.
+	 * @throws PacketReadException If a problem occurs while reading.
+	 */
 	public abstract void readPacket(ByteBufferWrap in) throws PacketReadException;
 }

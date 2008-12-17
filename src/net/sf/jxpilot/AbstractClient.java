@@ -15,7 +15,7 @@ public interface AbstractClient
 	public void handleSelf(SelfHolder self);
 	public void handleQuit(QuitPacket q);
 	public void handleShip(ShipHolder s);
-	public void handlePlayer(PlayerPacket p);
+	public void handlePlayer(PlayerHolder p);
 	public void handleRadar(RadarHolder r);
 	public void handleLeave(short id);
 	public void handleStart(int loops);

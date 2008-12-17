@@ -4,6 +4,7 @@ import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 import static net.sf.jxpilot.util.Utilities.getAngleFrom128;
 
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.awt.geom.*;
 
@@ -14,9 +15,9 @@ import net.sf.jxpilot.util.*;
 /**
  * Class that manages the various objects in the world.
  * All drawable objects are contained in here.
- * @author vlad
+ * @author Vlad Firoiu
  */
-public class GameWorld implements Drawable{
+public class GameWorld implements Drawable {
 	
 	private BlockMap map;
 	private BlockMapSetup setup;
@@ -24,26 +25,26 @@ public class GameWorld implements Drawable{
 	private LinkedList<Drawable> drawableList;
 	private Vector<Iterable<? extends Drawable>> drawables;
 	
-	private Collection<HolderList<?, ? extends Drawable>> holderLists;
+	private Collection<List<? extends Drawable>> holderLists;
 	
 	//various collections to handle 
 	/**
 	 * Map holding the players by id number.
 	 */
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
-	private HolderList<ShipHolder, Ship> shipHandler;
+	private NewHolderList<Ship> shipHandler;
 	private final int SHIPS_SIZE = 10;
-	private HolderList<AbstractDebrisHolder, FastShot> shotHandler;
+	private NewHolderList<FastShot> shotHandler;
 	private final int SHOTS_SIZE = 300;
-	private HolderList<ConnectorHolder, Connector> connectorHandler;
+	private NewHolderList<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
-	private HolderList<BallHolder, Ball> ballHandler;
+	private NewHolderList<Ball> ballHandler;
 	private final int BALLS_SIZE = 10;
-	private HolderList<MineHolder, Mine> mineHandler;
+	private NewHolderList<Mine> mineHandler;
 	private final int MINES_SIZE = 20;
-	private HolderList<AbstractDebrisHolder, Spark> sparkHandler;
+	private NewHolderList<Spark> sparkHandler;
 	private final int DEBRIS_SIZE = 200;
-	private HolderList<MissileHolder, Missile> missileHandler;
+	private NewHolderList<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
 
 	private final ArrayList<Cannon> cannons;
@@ -79,8 +80,7 @@ public class GameWorld implements Drawable{
 		
 		ArrayList<Base> mapBases = map.getBases();
 		bases = new ArrayList<DrawableBase>(mapBases.size());
-		for(int i = 0;i<mapBases.size();i++)
-		{
+		for(int i = 0;i<mapBases.size();i++) {
 			bases.add(i, new DrawableBase(mapBases.get(i)));
 		}
 		drawables.add(bases);
@@ -98,31 +98,31 @@ public class GameWorld implements Drawable{
 	
 	private void initDrawableHandlers()
 	{
-		holderLists = new ArrayList<HolderList<?, ? extends Drawable>>();
+		holderLists = new ArrayList<List<? extends Drawable>>();
 
-		shotHandler = new HolderList<AbstractDebrisHolder, FastShot>(fastShotFactory, SHOTS_SIZE);
+		shotHandler = new NewHolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
 		holderLists.add(shotHandler);
 		
-		ballHandler = new HolderList<BallHolder, Ball>(ballFactory, BALLS_SIZE);
+		ballHandler = new NewHolderList<Ball>(ballFactory, BALLS_SIZE);
 		holderLists.add(ballHandler);
 		
-		connectorHandler = new HolderList<ConnectorHolder, Connector>(connectorFactory, CONNECTORS_SIZE);
+		connectorHandler = new NewHolderList<Connector>(connectorFactory, CONNECTORS_SIZE);
 		holderLists.add(connectorHandler);
 		
-		mineHandler = new HolderList<MineHolder, Mine>(mineFactory, MINES_SIZE);
+		mineHandler = new NewHolderList<Mine>(mineFactory, MINES_SIZE);
 		holderLists.add(mineHandler);
 		
-		sparkHandler = new HolderList<AbstractDebrisHolder, Spark>(sparkFactory, DEBRIS_SIZE);
+		sparkHandler = new NewHolderList<Spark>(sparkFactory, DEBRIS_SIZE);
 		holderLists.add(sparkHandler);
 		
-		missileHandler = new HolderList<MissileHolder, Missile>(missileFactory, MISSILE_SIZE);
+		missileHandler = new NewHolderList<Missile>(missileFactory, MISSILE_SIZE);
 		holderLists.add(missileHandler);
 		
 		//scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
 		//drawables.add(scoreObjectHandler);
 		//holderLists.add(scoreObjectHandler);
 		
-		shipHandler = new HolderList<ShipHolder, Ship>(shipFactory, SHIPS_SIZE);
+		shipHandler = new NewHolderList<Ship>(shipFactory, SHIPS_SIZE);
 		holderLists.add(shipHandler);
 		
 		drawables.addAll(holderLists);
@@ -200,87 +200,71 @@ public class GameWorld implements Drawable{
 	}
 	
 	//methods for manipulating game objects
-	public Player getPlayer(short id)
-	{
+	public Player getPlayer(short id) {
 		return playerMap.get(id);
 	}
-	public void addPlayer(Player p)
-	{
+	public void addPlayer(Player p) {
 		playerMap.put(p.getId(), p);
 	}
-	public Player removePlayer(short id)
-	{
+	public Player removePlayer(short id) {
 		return playerMap.remove(id);
 	}
-	public Player removePlayer(Player p)
-	{
+	public Player removePlayer(Player p) {
 		return playerMap.remove(p.getId());
 	}
 	
-	public Collection<Player> getPlayers()
-	{
+	public Collection<Player> getPlayers() {
 		return playerMap.values();
 	}
 	
-	public void addShip(ShipHolder s)
-	{
+	public void addShip(ShipHolder s) {
 		Player p = getPlayer(s.getId());
 		
-		if (p==null)
-		{
+		if (p==null) {
 			System.out.println("No player matches id = " + s.getId());
 			return;
 		}
 		
 		p.setShip(s);
 		
-		shipHandler.add(s);
-	}	
+		shipHandler.add(s).player = p;
+	}
 	
-	public void addBall(BallHolder ball)
-	{
+	public void addBall(BallHolder ball) {
 		ballHandler.add(ball);
 	}
 	
-	public void addConnector(ConnectorHolder connector)
-	{
+	public void addConnector(ConnectorHolder connector) {
 		connectorHandler.add(connector);
 	}
 	
-	public void addMine(MineHolder mine)
-	{
+	public void addMine(MineHolder mine) {
 		mineHandler.add(mine);
 	}
 	
-	public void addMissile(MissileHolder missile)
-	{
+	public void addMissile(MissileHolder missile) {
 		missileHandler.add(missile);
 	}
 	
-	public void addFastShot(AbstractDebrisHolder shot)
-	{
+	public void addFastShot(AbstractDebrisHolder shot) {
 		shotHandler.add(shot);
 	}
 	
-	public void addSpark(AbstractDebrisHolder spark)
-	{
+	public void addSpark(AbstractDebrisHolder spark) {
 		sparkHandler.add(spark);
 	}
 	
-	public void addScoreObject(ScoreObjectHolder s)
-	{
+	public void addScoreObject(ScoreObjectHolder s) {
 		//scoreObjectHandler.add(new ScoreObject(s));
 		hud.addScoreObject(s);
 		//System.out.println("Adding score object in GameWorld");
 	}
 	
-	public void handleCannon(CannonHolder c)
-	{
+	public void handleCannon(CannonHolder c) {
 		c.set(cannons.get(c.getNum()));
 	}
 	
-	public void handleBase(BaseHolder b)
-	{
+	public void handleBase(BaseHolder b) {
 		for(Base base : bases)
 		{
 			if(base.getId()==b.getId())
@@ -305,16 +289,13 @@ public class GameWorld implements Drawable{
 	/**
 	 * Clears all in-game objects so that they are refreshed each frame.
 	 */
-	public void update()
-	{
-		for (Player p : playerMap.values())
-		{
+	public void update() {
+		for (Player p : playerMap.values()) {
 			p.setActive(false);
 		}
 		
 		//shots.clearShots();		
-		for (HolderList<?,?> d : holderLists)
-		{
+		for (List<?> d : holderLists) {
 			d.clear();
 		}
 
@@ -334,21 +315,14 @@ public class GameWorld implements Drawable{
 		private Ellipse2D shieldShape;		
 		private Player player;
 		
-		public Ship()
-		{
+		public Ship() {
 			shieldShape = new Ellipse2D.Float();
 			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 		}
 		
-		@Override
-		public void setFrom(Holder<ShipHolder> other)
-		{
-			super.setFrom(other);
-			player = getPlayer(super.id);
-		}
-		
 		public void paintDrawable(Graphics2D g2d)
 		{
+			if(player == null) 	player = getPlayer(super.id);
 			
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
@@ -356,7 +330,7 @@ public class GameWorld implements Drawable{
 			g2d.translate(x, y);
 			
 			g2d.setColor(NAME_COLOR);
-			Utilities.drawAdjustedStringDown(g2d, player.getNick(), 0, -SHIP_RADIUS);
+			Utilities.drawAdjustedStringDown(g2d, player.getName(), 0, -SHIP_RADIUS);
 			
 			
 			if(player.getLife()==0)
@@ -406,17 +380,15 @@ public class GameWorld implements Drawable{
 		private Player player;
 		private Connector connector;
 		
-		public Ball()
-		{
+		public Ball() {
 			connector = new Connector();
 		}
 		
 		/**
-		 * Sets the connector according to the id: connects this ball to the desired ship.
+		 * Sets the connector according to the id, connecting this ball to the desired ship.
 		 * @return The player that corresponds to the id.
 		 */
-		private Player setPlayer()
-		{	
+		private Player setPlayer() {	
 			if(id==Player.NO_ID)
 			{
 				player = null;
@@ -436,9 +408,8 @@ public class GameWorld implements Drawable{
 		}
 		
 		@Override
-		public void setFrom(Holder<BallHolder> other)
-		{
-			int previousPlayer = super.id;
+		public void setFrom(Holder<BallHolder> other) {
+			//int previousPlayer = super.id;
 			super.setFrom(other);
 			
 			//if(previousPlayer!=super.id)
@@ -446,8 +417,7 @@ public class GameWorld implements Drawable{
 			//setConnector();
 		}
 		
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			//AffineTransform saved = g2d.getTransform();
 
 			g2d.setColor(BALL_COLOR);
@@ -461,8 +431,7 @@ public class GameWorld implements Drawable{
 			g2d.translate(-x, -y);
 			//g2d.setTransform(saved);
 
-			if(player!=null)
-			{
+			if(player!=null) {
 				setConnector();
 				connector.paintDrawable(g2d);
 			}
@@ -473,8 +442,7 @@ public class GameWorld implements Drawable{
 	};
 	
 	
-	public class Connector extends ConnectorHolder implements Drawable
-	{
+	public class Connector extends ConnectorHolder implements Drawable {
 		private final Color CONNECTOR_COLOR = Color.GREEN;
 		private final Line2D.Float connectorShape= new Line2D.Float();
 
@@ -520,8 +488,8 @@ public class GameWorld implements Drawable{
 		private Player player;
 		private String name;
 		
-		public void setFrom(MineHolder other)
-		{
+		@Override
+		public void setFrom(Holder<MineHolder> other) {
 			super.setFrom(other);
 			
 			if (id==EXPIRED_MINE_ID) player = null;
@@ -530,18 +498,14 @@ public class GameWorld implements Drawable{
 			name = getMineName();
 		}
 		
-		private String getMineName()
-		{
+		private String getMineName() {
 			if (id==EXPIRED_MINE_ID) return EXPIRED_MINE_NAME;
+			if (player==null) return null;
 			
-			if (player==null)
-				return null;
-			
-			return player.getNick();
+			return player.getName();
 		}
 		
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			g2d.setColor(MINE_COLOR);
 			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
@@ -596,8 +560,7 @@ public class GameWorld implements Drawable{
 		 * @param type The area type.
 		 * @return The x-coordinate for the area: type % 4 - 2
 		 */
-		private int getXArea(int type)
-		{
+		private int getXArea(int type) {
 			return type%4 - 2;
 		}
 
@@ -605,39 +568,35 @@ public class GameWorld implements Drawable{
 		 * @param type The area type.
 		 * @return The y-coordinate for the area: type / 4 - 6
 		 */
-		private int getYArea(int type)
-		{
+		private int getYArea(int type) {
 			return type / 4 - 6;
 		}
 		
 		@Override
-		public int getX()
-		{
+		public int getX() {
 			return x+viewX + getXArea(type)*AREA_SIZE;
 		}
+		
 		@Override
-		public int getY()
-		{
+		public int getY() {
 			return y+viewY + getYArea(type)*AREA_SIZE;	
 		}
 		
 		public AbstractDebris(){}
-		public AbstractDebris(Color c, Ellipse2D shape)
-		{
+		public AbstractDebris(Color c, Ellipse2D shape) {
 			COLOR = c;
 			debrisShape = shape;
 		}
 
-		public void paintDrawable(Graphics2D g2d)
-		{
+		@Override
+		public void paintDrawable(Graphics2D g2d) {
 			g2d.setColor(COLOR);
 			g2d.translate(getX(), getY());
 			g2d.fill(debrisShape);
 		}
 	}
 	
-	public class FastShot extends AbstractDebris<FastShot>
-	{
+	public class FastShot extends AbstractDebris<FastShot> {
 		//drawing info
 		public static final int SHOT_RADIUS = 2;
 		private final Color TEAM_COLOR = Color.BLUE;
@@ -652,8 +611,7 @@ public class GameWorld implements Drawable{
 		}
 		
 		@Override
-		public void setFrom(Holder<AbstractDebrisHolder> other)
-		{
+		public void setFrom(Holder<AbstractDebrisHolder> other) {
 			super.setFrom(other);
 			setColor();
 		}
@@ -662,8 +620,7 @@ public class GameWorld implements Drawable{
 		 * Sets the shots color to ENEMY_COLOR (white).
 		 * TODO: Set the shot's color based on the type.
 		 */
-		private void setColor()
-		{
+		private void setColor() {
 			super.COLOR = ENEMY_COLOR;
 		}
 	}
@@ -672,34 +629,29 @@ public class GameWorld implements Drawable{
 	};
 	
 	
-	public class Spark extends AbstractDebris<Spark>
-	{
+	public class Spark extends AbstractDebris<Spark> {
 		//drawing info
-		public static final float SPARK_RADIUS = (float)0.5;
+		public static final float SPARK_RADIUS = 0.5f;
 		private final Color SPARK_COLOR = Color.RED;
 		private final Ellipse2D sparkShape = 
 			new Ellipse2D.Float(-SPARK_RADIUS,-SPARK_RADIUS,2*SPARK_RADIUS,2*SPARK_RADIUS);
 		
-		private void setDebris()
-		{
+		private void setDebris() {
 			//super.COLOR = SPARK_COLOR;
 			super.debrisShape = sparkShape;
 		}
 		
-		public Spark()
-		{
+		public Spark() {
 			setDebris();
 		}
 		
 		@Override
-		public void setFrom(Holder<AbstractDebrisHolder> other)
-		{
+		public void setFrom(Holder<AbstractDebrisHolder> other) {
 			super.setFrom(other);
 			setColor();
 		}
 		
-		private void setColor()
-		{
+		private void setColor() {
 			super.COLOR = SPARK_COLOR;
 		}
 	}
@@ -709,20 +661,17 @@ public class GameWorld implements Drawable{
 	
 	/**
 	 * Class that extends Base to draw player names as well.
-	 * @author vlad
+	 * @author Vlad Firoiu
 	 */
-	private class DrawableBase extends Base
-	{
+	private class DrawableBase extends Base {
 		private Player player;
 		
-		public DrawableBase(Base other)
-		{
+		public DrawableBase(Base other) {
 			super(other.num, other.team, other.base_type, other.x, other.y);
 		}
 		
 		@Override
-		public void setFrom(Holder<BaseHolder> other)
-		{
+		public void setFrom(Holder<BaseHolder> other) {
 			super.setFrom(other);
 			
 			if(super.id == Player.NO_ID)
@@ -736,8 +685,7 @@ public class GameWorld implements Drawable{
 		}
 		
 		@Override
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x*BLOCK_SIZE);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y*BLOCK_SIZE);
 			
@@ -746,7 +694,7 @@ public class GameWorld implements Drawable{
 			if(player!=null && super.id != Player.NO_ID)
 			{
 				//System.out.println("Drawing base name");
-				String nick = player.getNick();
+				String nick = player.getName();
 
 				switch(base_type)
 				{

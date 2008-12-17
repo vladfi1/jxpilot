@@ -4,7 +4,7 @@ import net.sf.jxpilot.util.Holder;
 
 /**
  * Carries information server sends for bases.
- * @author vlad
+ * @author Vlad Firoiu
  */
 public class BaseHolder implements Holder<BaseHolder>
 {

@@ -2,45 +2,22 @@ package net.sf.jxpilot.net;
 
 import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 import net.sf.jxpilot.game.ShipShape;
+import net.sf.jxpilot.game.PlayerHolder;
 
 /**
  * Represents data from a Player packet.
  * @author Vlad Firoiu
  */
-public class PlayerPacket extends XPilotPacket {
+public class PlayerPacket extends PlayerHolder implements XPilotPacket {
 	/**
 	 * Default packet read exception to throw.
 	 */
 	protected final ReliableReadException PLAYER_READ_EXCEPTION = new ReliableReadException();
 	
-	protected short id;
-	protected byte my_team, my_char;
-	protected String name, real, host;
-	protected ShipShape ship_shape;
+	protected byte pkt_type;
+	
+	public byte getPacketType(){return pkt_type;}
 
-	//player data
-	public short getId(){return id;}
-	public short getTeam(){return my_team;}
-	public short getChar(){return my_char;}
-	public String getName(){return name;}
-	public String getReal(){return real;}
-	public String getHost(){return host;}
-	public ShipShape getShipShape(){return ship_shape;}
-	
-	public void setPlayer(short id, byte my_team , byte my_char, String name, String real, String host, ShipShape ship_shape) {
-		this.id = id;
-		this.my_team = my_team;
-		this.my_char = my_char;
-		this.name = name;
-		this.real = real;
-		this.host = host;
-		this.ship_shape = ship_shape;
-	}
-	
-	public void setFrom(PlayerPacket other) {
-		this.setPlayer(other.id, other.my_team, other.my_char, other.name, other.real, other.host, other.ship_shape);
-	}
-	
 	@Override
 	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
 		pkt_type = in.getByte();

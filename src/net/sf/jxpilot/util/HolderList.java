@@ -7,6 +7,7 @@ package net.sf.jxpilot.util;
  * @author vlad
  *
  * @param <T>
+ * @param <G>
  */
 public class HolderList<G extends Holder<G>, T extends G> extends java.util.ArrayList<T>
 {
@@ -19,9 +20,9 @@ public class HolderList<G extends Holder<G>, T extends G> extends java.util.Arra
 	/**
 	 * A factory to generate new instances.
 	 */
-	private Factory<T> factory;
+	private Factory<? extends T> factory;
 	
-	public HolderList(Factory<T> factory, int start_size)
+	public HolderList(Factory<? extends T> factory, int start_size)
 	{
 		super(start_size);
 		

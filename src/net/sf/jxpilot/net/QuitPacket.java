@@ -4,7 +4,7 @@ package net.sf.jxpilot.net;
  * Holds data from a Quit packet.
  * @author Vlad Firoiu
  */
-public class QuitPacket extends XPilotPacket {
+public class QuitPacket extends XPilotPacketAdaptor {
 	protected final ReliableReadException QUIT_READ_EXCEPTION = new ReliableReadException();
 	
 	protected String reason;

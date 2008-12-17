@@ -131,7 +131,7 @@ public class HUD implements Drawable{
 		if(lockPlayer!=null)
 		{
 			g2d.setColor(Color.WHITE);
-			Utilities.drawAdjustedStringDown(g2d,lockPlayer.getNick(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
+			Utilities.drawAdjustedStringDown(g2d,lockPlayer.getName(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
 		}
 	}
 	

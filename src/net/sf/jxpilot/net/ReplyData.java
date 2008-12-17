@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net;
 
-public class ReplyData extends XPilotPacket{
+public class ReplyData extends XPilotPacketAdaptor{
 	public static final int LENGTH = 1 + 1 + 1;//3
 	
 	protected final ReliableReadException REPLY_DATA_EXCEPTION = new ReliableReadException();

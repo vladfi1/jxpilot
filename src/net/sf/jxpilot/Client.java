@@ -9,9 +9,13 @@ import net.sf.jxpilot.net.NetClient;
 import net.sf.jxpilot.net.PlayerPacket;
 import net.sf.jxpilot.net.QuitPacket;
 import net.sf.jxpilot.net.ShutdownPacket;
-import net.sf.jxpilot.util.BitVector;
 import net.sf.jgamelibrary.preferences.Preferences;
 
+/**
+ * Class that manages client data. Communication between user and
+ * NetClient go through here.
+ * @author Vlad Firoiu
+ */
 public class Client implements AbstractClient, ClientInputListener
 {
 	private volatile boolean quit=false;
@@ -60,8 +64,7 @@ public class Client implements AbstractClient, ClientInputListener
         netClient = new NetClient(this);
     }
 
-	public void runClient(String serverIP, int serverPort)
-	{
+	public void runClient(String serverIP, int serverPort) {
 		netClient.runClient(serverIP, serverPort);
 	}
 	
@@ -93,6 +96,7 @@ public class Client implements AbstractClient, ClientInputListener
 	 * Initializes world which maintains map and various drawables.
 	 * Also initializes JXPilotFrame.
 	 */
+	@Override
 	public void mapInit(BlockMap blockMap)
 	{
 		world = new GameWorld(blockMap);
@@ -101,7 +105,7 @@ public class Client implements AbstractClient, ClientInputListener
 		
 		DisplayMode mode = prefs!=null ?
 				DisplayMode.getDisplayMode(prefs.get(DisplayMode.displayModeKey))
-				: DisplayMode.FSEM;
+				: DisplayMode.AFS;
 		
 		frame = new JXPilotFrame(mode, world, this);
 		//frame.setDrawables(drawables);
@@ -130,11 +134,10 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addShip(s);
 	}
 	
-	public void handlePlayer(PlayerPacket p) {
+	public void handlePlayer(PlayerHolder p) {
 		Player player = new Player(p.getId(), p.getTeam(), p.getChar(), p.getName(), p.getReal(), p.getHost(), p.getShipShape());
 		
-		if(player.getNick().equalsIgnoreCase(netClient.getNick()))
-		{
+		if(player.getName().equals(netClient.getNick())) {
 			self = player;
 			world.setSelf(player);
 			System.out.println("Found self!");

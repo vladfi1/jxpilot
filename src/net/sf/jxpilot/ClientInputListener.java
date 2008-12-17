@@ -2,7 +2,7 @@ package net.sf.jxpilot;
 
 /**
  * Interface for listening to the possible user inputs.
- * @author vlad
+ * @author Vlad Firoiu
  */
 public interface ClientInputListener
 {

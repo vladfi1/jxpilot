@@ -4,7 +4,7 @@ package net.sf.jxpilot.net;
  * Holds data from a shutdown packet.
  * @author Vlad Firoiu
  */
-public class ShutdownPacket extends XPilotPacket {
+public class ShutdownPacket extends XPilotPacketAdaptor {
 
 	protected short count, delay;
 	

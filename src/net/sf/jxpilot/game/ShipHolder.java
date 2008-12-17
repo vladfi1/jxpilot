@@ -2,6 +2,10 @@ package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.util.Holder;
 
+/**
+ * Holds ship data.
+ * @author Vlad Firoiu
+ */
 public class ShipHolder implements Holder<ShipHolder>
 {
 	protected short x, y, id, heading;
@@ -23,13 +27,12 @@ public class ShipHolder implements Holder<ShipHolder>
 	}
 	
 	@Override
-	public void set(ShipHolder other)
-	{
+	public void set(ShipHolder other) {
 		other.setShip(x, y, id, heading, shield, cloak, emergency_shield, phased, deflector);
 	}
 	
-	public void setFrom(Holder<ShipHolder> other)
-	{
+	@Override
+	public void setFrom(Holder<ShipHolder> other) {
 		other.set(this);
 	}
 	
