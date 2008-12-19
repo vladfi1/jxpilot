@@ -3,7 +3,7 @@ package net.sf.jxpilot.net;
 import net.sf.jxpilot.game.BaseHolder;
 
 /**
- * Holds data from a Base packet.
+ * Holds data from a base packet.
  * @author Vlad Firoiu
  */
 public final class BasePacket extends BaseHolder implements XPilotPacket {

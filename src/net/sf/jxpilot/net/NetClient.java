@@ -150,7 +150,7 @@ public class NetClient
 		readers[PKT_SELF_ITEMS]	= new SelfItemsProcessor();
 		readers[PKT_FUEL]		= new FuelProcessor();
 		readers[PKT_CANNON]		= new CannonProcessor();
-		readers[PKT_TARGET]		= new TargetProcessor();
+		readers[PKT_TARGET]		= getTargetProcessor();
 		readers[PKT_RADAR]		= getRadarProcessor();
 		readers[PKT_FASTRADAR]	= new FastRadarProcessor();
 		readers[PKT_RELIABLE]	= getReliableProcessor();
@@ -1883,52 +1883,39 @@ public class NetClient
 		}
 	}
 	
-	protected class TargetProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
-			byte type = in.getByte();
-			short num = in.getShort();
-			short dead_time = in.getShort();
-			short damage = in.getShort();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nTarget Packet\ntype = " + type +
-									"\nnum = " + num +
-									"\ndead time = " + dead_time +
-									"\ndamage = " + damage);
-			
+	/**
+	 * Processes target packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class TargetProcessor implements PacketProcessor {
+		protected TargetPacket targetPacket = new TargetPacket();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			targetPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + targetPacket.toString());
 			//acks target packet
-			out.putByte(PKT_ACK_TARGET).putInt(last_loops).putShort(num);
+			out.putByte(PKT_ACK_TARGET).putInt(last_loops).putShort(targetPacket.getNum());
 		}
 	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate target
+	 * processor is to be used.
+	 * @return A new TargetProcessor object.
+	 */
+	protected PacketProcessor getTargetProcessor(){return new TargetProcessor();}
 	
 	/**
 	 * Processes eyes packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class EyesProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short id;
+	protected class EyesProcessor implements PacketProcessor {
+		protected EyesPacket eyesPacket = new EyesPacket();
 		
-		public byte getPacketType(){return pkt_type;}
-		public short getId(){return id;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			id = in.getShort();
-		}
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-			client.handleEyes(id);
-		}
-		
-		@Override
-		public String toString() {
-			return "Eyes Packet\npacket type = " + pkt_type +
-			"\nid = " + id;
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			eyesPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + eyesPacket.toString());
+			client.handleEyes(eyesPacket.getId());
 		}
 	}
 	/**
@@ -1936,7 +1923,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new EyesProcessor object.
 	 */
-	protected EyesProcessor getEyesProcessor(){return new EyesProcessor();}
+	protected PacketProcessor getEyesProcessor(){return new EyesProcessor();}
 	
 	/**
 	 * Processes Team Score packets.
@@ -1981,7 +1968,7 @@ public class NetClient
 	 * score processor is to be used.
 	 * @return A new TeamScoreProcessor object.
 	 */
-	protected TeamScoreProcessor getTeamScoreProcessor(){return new TeamScoreProcessor();}
+	protected PacketProcessor getTeamScoreProcessor(){return new TeamScoreProcessor();}
 	
 	/**
 	 * Processes Seek Packets.
@@ -2029,7 +2016,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new SeekProcessor object.
 	 */
-	protected SeekProcessor getSeekProcessor(){return new SeekProcessor();}
+	protected PacketProcessor getSeekProcessor(){return new SeekProcessor();}
 	
 	/**
 	 * Processes String packets. Note that this has no function,
@@ -2072,7 +2059,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new StringProcessor object.
 	 */
-	protected StringProcessor getStringProcessor(){return new StringProcessor();}
+	protected PacketProcessor getStringProcessor(){return new StringProcessor();}
 	
 	/**
 	 * Processes wormhole packets.
@@ -2120,7 +2107,7 @@ public class NetClient
 	 * @return A new WormholeProcessor object.
 	 * @since xpilot version 4.5.0
 	 */
-	protected WormholeProcessor getWormholeProcessor(){return new WormholeProcessor();}
+	protected PacketProcessor getWormholeProcessor(){return new WormholeProcessor();}
 	
 	/**
 	 * Processes asteroid packets.
@@ -2180,7 +2167,7 @@ public class NetClient
 	 * @return A new AsteroidProcessor object.
 	 * @since xpilot version 4.4.0
 	 */
-	protected AsteroidProcessor getAsteroidProcessor(){return new AsteroidProcessor();}
+	protected PacketProcessor getAsteroidProcessor(){return new AsteroidProcessor();}
 	
 	/**
 	 * Processes lose item packets.
@@ -2218,7 +2205,7 @@ public class NetClient
 	 * item processor is to be used.
 	 * @return A new LoseItemProcessor object.
 	 */
-	protected LoseItemProcessor getLoseItemProcessor(){return new LoseItemProcessor();}
+	protected PacketProcessor getLoseItemProcessor(){return new LoseItemProcessor();}
 	
 	/**
 	 * Processes round delay packets.
@@ -2260,7 +2247,7 @@ public class NetClient
 	 * delay processor is to be used.
 	 * @return A new RoundDelayProcessor object.
 	 */
-	protected RoundDelayProcessor getRoundDelayProcessor(){return new RoundDelayProcessor();}
+	protected PacketProcessor getRoundDelayProcessor(){return new RoundDelayProcessor();}
 	
 	/**
 	 * Processes phasing time packets.
@@ -2302,7 +2289,7 @@ public class NetClient
 	 * time processor is to be used.
 	 * @return A new PhasingTimeProcessor object.
 	 */
-	protected PhasingTimeProcessor getPhasingTimeProcessor(){return new PhasingTimeProcessor();}
+	protected PacketProcessor getPhasingTimeProcessor(){return new PhasingTimeProcessor();}
 	
 	/**
 	 * Processes thrust time packets.
@@ -2344,7 +2331,7 @@ public class NetClient
 	 * time processor is to be used.
 	 * @return A new ThrustTimeProcessor object.
 	 */
-	protected ThrustTimeProcessor getThrustTimeProcessor(){return new ThrustTimeProcessor();}
+	protected PacketProcessor getThrustTimeProcessor(){return new ThrustTimeProcessor();}
 	
 	/**
 	 * Processes shield time packets.
@@ -2386,7 +2373,7 @@ public class NetClient
 	 * time processor is to be used.
 	 * @return A new ShieldTimeProcessor object.
 	 */
-	protected ShieldTimeProcessor getShieldTimeProcessor(){return new ShieldTimeProcessor();}
+	protected PacketProcessor getShieldTimeProcessor(){return new ShieldTimeProcessor();}
 	
 	/**
 	 * Processes MOTD (Message of the Day) packets.
@@ -2445,7 +2432,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new MOTDProcessor object.
 	 */
-	protected MOTDProcessor getMOTDProcessor(){return new MOTDProcessor();}
+	protected PacketProcessor getMOTDProcessor(){return new MOTDProcessor();}
 	
 	/**
 	 * Processes radar packets.
@@ -2494,7 +2481,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new RadarProcessor object.
 	 */
-	protected RadarProcessor getRadarProcessor(){return new RadarProcessor();}
+	protected PacketProcessor getRadarProcessor(){return new RadarProcessor();}
 
 	/**
 	 * Processes destruct packets.
@@ -2533,7 +2520,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new DestructProcessor object.
 	 */	
-	protected DestructProcessor getDestructProcessor(){return new DestructProcessor();}
+	protected PacketProcessor getDestructProcessor(){return new DestructProcessor();}
 	
 	/**
 	 * Processes shutdown packets.
@@ -2555,7 +2542,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new ShutdownProcessor object.
 	 */	
-	protected ShutdownProcessor getShutdownProcessor(){return new ShutdownProcessor();}
+	protected PacketProcessor getShutdownProcessor(){return new ShutdownProcessor();}
 	
 	/**
 	 * Processes trans packets.
@@ -2602,7 +2589,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new TransProcessor object.
 	 */	
-	protected TransProcessor getTransProcessor(){return new TransProcessor();}
+	protected PacketProcessor getTransProcessor(){return new TransProcessor();}
 	
 	/**
 	 * Processes audio packets.
@@ -2642,7 +2629,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new AudioProcessor object.
 	 */	
-	protected AudioProcessor getAudioProcessor(){return new AudioProcessor();}
+	protected PacketProcessor getAudioProcessor(){return new AudioProcessor();}
 	
 	/**
 	 * Processes time left packets.
@@ -2680,5 +2667,5 @@ public class NetClient
 	 * left processor is to be used.
 	 * @return A new {@code TimeLeftProcessor} object.
 	 */	
-	protected TimeLeftProcessor getTimeLeftProcessor(){return new TimeLeftProcessor();}
+	protected PacketProcessor getTimeLeftProcessor(){return new TimeLeftProcessor();}
 }
