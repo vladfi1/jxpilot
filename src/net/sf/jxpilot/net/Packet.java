@@ -1,8 +1,9 @@
 package net.sf.jxpilot.net;
 
-public class Packet
-{
-	
+/**
+ * Holds various constants used in network communications.
+ */
+public class Packet {
 	
 	public static final byte ENTER_QUEUE_pack =	0x01;
 	public static final byte ENTER_GAME_pack = 	0x00;

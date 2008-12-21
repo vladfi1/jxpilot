@@ -4,7 +4,7 @@ package net.sf.jxpilot.net;
  * Convenience class that takes care of packet type.
  * @author Vlad Firoiu
  */
-public abstract class XPilotPacketAdaptor implements XPilotPacket{
+public abstract class XPilotPacketAdaptor implements XPilotPacket {
 	/**
 	 * The packet type.
 	 */

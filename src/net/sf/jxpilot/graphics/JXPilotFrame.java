@@ -10,8 +10,6 @@ import javax.swing.*;
 import net.sf.jxpilot.user.*;
 import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
-import net.sf.jxpilot.util.*;
-
 
 public class JXPilotFrame extends Frame
 {

@@ -2,16 +2,18 @@ package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.util.Holder;
 
-public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder>
-{
+/**
+ * Holds data for debris types.
+ * @author Vlad Firoiu
+ */
+public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder> {
 	protected int type;
 	/**
 	 * Unsigned byte.
 	 */
 	protected short x,y;
 	
-	public AbstractDebrisHolder setAbstractDebris(int type, short x, short y)
-	{
+	public AbstractDebrisHolder setAbstractDebris(int type, short x, short y) {
 		this.type = type;
 		this.x = x;
 		this.y = y;
@@ -19,8 +21,7 @@ public class AbstractDebrisHolder implements Holder<AbstractDebrisHolder>
 	}
 	
 	@Override
-	public void set(AbstractDebrisHolder other)
-	{
+	public void set(AbstractDebrisHolder other) {
 		other.setAbstractDebris(type, x, y);
 	}
 	

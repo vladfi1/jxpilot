@@ -9,49 +9,50 @@ import net.sf.jxpilot.util.Utilities;
 
 /**
  * Wrapper class that handles buffer flips automatically. It does not actually extend ByteBuffer since
- * ByteBuffer has only private methods/constructors.
- * @author vlad
+ * ByteBuffer has only private methods/constructors, UNFORTUNATELY.
+ * @author Vlad Firoiu
  */
 
-public class ByteBufferWrap
-{
+public class ByteBufferWrap {
 	public static final byte END_OF_STRING = 0x00;
 	
 	private boolean writing=true;
 	private ByteBuffer buffer;
 	private int mark=0;
 	
-	public ByteBufferWrap(int capacity)
-	{
+	public ByteBufferWrap(int capacity) {
 		buffer = ByteBuffer.allocate(capacity);
 	}
 	
 	public boolean isWriting(){return writing;}
 	public boolean isReading(){return !writing;}
 	
-	public void setWriting()
-	{
-		if (!writing)
-		{
+	/**
+	 * Sets the buffer to start writing.
+	 */
+	public void setWriting() {
+		if (!writing) {
 			mark = buffer.position();
+			//buffer.mark();
 			buffer.position(buffer.limit());
 			buffer.limit(buffer.capacity());
 			writing = true;
 		}
 	}
 	
-	public void setReading()
-	{
-		if (writing)
-		{
+	/**
+	 * Sets the buffer to start reading.
+	 */
+	public void setReading() {
+		if (writing) {
 			buffer.limit(buffer.position());
 			buffer.position(mark);
+			//buffer.reset();
 			writing = false;
 		}
 	}
 	
-	public void clear()
-	{
+	public void clear() {
 		writing = true;
 		buffer.clear();
 		mark = 0;
@@ -61,14 +62,35 @@ public class ByteBufferWrap
 	 * This method does not automatically clear the underlying ByteBuffer before reading a UDP packet.
 	 * @param channel The UDP channel to read from.
 	 * @return The number of bytes read.
-	 * @throws IOException if channel.read throws an IOException.
+	 * @throws IOException if {@code channel.read(ByteBuffer)} throws an IOException.
 	 * @return The number of bytes read (possibly 0) or -1 if no packets available
 	 * 			and the channel is in non-blocking mode.
 	 */
-	public int readPacket(DatagramChannel channel) throws IOException
-	{
+	public int readPacket(DatagramChannel channel) throws IOException {
 		setWriting();
 		return channel.read(buffer);
+	}
+	
+	/**
+	 * Writes from this buffer into the channel.
+	 * @param channel The desired channel.
+	 * @return The number of bytes written.
+	 * @throws IOException Passes along any exceptions thrown by {@code channel.write(ByteBuffer)}.
+	 */
+	public int writePacket(DatagramChannel channel) throws IOException {
+		setReading();
+		return channel.write(buffer);
+	}
+	
+	/**
+	 * 
+	 * @param channel
+	 * @return
+	 * @throws IOException
+	 */
+	public SocketAddress receivePacket(DatagramChannel channel) throws IOException {
+		setWriting();
+		return channel.receive(buffer);
 	}
 	
 	public void sendPacket(DatagramChannel channel, SocketAddress address) throws IOException
@@ -77,172 +99,224 @@ public class ByteBufferWrap
 		channel.send(buffer, address);
 	}
 	
-	public int remaining()
-	{
-		if (writing)
-		{
-			return buffer.position()-mark;
-		}
-		else
-			return buffer.remaining();
+	public int remaining() {
+		if (writing) return buffer.position()-mark;
+		else return buffer.remaining();
 	}
 	
-	public int position()
-	{
+	/**
+	 * @return The position of the buffer.
+	 */
+	public int position() {
 		return buffer.position();
 	}
 	
-	public void position(int pos)
-	{
+	/**
+	 * Sets the buffer's position.
+	 * @param pos The desired position.
+	 */
+	public void position(int pos) {
 		buffer.position(pos);
 	}
 	
-	public void compact()
-	{
+	/**
+	 * Compacts the buffer, and sets writing mode.
+	 */
+	public void compact() {
 		buffer.compact();
 		mark = 0;
 		writing = true;
 	}
 	
-	public byte[] getArray()
-	{
+	/**
+	 * @return The backing array of this buffer.
+	 */
+	public byte[] getArray() {
 		return buffer.array();
 	}
 	
-	public ByteBufferWrap putByte(byte b)
-	{
+	/**
+	 * Puts a byte into this buffer.
+	 * @param b The desired byte.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putByte(byte b) {
 		setWriting();
 		buffer.put(b);
 		return this;
 	}
 	
-	public ByteBufferWrap putBytes(byte[] bytes)
-	{
+	/**
+	 * Puts an array of bytes into this buffer.
+	 * @param bytes The desired bytes.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putBytes(byte[] bytes) {
 		setWriting();
 		buffer.put(bytes);
 		return this;
 	}
 	
-	public ByteBufferWrap putBytes(ByteBufferWrap bytes)
-	{
+	/**
+	 * Puts another buffer's bytes into this buffer.
+	 * @param bytes The buffer containing the desired bytes.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putBytes(ByteBufferWrap bytes) {
 		setWriting();
 		bytes.setReading();
 		buffer.put(bytes.buffer);
 		return this;
 	}
 	
-	public ByteBufferWrap putChar(char c)
-	{
+	/**
+	 * Puts a character into this buffer.
+	 * @param c The desired {@code char}.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putChar(char c) {
 		setWriting();
-		
 		buffer.putChar(c);
 		return this;
 	}
 	
-	public ByteBufferWrap putShort(short s)
-	{
+	/**
+	 * Puts a short into this buffer.
+	 * @param s The desired{@code short}.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putShort(short s) {
 		setWriting();
-		
 		buffer.putShort(s);
 		return this;
 	}	
 
-	public ByteBufferWrap putInt(int i)
-	{
+	/**
+	 * Puts an integer into this buffer.
+	 * @param i The desired {@code int}.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putInt(int i) {
 		setWriting();
-		
 		buffer.putInt(i);
 		return this;
 	}
-	public ByteBufferWrap putLong(long l)
-	{
+	
+	/**
+	 * Puts a long into this buffer.
+	 * @param l The desired {@code long}.
+	 * @return This {@code ByteBufferWrap}, for convenience.
+	 */
+	public ByteBufferWrap putLong(long l) {
 		setWriting();
-		
 		buffer.putLong(l);
 		return this;
 	}
+	
 	/**
+	 * Puts a String into this buffer.
 	 * @param str The String to be put into the buffer using ASCII encoding.
 	 * 				A null char is placed at the end if none is included in the String.
-	 * @return This ByteBufferWrap.
+	 * @return This {@code ByteBufferWrap}, for convenience.
 	 */
-	public ByteBufferWrap putString(String str)
-	{
+	public ByteBufferWrap putString(String str) {
 		setWriting();
 		
-		try
-		{
+		try {
 			buffer.put(str.getBytes("US-ASCII"));
 			if (!str.endsWith(String.valueOf((char)END_OF_STRING)))
 			buffer.put(END_OF_STRING);
-		}
-		catch(Exception e)
-		{
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		
 		return this;
 	}
 
-	public byte getByte()
-	{
+	/**
+	 * Reads a byte from this buffer.
+	 * @return The byte read.
+	 */
+	public byte getByte() {
 		setReading();
 		return buffer.get();
 	}
 	
 	/**
-	 * @return Same as getByte(), but doesn't increment the buffer's position.
+	 * Same as {@code getByte()}, but doesn't increment the buffer's position.
+	 * @return The {@code byte} read.
 	 */
-	public byte peekByte()
-	{
+	public byte peekByte() {
 		setReading();
 		byte b = buffer.get();
 		buffer.position(buffer.position()-1);
 		return b;
 	}
 	
-	public short getUnsignedByte()
-	{
+	/**
+	 * Reads an unsigned byte from this buffer.
+	 * @return The {@code byte} read, as a {@code short}.
+	 */
+	public short getUnsignedByte() {
 		return Utilities.getUnsignedByte(getByte());
 	}
 	
-	public short peekUnsignedByte()
-	{
+	/**
+	 * Same as {@code getUnsignedByte()}, but doesn't increment the buffer's position.
+	 * @return The {@code byte} read, as a {@code short}.
+	 */
+	public short peekUnsignedByte() {
 		return Utilities.getUnsignedByte(peekByte());
 	}
 	
-	public char getChar()
-	{
+	/**
+	 * Reads a character from this buffer.
+	 * @return The {@code char} read.
+	 */
+	public char getChar() {
 		setReading();
 		return buffer.getChar();
 	}
 	
-	public short getShort()
-	{
+	/**
+	 * Reads a short integer from this buffer.
+	 * @return The {@code short} read.
+	 */
+	public short getShort() {
 		setReading();
 		return buffer.getShort();
-	}	
+	}
 	
-	public int getUnsignedShort()
-	{
+	/**
+	 * Reads an unsigned short integer from this buffer.
+	 * @return The {@code short} read, as an {@code int}.
+	 */
+	public int getUnsignedShort() {
 		return Utilities.getUnsignedShort(getShort());
 	}
 	
-	public int getInt()
-	{
+	/**
+	 * Reads an integer from this buffer.
+	 * @return The {@code int} read.
+	 */
+	public int getInt() {
 		setReading();
 		return buffer.getInt();
 	}	
 	
-	public long getLong()
-	{
+	/**
+	 * Reads a long integer from this buffer.
+	 * @return The {@code long} read.
+	 */
+	public long getLong() {
 		setReading();
 		return buffer.getLong();
 	}
 	
-	private StringBuilder strBuf = new StringBuilder();
+	//private StringBuilder strBuf = new StringBuilder();
 	
 	/**
+	 * Reads a String from this buffer.
 	 * @return A String read from the buffer using ASCII encoding.
 	 * @throws StringReadException If the buffer is read to the end but no null char is found.
 	 */
@@ -250,16 +324,13 @@ public class ByteBufferWrap
 	{
 		setReading();
 		
-		StringBuffer b = new StringBuffer();
+		StringBuilder temp = new StringBuilder();
 		
 		byte ch;
 		//boolean ends_with_null = false;
 
-		do
-		{
-
-			if (buffer.remaining()<=0)
-			{
+		do {
+			if (buffer.remaining()<=0) {
 				/*
 					System.out.println("*****error reading string!******");
 					String soFar = "";
@@ -273,21 +344,19 @@ public class ByteBufferWrap
 				throw STRING_READ_EXCEPTION;
 			}
 
-
 			ch = buffer.get();
 
 			//if (ch==END_OF_STRING)
 			//	ends_with_null = true;
 
-			b.append((char)ch);
-
+			temp.append((char)ch);
 		} while(ch != END_OF_STRING);
 
-		return b.toString();
+		return temp.toString();
 	}
 	
 	/**
-	 * Default string read exception to throw. Prevents needless creation of objects.
+	 * Default {@code StringReadException} to throw. Prevents needless creation of objects.
 	 */
 	private final StringReadException STRING_READ_EXCEPTION = new StringReadException();
 }
