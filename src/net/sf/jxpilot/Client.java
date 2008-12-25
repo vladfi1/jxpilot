@@ -97,8 +97,7 @@ public class Client implements AbstractClient, ClientInputListener
 	 * Also initializes JXPilotFrame.
 	 */
 	@Override
-	public void mapInit(BlockMap blockMap)
-	{
+	public void mapInit(BlockMap blockMap) {
 		world = new GameWorld(blockMap);
 		hud = world.getHud();
 		this.blockMap = blockMap;
@@ -113,11 +112,13 @@ public class Client implements AbstractClient, ClientInputListener
 		frame.setVisible(true);
 	}
 	
+	@Override
 	public void handleQuit(QuitPacket q) {
 		JOptionPane.showMessageDialog(frame, "Server closed connection:\n" + q.getReason());
 		this.quit();
 	}
 	
+	@Override
 	public void handleSelf(SelfHolder self) {
 		eyesId = -1;
 		selfX = self.getX();
@@ -129,11 +130,13 @@ public class Client implements AbstractClient, ClientInputListener
 		hud.setSelf(self);
 	}
 	
+	@Override
 	public void handleShip(ShipHolder s)
 	{
 		world.addShip(s);
 	}
 	
+	@Override
 	public void handlePlayer(PlayerHolder p) {
 		Player player = new Player(p.getId(), p.getTeam(), p.getChar(), p.getName(), p.getReal(), p.getHost(), p.getShipShape());
 		
@@ -146,72 +149,74 @@ public class Client implements AbstractClient, ClientInputListener
 		world.addPlayer(player);
 	}
 	
+	@Override
 	public void handleRadar(RadarHolder r)
 	{
 		world.handleRadar(r);
 	}
 	
+	@Override
 	public void handleLeave(short id)
 	{
 		world.removePlayer(id);
 	}
 	
-	public void handleStart(int loops)
-	{
+	@Override
+	public void handleStart(int loops) {
 		world.update();
 	}
 	
-	public void handleEyes(short id)
-	{
+	@Override
+	public void handleEyes(short id) {
 		eyesId = id;
 		world.setViewPosition(eyesId);
 	}
 	
-	public void handleScoreObject(ScoreObjectHolder s)
-	{
+	@Override
+	public void handleScoreObject(ScoreObjectHolder s) {
 		world.addScoreObject(s);
 	}
 	
-	public void handleEnd(int loops)
-	{
+	@Override
+	public void handleEnd(int loops) {
 		//setFrameView();
 		if(!quit)
 		frame.activeRender();
 	}
 	
-	public void handleFastShot(AbstractDebrisHolder shot)
-	{
+	@Override
+	public void handleFastShot(AbstractDebrisHolder shot) {
 		//shotHandler.addDrawable(s);
 		
 		world.addFastShot(shot);
 	}
 	
-	public void handleBall(BallHolder ball)
-	{
+	@Override
+	public void handleBall(BallHolder ball) {
 		//ballHandler.addDrawable(b);
 		
 		world.addBall(ball);
 	}
 	
-	public void handleConnector(ConnectorHolder connector)
-	{
+	@Override
+	public void handleConnector(ConnectorHolder connector) {
 		//connectorHandler.addDrawable((Holder)connector);
 		
 		world.addConnector(connector);
 	}
 	
-	public void handleFuel(FuelHolder f)
-	{
+	@Override
+	public void handleFuel(FuelHolder f) {
 		world.handleFuel(f);
 	}
 	
-	public void handleCannon(CannonHolder c)
-	{
+	@Override
+	public void handleCannon(CannonHolder c) {
 		world.handleCannon(c);
 	}
 	
-	public void handleBase(BaseHolder b)
-	{
+	@Override
+	public void handleBase(BaseHolder b) {
 		world.handleBase(b);
 	}
 	
@@ -223,60 +228,69 @@ public class Client implements AbstractClient, ClientInputListener
         frame.getMessagePool().publishMessage(message);
     }
 	
-	public void handleMine(MineHolder mine)
-	{
+    @Override
+	public void handleMine(MineHolder mine) {
 		//mineHandler.addDrawable(m);
 		
 		world.addMine(mine);
 	}
-	public void handleDebris(AbstractDebrisHolder debris)
-	{
+    @Override
+	public void handleDebris(AbstractDebrisHolder debris) {
 		//debrisHandler.addDrawable(d);
 		world.addSpark(debris);
 		
 		//System.out.println("NetClient handling debris!");
 	}
 	
-	public void handleMissile(MissileHolder missile)
-	{
+    @Override
+	public void handleMissile(MissileHolder missile) {
 		//missileHandler.addDrawable(m);
 		world.addMissile(missile);
 	}
 	
-	public void handleScore(short id, short score, short life)
-	{
+    @Override
+	public void handleScore(short id, short score, short life) {
 		Player p = world.getPlayer(id);
-		if(p!=null)
-		{
+		if(p!=null) {
 			p.setScore(score);
 			p.setLife(life);
 		}
 	}
 	
+    @Override
+    public void handleSelfItems(byte[] items) {
+    	//TODO Implement handling of self items. Perhaps display them in HUD.
+    }
+    
+    @Override
+	public void handleModifiers(String modifiers) {
+		//TODO Implement handling of modifiers. Perhaps display in HUD.
+	}
+    
 	//Client Input Listener methods
-	public void quit()
-	{
+	@Override
+    public void quit() {
 		quit=true;
 		netClient.quit();
 		frame.finish();
 		//System.exit(0);
 	}
 	
-	public void setKey(int key, boolean value)
-	{
+	@Override
+    public void setKey(int key, boolean value) {
 		netClient.setKey(key, value);
 	}
 	
 	/**
 	 * The amount of degrees (in 128 degree mode) that the ship moves is amount*turnspeed/64.
 	 */
-	public void movePointer(short amount)
-	{
+	@Override
+    public void movePointer(short amount) {
 		netClient.movePointer(amount);
 	}
 
-	public void talk(String message)
-	{
+	@Override
+    public void talk(String message) {
 		netClient.netTalk(message);
 	}
 	
@@ -286,7 +300,8 @@ public class Client implements AbstractClient, ClientInputListener
 	 * 
 	 * @return Client's preferences.
 	 */
-	public Preferences getPreferences() {
+	@Override
+    public Preferences getPreferences() {
 		return prefs;
 	}
 }

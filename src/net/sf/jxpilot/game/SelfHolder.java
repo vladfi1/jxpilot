@@ -4,15 +4,15 @@ import net.sf.jxpilot.util.*;
 
 public class SelfHolder implements Holder<SelfHolder>{
 
-	private short x, y, vx, vy;
-	private byte heading, power, turnspeed, turnresistance;
-	private short lockId, lockDist;
-	private byte lockDir;
-	private byte nextCheckPoint;
-	private byte currentTank;
-	private short fuelSum, fuelMax,
+	protected short x, y, vx, vy;
+	protected byte heading, power, turnspeed, turnresistance;
+	protected short lockId, lockDist;
+	protected byte lockDir;
+	protected byte nextCheckPoint;
+	protected byte currentTank;
+	protected short fuelSum, fuelMax,
 			ext_view_width, ext_view_height;
-	private byte debris_colors, stat, autopilot_light;
+	protected byte debris_colors, stat, autopilot_light;
 
 	
 	public SelfHolder setSelf(short x, short y, short vx, short vy, byte heading,

@@ -8,4 +8,6 @@ import java.io.IOException;
  */
 public class PacketReadException extends IOException {
 	private static final long serialVersionUID = 1L;
+	public PacketReadException(){}
+	public PacketReadException(String message){super(message);}
 }

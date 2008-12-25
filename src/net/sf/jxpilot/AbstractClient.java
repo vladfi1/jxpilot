@@ -32,6 +32,8 @@ public interface AbstractClient
 	public void handleFuel(FuelHolder f);
 	public void handleScore(short id, short score, short life);
 	public void handleEyes(short id);
+	public void handleSelfItems(byte[] items);
+	public void handleModifiers(String modifiers);
 
 	/**
      * Prints message in client window.

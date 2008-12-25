@@ -4,7 +4,6 @@ import static net.sf.jxpilot.JXPilot.PRINT_PACKETS;
 import static net.sf.jxpilot.net.Ack.putAck;
 import static net.sf.jxpilot.net.Packet.*;
 import static net.sf.jxpilot.net.ReplyData.readReplyData;
-import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 
 import java.io.*;
 import java.net.*;
@@ -13,7 +12,6 @@ import java.nio.channels.DatagramChannel;
 import javax.swing.JOptionPane;
 
 import net.sf.jxpilot.AbstractClient;
-import net.sf.jxpilot.data.Items;
 import net.sf.jxpilot.data.Keys;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
@@ -82,7 +80,7 @@ public class NetClient
 	private ByteBufferWrap map = new ByteBufferWrap(MAX_MAP_SIZE);
 	private ByteBufferWrap reliableBuf = new ByteBufferWrap(MAX_PACKET_SIZE);
 	private BlockMapSetup setup = new BlockMapSetup();
-	private final PacketProcessor[] readers = new PacketProcessor[256];
+	private final PacketProcessor[] processors = new PacketProcessor[256];
 	private ReplyData reply = new ReplyData();
 	private ReliableData reliable = new ReliableData();
 	private ReplyMessage message = new ReplyMessage();
@@ -127,67 +125,67 @@ public class NetClient
 		//sets functions to handle packets
 		
 		//unreliable types
-		readers[PKT_EYES]		= getEyesProcessor();
-		readers[PKT_TIME_LEFT]	= getTimeLeftProcessor();
-		readers[PKT_AUDIO]		= getAudioProcessor();
-		readers[PKT_START]		= getStartProcessor();
-		readers[PKT_END]		= new EndProcessor();
-		readers[PKT_SELF]		= new SelfProcessor();
-		readers[PKT_DAMAGED]	= new DamagedProcessor();
-		readers[PKT_CONNECTOR]	= new ConnectorProcessor();
-		readers[PKT_LASER]		= new LaserProcessor();
-		readers[PKT_REFUEL]		= new RefuelProcessor();
-		readers[PKT_SHIP]		= new ShipProcessor();
-		readers[PKT_ECM]		= new ECMProcessor();
-		readers[PKT_TRANS]		= getTransProcessor();
-		readers[PKT_PAUSED]		= new PausedProcessor();
-		readers[PKT_ITEM]		= new ItemProcessor();
-		readers[PKT_MINE]		= new MineProcessor();
-		readers[PKT_BALL]		= new BallProcessor();
-		readers[PKT_MISSILE]	= new MissileProcessor();
-		readers[PKT_SHUTDOWN]	= getShutdownProcessor();
-		readers[PKT_DESTRUCT]	= getDestructProcessor();
-		readers[PKT_SELF_ITEMS]	= new SelfItemsProcessor();
-		readers[PKT_FUEL]		= new FuelProcessor();
-		readers[PKT_CANNON]		= new CannonProcessor();
-		readers[PKT_TARGET]		= getTargetProcessor();
-		readers[PKT_RADAR]		= getRadarProcessor();
-		readers[PKT_FASTRADAR]	= new FastRadarProcessor();
-		readers[PKT_RELIABLE]	= getReliableProcessor();
-		readers[PKT_QUIT]		= getQuitProcessor();
-		readers[PKT_MODIFIERS]  = new ModifiersProcessor();
-		readers[PKT_FASTSHOT]	= new FastShotProcessor();
-		readers[PKT_THRUSTTIME] = getThrustTimeProcessor();
-		readers[PKT_SHIELDTIME] = getShieldTimeProcessor();
-		readers[PKT_PHASINGTIME]= getPhasingTimeProcessor();
-		readers[PKT_ROUNDDELAY] = getRoundDelayProcessor();
-		readers[PKT_LOSEITEM]	= getLoseItemProcessor();
-		readers[PKT_WRECKAGE]	= new WreckageProcessor();
-		readers[PKT_ASTEROID]	= getAsteroidProcessor();
-		readers[PKT_WORMHOLE]	= getWormholeProcessor();
+		processors[PKT_EYES]		= getEyesProcessor();
+		processors[PKT_TIME_LEFT]	= getTimeLeftProcessor();
+		processors[PKT_AUDIO]		= getAudioProcessor();
+		processors[PKT_START]		= getStartProcessor();
+		processors[PKT_END]			= getEndProcessor();
+		processors[PKT_SELF]		= getSelfProcessor();
+		processors[PKT_DAMAGED]		= new DamagedProcessor();
+		processors[PKT_CONNECTOR]	= new ConnectorProcessor();
+		processors[PKT_LASER]		= new LaserProcessor();
+		processors[PKT_REFUEL]		= new RefuelProcessor();
+		processors[PKT_SHIP]		= getShipProcessor();
+		processors[PKT_ECM]			= new ECMProcessor();
+		processors[PKT_TRANS]		= getTransProcessor();
+		processors[PKT_PAUSED]		= new PausedProcessor();
+		processors[PKT_ITEM]		= new ItemProcessor();
+		processors[PKT_MINE]		= new MineProcessor();
+		processors[PKT_BALL]		= getBallProcessor();
+		processors[PKT_MISSILE]		= new MissileProcessor();
+		processors[PKT_SHUTDOWN]	= getShutdownProcessor();
+		processors[PKT_DESTRUCT]	= getDestructProcessor();
+		processors[PKT_SELF_ITEMS]	= getSelfItemsProcessor();
+		processors[PKT_FUEL]		= new FuelProcessor();
+		processors[PKT_CANNON]		= new CannonProcessor();
+		processors[PKT_TARGET]		= getTargetProcessor();
+		processors[PKT_RADAR]		= getRadarProcessor();
+		processors[PKT_FASTRADAR]	= new FastRadarProcessor();
+		processors[PKT_RELIABLE]	= getReliableProcessor();
+		processors[PKT_QUIT]		= getQuitProcessor();
+		processors[PKT_MODIFIERS]  	= getModifiersProcessor();
+		processors[PKT_FASTSHOT]	= new FastShotProcessor();
+		processors[PKT_THRUSTTIME] 	= getThrustTimeProcessor();
+		processors[PKT_SHIELDTIME] 	= getShieldTimeProcessor();
+		processors[PKT_PHASINGTIME]	= getPhasingTimeProcessor();
+		processors[PKT_ROUNDDELAY] 	= getRoundDelayProcessor();
+		processors[PKT_LOSEITEM]	= getLoseItemProcessor();
+		processors[PKT_WRECKAGE]	= new WreckageProcessor();
+		processors[PKT_ASTEROID]	= getAsteroidProcessor();
+		processors[PKT_WORMHOLE]	= getWormholeProcessor();
 		
 		PacketProcessor debrisProcessor = getDebrisProcessor();	
 		int pkt_debris = Utilities.getUnsignedByte(PKT_DEBRIS);
 		for (int i = 0;i<DEBRIS_TYPES;i++) {
-			readers[i+pkt_debris] = debrisProcessor;
+			processors[i+pkt_debris] = debrisProcessor;
 		}
 		
 		//reliable types
-		readers[PKT_MOTD]		= getMOTDProcessor();
-		readers[PKT_MESSAGE]	= getMessageProcessor();
-		readers[PKT_TEAM_SCORE] = getTeamScoreProcessor();
-		readers[PKT_PLAYER]		= getPlayerProcessor();
-		readers[PKT_SCORE]		= getScoreProcessor();
-		readers[PKT_TIMING]		= new TimingProcessor();
-		readers[PKT_LEAVE]		= new LeaveProcessor();
-		readers[PKT_WAR]		= new WarProcessor();
-		readers[PKT_SEEK]		= getSeekProcessor();
-		readers[PKT_BASE]		= getBaseProcessor();
-		readers[PKT_QUIT]		= new QuitProcessor();
-		readers[PKT_STRING]		= getStringProcessor();
-		readers[PKT_SCORE_OBJECT]=new ScoreObjectProcessor();
-		readers[PKT_TALK_ACK]	= new TalkAckProcessor();
-		readers[PKT_REPLY]		= getReplyProcessor();
+		processors[PKT_MOTD]		= getMOTDProcessor();
+		processors[PKT_MESSAGE]		= getMessageProcessor();
+		processors[PKT_TEAM_SCORE]	= getTeamScoreProcessor();
+		processors[PKT_PLAYER]		= getPlayerProcessor();
+		processors[PKT_SCORE]		= getScoreProcessor();
+		processors[PKT_TIMING]		= new TimingProcessor();
+		processors[PKT_LEAVE]		= new LeaveProcessor();
+		processors[PKT_WAR]			= new WarProcessor();
+		processors[PKT_SEEK]		= getSeekProcessor();
+		processors[PKT_BASE]		= getBaseProcessor();
+		processors[PKT_QUIT]		= new QuitProcessor();
+		processors[PKT_STRING]		= getStringProcessor();
+		processors[PKT_SCORE_OBJECT]= new ScoreObjectProcessor();
+		processors[PKT_TALK_ACK]	= new TalkAckProcessor();
+		processors[PKT_REPLY]		= getReplyProcessor();
 	}
 
 	public String getNick(){return NICK;}
@@ -677,11 +675,11 @@ public class NetClient
 		{
 			short type = in.peekUnsignedByte();
 			
-			if (readers[type]!=null)
+			if (processors[type]!=null)
 			{
 				try
 				{
-					readers[type].processPacket(in, client);
+					processors[type].processPacket(in, client);
 				}
 				catch(PacketReadException e)
 				{
@@ -704,12 +702,12 @@ public class NetClient
 
 			short type = reliableBuf.peekUnsignedByte();
 
-			if(readers[type]!=null)
+			if(processors[type]!=null)
 			{
 				int pos = reliableBuf.position();//stores reliable buffer's position
 				try
 				{
-					readers[type].processPacket(reliableBuf, client);
+					processors[type].processPacket(reliableBuf, client);
 				}
 				catch (ReliableReadException e) //happens if reliable data is broken up
 				{
@@ -798,7 +796,7 @@ public class NetClient
 	
 	private void sendTurnSpeed() {
 		if(new_speed != turn_speed) {
-			this.putTurnSpeed(out, new_speed);
+			putTurnSpeed(out, new_speed);
 			//this.putTurnSpeedS(out, turn_speed);
 			new_speed = turn_speed;
 		}
@@ -1065,7 +1063,7 @@ public class NetClient
 	 * @author Vlad Firoiu
 	 */
 	protected class BaseProcessor implements PacketProcessor {
-		protected BasePacket basePacket = new BasePacket();
+		protected final BasePacket basePacket = new BasePacket();
 		@Override
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
 			basePacket.readPacket(in);
@@ -1107,8 +1105,8 @@ public class NetClient
 	 * @author Vlad Firoiu
 	 */
 	protected class DebrisProcessor implements PacketProcessor {
-		private DebrisPacket debrisPacket = new DebrisPacket();
-		private AbstractDebrisHolder debrisHolder = new AbstractDebrisHolder();
+		protected final DebrisPacket debrisPacket = new DebrisPacket();
+		protected final AbstractDebrisHolder debrisHolder = new AbstractDebrisHolder();
 		
 		@Override
 		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
@@ -1126,238 +1124,136 @@ public class NetClient
 	 * @return A new {@code DebrisProcessor} object.
 	 */
 	protected PacketProcessor getDebrisProcessor(){return new DebrisProcessor();}
+
+	/**
+	 * Processes self items packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class SelfItemsProcessor implements PacketProcessor {
+		protected final SelfItemsPacket selfItemsPacket = new SelfItemsPacket();
+		
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			selfItemsPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + selfItemsPacket.toString());
+			client.handleSelfItems(selfItemsPacket.getItems());
+		}
+	}
 	
-	/*
-		int Receive_debris(void)
-		{
-			int			n, r, type;
-
-			if (rbuf.ptr - rbuf.buf + 2 >= rbuf.len) {
-				return 0;
-			}
-			type = (*rbuf.ptr++ & 0xFF);
-			n = (*rbuf.ptr++ & 0xFF);
-			if (rbuf.ptr - rbuf.buf + (n * 2) > rbuf.len) {
-				return 0;
-			}
-			r = Handle_debris(type - PKT_DEBRIS, (u_byte*)rbuf.ptr, n);
-			rbuf.ptr += n * 2;
-
-			return (r == -1) ? -1 : 1;
-		}
+	/**
+	 * Note that subclasses should override this method if a separate self items
+	 * processor is to be used.
+	 * @return A new {@code SelfItemsProcessor} object.
 	 */
-
-	protected class SelfItemsProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			int mask = in.getInt();
-			byte[] num_items = new byte[Items.NUM_ITEMS];
-
-			for (int i = 0; mask != 0; i++) {
-				if ((mask & (1 << i))!=0) {
-					mask ^= (1 << i);
-					if (i < Items.NUM_ITEMS) {
-						num_items[i] = in.getByte();
-					} else {
-						in.getByte();
-					}
-				}
-			}
-
-			if(PRINT_PACKETS)
-				System.out.println("\nSelf Items Packet\ntype = " + type +
-					"\nmask = " + String.format("%x", mask));
-
-		}
-	}
-
-	/*
-		int Receive_self_items(void)
-		{
-			unsigned		mask;
-			int			i, n;
-			u_byte		ch;
-			char		*rbuf_ptr_start = rbuf.ptr;
-			u_byte		num_items[NUM_ITEMS];
-
-			n = Packet_scanf(&rbuf, "%c%u", &ch, &mask);
-			if (n <= 0) {
-				return n;
-			}
-			memset(num_items, 0, sizeof num_items);
-			for (i = 0; mask != 0; i++) {
-				if (mask & (1 << i)) {
-					mask ^= (1 << i);
-					if (rbuf.ptr - rbuf.buf < rbuf.len) {
-						if (i < NUM_ITEMS) {
-							num_items[i] = *rbuf.ptr++;
-						} else {
-							rbuf.ptr++;
-						}
-					}
-				}
-			}
-
-			Handle_self_items(num_items);
-			return (rbuf.ptr - rbuf_ptr_start);
-		}
+	protected PacketProcessor getSelfItemsProcessor(){return new SelfItemsProcessor();}
+	
+	/**
+	 * Processes self packets.
+	 * @author Vlad Firoiu
 	 */
-
-	protected class SelfProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 
-			(1 + 2 + 2 + 2 + 2 + 1) + (1 + 1 + 1 + 2 + 2 + 1 + 1 + 1) + (2 + 2 + 2 + 2 + 1 + 1) + 1;//31
-
-		private final SelfHolder self = new SelfHolder();
+	protected class SelfProcessor implements PacketProcessor {
+		protected final SelfPacket selfPacket = new SelfPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			if (in.remaining()<LENGTH)
-			{
-				System.out.println("\nPacket Self ("+in.remaining()+") is too small ("+ LENGTH+")!");
-				in.clear();
-				return;
-			}
-
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short vx = in.getShort();
-			short vy = in.getShort();
-			byte heading = in.getByte();
-
-			byte power = in.getByte();
-			byte turnspeed = in.getByte();
-			byte turnresistance = in.getByte();
-			short lockId = in.getShort();
-			short lockDist = in.getShort();
-			byte lockDir = in.getByte();
-			byte nextCheckPoint = in.getByte();
-
-			byte currentTank = in.getByte();
-			short fuelSum = in.getShort();
-			short fuelMax = in.getShort();
-			short ext_view_width = in.getShort();
-			short ext_view_height = in.getShort();
-			byte debris_colors = in.getByte();
-			byte stat = in.getByte();
-			byte autopilot_light = in.getByte();
-
-			client.handleSelf(self.setSelf(x, y, vx, vy, 
-					heading, power, turnspeed, turnresistance, 
-					lockId, lockDist, lockDir, 
-					nextCheckPoint, 
-					currentTank, fuelSum, fuelMax, 
-					ext_view_width, ext_view_height, 
-					debris_colors, stat, autopilot_light));
-
-			if(PRINT_PACKETS)
-				System.out.println("\nPacket Self\ntype = " + type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nvx = " + vx +
-					"\nvy = " + vy +
-					"\nheading = " + heading +
-					"\nautopilotLight = " + autopilot_light);
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			selfPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + selfPacket.toString());
+			client.handleSelf(selfPacket);
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate self
+	 * processor is to be used.
+	 * @return A new {@code SelfProcessor} object.
+	 */
+	protected PacketProcessor getSelfProcessor(){return new SelfProcessor();}
+	
+	/**
+	 * Processes modifiers packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ModifiersProcessor implements PacketProcessor {
+		protected final ModifiersPacket modifiersPacket = new ModifiersPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			modifiersPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + modifiersPacket.toString());
+			client.handleModifiers(modifiersPacket.getModifiers());
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate modifiers
+	 * processor is to be used.
+	 * @return A new {@code ModifiersProcessor} object.
+	 */
+	protected PacketProcessor getModifiersProcessor(){return new ModifiersProcessor();}	
+	
+	/**
+	 * Processes end packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class EndProcessor implements PacketProcessor {
+		protected final EndPacket endPacket = new EndPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			endPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + endPacket.toString());
+			client.handleEnd(endPacket.getLoops());
 		}
 	}
 
-	protected class ModifiersProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-
-			int pos = in.position();
-			try
-			{
-				byte type = in.getByte();
-				String mods = in.getString();
-
-				if(PRINT_PACKETS)System.out.println("\nModifiers Packet\ntype = " + type +
-						"\nmodifiers: " + mods);					
-			}
-			catch (StringReadException e)
-			{
-				e.printStackTrace();
-				in.position(pos);
-			}
+	/**
+	 * Note that subclasses should override this method if a separate end
+	 * processor is to be used.
+	 * @return A new {@code EndProcessor} object.
+	 */
+	protected PacketProcessor getEndProcessor(){return new EndProcessor();}	
+	
+	/**
+	 * Processes ball packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class BallProcessor implements PacketProcessor {
+		protected final BallPacket ballPacket = new BallPacket();
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			ballPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + ballPacket.toString());
+			client.handleBall(ballPacket);
 		}
 	}
 
-	protected class EndProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			int loops = in.getInt();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nEnd Packet\ntype = " + type +
-					"\nloops = " + loops);
-			
-			client.handleEnd(loops);
+	/**
+	 * Note that subclasses should override this method if a separate ball
+	 * processor is to be used.
+	 * @return A new {@code BallProcessor} object.
+	 */
+	protected PacketProcessor getBallProcessor(){return new BallProcessor();}
+	
+	/**
+	 * Processes Ship packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ShipProcessor implements PacketProcessor {
+		protected final ShipPacket shipPacket = new ShipPacket();
+		
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			shipPacket.readPacket(in);
+			if(PRINT_PACKETS)System.out.println('\n' + shipPacket.toString());
+			client.handleShip(shipPacket);
 		}
 	}
 
-	protected class BallProcessor implements PacketProcessor
-	{
-		private BallHolder b = new BallHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short id = in.getShort();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nBall Packet\ntype = " + type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nid = " + id);
-			
-			client.handleBall(b.setBall(x, y, id));
-		}
-	};
-
-	protected class ShipProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2 + 2 + 2 + 1 + 1;//9
-
-		private ShipHolder ship = new ShipHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short id = in.getShort();
-			byte dir = in.getByte();
-			byte flags = in.getByte();
-
-			boolean shield = (flags & 1) != 0;
-			boolean cloak = (flags & 2) != 0;
-			boolean emergency_shield = (flags & 4) != 0;
-			boolean phased = (flags & 8) != 0;
-			boolean deflector = (flags & 0x10) != 0;
-
-			if(PRINT_PACKETS)System.out.println("\nShip Packet\ntype = " + type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nid = " + id +
-					"\ndir = " + dir +
-					"\nshield: " + shield +
-					"\ncloak: " + cloak +
-					"\nemergency shield: " + emergency_shield +
-					"\nphased: " + phased +
-					"\ndeflector: " + deflector);
-
-			client.handleShip(ship.setShip(x, y, id, dir, shield, cloak, emergency_shield, phased, deflector));
-		}
-	};
-
+	/**
+	 * Note that subclasses should override this method if a separate ship
+	 * processor is to be used.
+	 * @return A new {@code ShipProcessor} object.
+	 */
+	protected PacketProcessor getShipProcessor(){return new ShipProcessor();}
+	
 	protected class FastShotProcessor implements PacketProcessor
 	{
 		private AbstractDebrisHolder s = new AbstractDebrisHolder();

@@ -303,8 +303,7 @@ public class GameWorld implements Drawable {
 	}
 	
 	//inner Drawable classes	
-	public class Ship extends ShipHolder implements Drawable
-	{
+	public class Ship extends ShipHolder implements Drawable {
 		public static final int SHIP_RADIUS = 16;
 		private final Color SELF_COLOR = Color.WHITE;
 		private final Color ENEMY_COLOR = Color.WHITE;
@@ -320,9 +319,11 @@ public class GameWorld implements Drawable {
 			shieldShape.setFrame(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 		}
 		
+		@Override
 		public void paintDrawable(Graphics2D g2d)
 		{
 			if(player == null) 	player = getPlayer(super.id);
+			if(player == null) return;
 			
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
@@ -331,7 +332,6 @@ public class GameWorld implements Drawable {
 			
 			g2d.setColor(NAME_COLOR);
 			Utilities.drawAdjustedStringDown(g2d, player.getName(), 0, -SHIP_RADIUS);
-			
 			
 			if(player.getLife()==0)
 			{
@@ -389,20 +389,16 @@ public class GameWorld implements Drawable {
 		 * @return The player that corresponds to the id.
 		 */
 		private Player setPlayer() {	
-			if(id==Player.NO_ID)
-			{
+			if(id==Player.NO_ID) {
 				player = null;
-			}
-			else
-			{
+			} else {
 				player = getPlayer(id);
 			}
 			
 			return player;
 		}
 		
-		private void setConnector()
-		{
+		private void setConnector() {
 			if(player!=null)
 				connector.setConnector(x, y, (short)player.getShip().getX(), (short)player.getShip().getY(), (byte)0);
 		}

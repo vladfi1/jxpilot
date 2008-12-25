@@ -62,8 +62,7 @@ public class JXPilot {
         }	
 	}
 	
-	public static void runClient(String serverIP, int serverPort, Preferences prefs)
-	{
+	public static void runClient(String serverIP, int serverPort, Preferences prefs) {
 		System.out.println("Running client!");
 		new Client(prefs).runClient(serverIP, serverPort);
 	}
