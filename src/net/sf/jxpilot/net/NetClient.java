@@ -139,7 +139,7 @@ public class NetClient
 		processors[PKT_ECM]			= new ECMProcessor();
 		processors[PKT_TRANS]		= getTransProcessor();
 		processors[PKT_PAUSED]		= new PausedProcessor();
-		processors[PKT_ITEM]		= new ItemProcessor();
+		processors[PKT_ITEM]		= getItemProcessor();
 		processors[PKT_MINE]		= new MineProcessor();
 		processors[PKT_BALL]		= getBallProcessor();
 		processors[PKT_MISSILE]		= new MissileProcessor();
@@ -154,7 +154,7 @@ public class NetClient
 		processors[PKT_RELIABLE]	= getReliableProcessor();
 		processors[PKT_QUIT]		= getQuitProcessor();
 		processors[PKT_MODIFIERS]  	= getModifiersProcessor();
-		processors[PKT_FASTSHOT]	= new FastShotProcessor();
+		processors[PKT_FASTSHOT]	= getFastShotProcessor();
 		processors[PKT_THRUSTTIME] 	= getThrustTimeProcessor();
 		processors[PKT_SHIELDTIME] 	= getShieldTimeProcessor();
 		processors[PKT_PHASINGTIME]	= getPhasingTimeProcessor();
@@ -1254,56 +1254,52 @@ public class NetClient
 	 */
 	protected PacketProcessor getShipProcessor(){return new ShipProcessor();}
 	
-	protected class FastShotProcessor implements PacketProcessor
-	{
-		private AbstractDebrisHolder s = new AbstractDebrisHolder();
+	/**
+	 * Processes Fast Shot packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class FastShotProcessor implements PacketProcessor {
+		protected final FastShotPacket fastShotPacket = new FastShotPacket();
+		protected final AbstractDebrisHolder fastShotHolder = new AbstractDebrisHolder();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException
-		{
-			byte pkt = in.getByte();
-			byte type = in.getByte();
-			short num = in.getUnsignedByte();
-
-			if (in.remaining()<2*num)
-			{
-				in.clear();
-				throw new PacketReadException();
-			}
-
-			//in.position(in.position()+2*num);
-
-			if(PRINT_PACKETS)
-				System.out.println("\nFastShot Packet\npkt = " + pkt +
-									"\ntype = " + type +
-									"\nnum = " + num);
-			
-			for(int i = 0;i<num;i++)
-			{
-				client.handleFastShot(s.setAbstractDebris(type, in.getUnsignedByte(), in.getUnsignedByte()));
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			fastShotPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + fastShotPacket.toString());
+			for(int i = 0;i<fastShotPacket.getNum();i++) {
+				client.handleFastShot(fastShotHolder.setAbstractDebris(fastShotPacket.getType(), in.getUnsignedByte(), in.getUnsignedByte()));
 			}
 		}
 	}
 
-	protected class ItemProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2 + 2 + 1;//6
-
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte pkt = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			byte type = in.getByte();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nItem Packet\npkt = " + pkt +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\ntype = " + type);
-
+	/**
+	 * Note that subclasses should override this method if a separate fast shot
+	 * processor is to be used.
+	 * @return A new {@code FastShotProcessor} object.
+	 */
+	protected PacketProcessor getFastShotProcessor(){return new FastShotProcessor();}
+	
+	/**
+	 * Processes Item packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ItemProcessor implements PacketProcessor {
+		protected final ItemPacket itemPacket = new ItemPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			itemPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + itemPacket.toString());
+			//TODO: Implement handling of item packets.
 		}
 	}
 
+	/**
+	 * Note that subclasses should override this method if a separate item
+	 * processor is to be used.
+	 * @return A new {@code ItemProcessor} object.
+	 */
+	protected PacketProcessor getItemProcessor(){return new FastShotProcessor();}
+	
 	protected class FastRadarProcessor implements PacketProcessor
 	{
 		private RadarHolder radar = new RadarHolder();
