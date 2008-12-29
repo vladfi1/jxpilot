@@ -4,6 +4,8 @@ import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jgamelibrary.preferences.Preferences;
 import net.sf.jxpilot.net.*;
+import net.sf.jxpilot.net.packet.QuitPacket;
+import net.sf.jxpilot.net.packet.ShutdownPacket;
 
 public interface AbstractClient
 {

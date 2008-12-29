@@ -1,8 +1,10 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
 import net.sf.jxpilot.game.ShipShape;
 import net.sf.jxpilot.game.PlayerHolder;
+import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jxpilot.net.StringReadException;
 
 /**
  * Represents data from a Player packet.
@@ -12,7 +14,7 @@ public class PlayerPacket extends PlayerHolder implements XPilotPacket {
 	/**
 	 * Default packet read exception to throw.
 	 */
-	protected final ReliableReadException PLAYER_READ_EXCEPTION = new ReliableReadException();
+	protected final ReliableReadException PLAYER_READ_EXCEPTION = new ReliableReadException("Player");
 	
 	protected byte pkt_type;
 	

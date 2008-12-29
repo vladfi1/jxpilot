@@ -1,4 +1,4 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import java.io.IOException;
 

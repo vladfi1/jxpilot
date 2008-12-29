@@ -1,6 +1,7 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.ShipHolder;
+import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
  * Holds data from a Ship packet.

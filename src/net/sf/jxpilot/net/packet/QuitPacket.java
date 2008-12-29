@@ -1,11 +1,14 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
+
+import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jxpilot.net.StringReadException;
 
 /**
  * Holds data from a Quit packet.
  * @author Vlad Firoiu
  */
 public final class QuitPacket extends XPilotPacketAdaptor {
-	private final ReliableReadException QUIT_READ_EXCEPTION = new ReliableReadException();
+	private final ReliableReadException QUIT_READ_EXCEPTION = new ReliableReadException("Quit");
 	
 	private String reason;
 	public String getReason(){return reason;}

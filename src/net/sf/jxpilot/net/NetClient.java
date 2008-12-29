@@ -2,8 +2,8 @@ package net.sf.jxpilot.net;
 
 import static net.sf.jxpilot.JXPilot.PRINT_PACKETS;
 import static net.sf.jxpilot.net.Ack.putAck;
-import static net.sf.jxpilot.net.Packet.*;
-import static net.sf.jxpilot.net.ReplyData.readReplyData;
+import static net.sf.jxpilot.net.packet.Packet.*;
+import static net.sf.jxpilot.net.packet.ReplyData.readReplyData;
 
 import java.io.*;
 import java.net.*;
@@ -16,6 +16,7 @@ import net.sf.jxpilot.data.Keys;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.map.BlockMapSetup;
+import net.sf.jxpilot.net.packet.*;
 import net.sf.jxpilot.util.BitVector;
 import net.sf.jxpilot.util.Utilities;
 import net.sf.jgamelibrary.preferences.Preferences;
@@ -132,22 +133,22 @@ public class NetClient
 		processors[PKT_END]			= getEndProcessor();
 		processors[PKT_SELF]		= getSelfProcessor();
 		processors[PKT_DAMAGED]		= new DamagedProcessor();
-		processors[PKT_CONNECTOR]	= new ConnectorProcessor();
+		processors[PKT_CONNECTOR]	= getConnectorProcessor();
 		processors[PKT_LASER]		= new LaserProcessor();
 		processors[PKT_REFUEL]		= new RefuelProcessor();
 		processors[PKT_SHIP]		= getShipProcessor();
 		processors[PKT_ECM]			= new ECMProcessor();
 		processors[PKT_TRANS]		= getTransProcessor();
-		processors[PKT_PAUSED]		= new PausedProcessor();
+		processors[PKT_PAUSED]		= getPausedProcessor();
 		processors[PKT_ITEM]		= getItemProcessor();
-		processors[PKT_MINE]		= new MineProcessor();
+		processors[PKT_MINE]		= getMineProcessor();
 		processors[PKT_BALL]		= getBallProcessor();
-		processors[PKT_MISSILE]		= new MissileProcessor();
+		processors[PKT_MISSILE]		= getMissileProcessor();
 		processors[PKT_SHUTDOWN]	= getShutdownProcessor();
 		processors[PKT_DESTRUCT]	= getDestructProcessor();
 		processors[PKT_SELF_ITEMS]	= getSelfItemsProcessor();
-		processors[PKT_FUEL]		= new FuelProcessor();
-		processors[PKT_CANNON]		= new CannonProcessor();
+		processors[PKT_FUEL]		= getFuelProcessor();
+		processors[PKT_CANNON]		= getCannonProcessor();
 		processors[PKT_TARGET]		= getTargetProcessor();
 		processors[PKT_RADAR]		= getRadarProcessor();
 		processors[PKT_FASTRADAR]	= new FastRadarProcessor();
@@ -160,7 +161,7 @@ public class NetClient
 		processors[PKT_PHASINGTIME]	= getPhasingTimeProcessor();
 		processors[PKT_ROUNDDELAY] 	= getRoundDelayProcessor();
 		processors[PKT_LOSEITEM]	= getLoseItemProcessor();
-		processors[PKT_WRECKAGE]	= new WreckageProcessor();
+		processors[PKT_WRECKAGE]	= getWreckageProcessor();
 		processors[PKT_ASTEROID]	= getAsteroidProcessor();
 		processors[PKT_WORMHOLE]	= getWormholeProcessor();
 		
@@ -177,13 +178,13 @@ public class NetClient
 		processors[PKT_PLAYER]		= getPlayerProcessor();
 		processors[PKT_SCORE]		= getScoreProcessor();
 		processors[PKT_TIMING]		= new TimingProcessor();
-		processors[PKT_LEAVE]		= new LeaveProcessor();
-		processors[PKT_WAR]			= new WarProcessor();
+		processors[PKT_LEAVE]		= getLeaveProcessor();
+		processors[PKT_WAR]			= getWarProcessor();
 		processors[PKT_SEEK]		= getSeekProcessor();
 		processors[PKT_BASE]		= getBaseProcessor();
-		processors[PKT_QUIT]		= new QuitProcessor();
+		processors[PKT_QUIT]		= getQuitProcessor();
 		processors[PKT_STRING]		= getStringProcessor();
-		processors[PKT_SCORE_OBJECT]= new ScoreObjectProcessor();
+		processors[PKT_SCORE_OBJECT]= getScoreObjectProcessor();
 		processors[PKT_TALK_ACK]	= new TalkAckProcessor();
 		processors[PKT_REPLY]		= getReplyProcessor();
 	}
@@ -1298,7 +1299,7 @@ public class NetClient
 	 * processor is to be used.
 	 * @return A new {@code ItemProcessor} object.
 	 */
-	protected PacketProcessor getItemProcessor(){return new FastShotProcessor();}
+	protected PacketProcessor getItemProcessor(){return new ItemProcessor();}
 	
 	protected class FastRadarProcessor implements PacketProcessor
 	{
@@ -1338,269 +1339,225 @@ public class NetClient
 
 	}
 
-	protected class PausedProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short count = in.getShort();
-
-			if(PRINT_PACKETS)System.out.println("\nPaused Packet:\ntype = " +type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\ncount = " + count);
+	/**
+	 * Processes data from a Paused packet.
+	 * @author Vlad Firoiu
+	 */
+	protected class PausedProcessor implements PacketProcessor {
+		protected final PausedPacket pausedPacket = new PausedPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			pausedPacket.readPacket(in);
+			if(PRINT_PACKETS)System.out.println('\n' + pausedPacket.toString());
+			//TODO: Implement handling of Paused packets.
 		}
 	}
 
-	protected class WreckageProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x= in.getShort();
-			short y = in.getShort();
-			byte wrecktype = in.getByte();
-			byte size = in.getByte();
-			byte rot = in.getByte();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nWreckage Packet:\ntype = "+type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nwreck type = " + wrecktype +
-					"\nsize = " + size +
-					"\nrot = " + rot);
-
+	/**
+	 * Note that subclasses should override this method if a separate paused
+	 * processor is to be used.
+	 * @return A new {@code PausedProcessor} object.
+	 */
+	protected PacketProcessor getPausedProcessor(){return new WreckageProcessor();}
+	
+	/**
+	 * Processes Wreckage packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class WreckageProcessor implements PacketProcessor {
+		protected final WreckagePacket wreckagePacket = new WreckagePacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			wreckagePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + wreckagePacket.toString());
+			//TODO: Implement handling of Wreckage packets.
 		}
 	}
 
-	protected class WarProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2 + 2;//5
-
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-
-			if (in.remaining()<LENGTH) throw reliableReadException;
-
-			byte type = in.getByte();
-			short robot_id = in.getShort();
-			short killer_id = in.getShort();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nWar Packet\ntype = " + type +
-					"\nRobot id = " + robot_id +
-					"\nKiller id = " + killer_id);
-
+	/**
+	 * Note that subclasses should override this method if a separate wreckage
+	 * processor is to be used.
+	 * @return A new {@code WreckageProcessor} object.
+	 */
+	protected PacketProcessor getWreckageProcessor(){return new WreckageProcessor();}
+	
+	/**
+	 * Processes War packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class WarProcessor implements PacketProcessor {
+		protected final WarPacket warPacket = new WarPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			warPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + warPacket.toString());
+			//TODO: Implement handling of War packets.
 		}
 	};
 
-	protected class ConnectorProcessor implements PacketProcessor
-	{
-		private ConnectorHolder c = new ConnectorHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x0 = in.getShort();
-			short y0 = in.getShort();
-			short x1 = in.getShort();
-			short y1 = in.getShort();
-			byte tractor = in.getByte();
-
-			if(PRINT_PACKETS)
-					System.out.println("\nConnector Packet\ntype = " + type +
-					"\nx0 = " + x0 +
-					"\ny0 = " + y0 +
-					"\nx1 = " + x1 +
-					"\ny1 = " + y1 +
-					"\ntractor = " + tractor);
-			
-			client.handleConnector(c.setConnector(x0, y0, x1, y1, tractor));
+	/**
+	 * Note that subclasses should override this method if a separate war
+	 * processor is to be used.
+	 * @return A new {@code WarProcessor} object.
+	 */
+	protected PacketProcessor getWarProcessor(){return new WarProcessor();}
+	
+	/**
+	 * Processes Connector packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ConnectorProcessor implements PacketProcessor {
+		protected final ConnectorPacket connectorPacket = new ConnectorPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			connectorPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + connectorPacket.toString());
+			client.handleConnector(connectorPacket);
 		}
 	}
 
-	protected class LeaveProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2;//3
-
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if (in.remaining()<LENGTH) throw reliableReadException;
-
-			byte type = in.getByte();
-			short id = in.getShort();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nLeave Packet\ntype = " + type +
-					"\nid = " + id);
-
-			client.handleLeave(id);
-		}
-	};
-
-	protected class ScoreObjectProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 2 + 2 + 2 + 1;//8
-		
-		private ScoreObjectHolder scoreObject = new ScoreObjectHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if (in.remaining()<LENGTH) throw reliableReadException;
-
-			try
-			{
-				byte type = in.getByte();
-				//float score = (float)(in.getInt()/100.0);
-				short score = in.getShort();
-				int x  = in.getUnsignedShort();
-				int y = in.getUnsignedShort();
-				String message = in.getString();
-
-				if(PRINT_PACKETS)
-					System.out.println("\nScore Object Packet\ntype = " + type +
-						"\nscore = " + score +
-						"\nx = " + x +
-						"\ny = " + y +
-						"\nmessage: " + message);
-				
-				client.handleScoreObject(scoreObject.setScoreObject(score, x, y, message));
-			}
-			catch (StringReadException e)
-			{
-				throw reliableReadException;
-			}
-		}
-		/*
-			int Receive_score_object(void)
-			{
-				int			n;
-				unsigned short	x, y;
-				DFLOAT		score = 0;
-				char		msg[MAX_CHARS];
-				u_byte		ch;
-
-				if (version < 0x4500) {
-					short	rcv_score;
-					n = Packet_scanf(&cbuf, "%c%hd%hu%hu%s",
-							&ch, &rcv_score, &x, &y, msg);
-					score = rcv_score;
-				} else {
-					// newer servers send scores with two decimals
-					int	rcv_score;
-					n = Packet_scanf(&cbuf, "%c%d%hu%hu%s",
-							&ch, &rcv_score, &x, &y, msg);
-					score = (DFLOAT)rcv_score / 100;
-				}
-				if (n <= 0)
-					return n;
-				if ((n = Handle_score_object(score, x, y, msg)) == -1) {
-					return -1;
-				}
-
-				return 1;
-			} 
-		 */
-	}
-
-	protected class MineProcessor implements PacketProcessor
-	{
-		private MineHolder m = new MineHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			byte team_mine = in.getByte();
-			short id = in.getShort();
-
-			if(PRINT_PACKETS)System.out.println("\nMine Packet\ntype = " + type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nteam mine = " + team_mine +
-					"\nid = " + id);
-			
-			client.handleMine(m.setMine(x, y, team_mine, id));
+	/**
+	 * Note that subclasses should override this method if a separate connector
+	 * processor is to be used.
+	 * @return A new {@code ConnectorProcessor} object.
+	 */
+	protected PacketProcessor getConnectorProcessor(){return new ConnectorProcessor();}
+	
+	/**
+	 * Processes Leave packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class LeaveProcessor implements PacketProcessor {
+		protected final LeavePacket leavePacket = new LeavePacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			leavePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + leavePacket.toString());
+			client.handleLeave(leavePacket.getId());
 		}
 	}
 
-	protected class CannonProcessor implements PacketProcessor
-	{
-		private CannonHolder cannon = new CannonHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			int num = in.getUnsignedShort();
-			int dead_time = in.getUnsignedShort();
-
-			if(PRINT_PACKETS)
-				System.out.println("\nCannon Packet\ntype = " + type + 
-					"\nnum = " + num +
-					"\ndead time = " + dead_time);
-			
-			
+	/**
+	 * Note that subclasses should override this method if a separate leave
+	 * processor is to be used.
+	 * @return A new {@code LeaveProcessor} object.
+	 */
+	protected PacketProcessor getLeaveProcessor(){return new LeaveProcessor();}
+	
+	/**
+	 * Processes data from a Score Object packet.
+	 * @author Vlad Firoiu
+	 */
+	protected class ScoreObjectProcessor implements PacketProcessor {
+		protected final ScoreObjectPacket scoreObjectPacket = new ScoreObjectPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			scoreObjectPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + scoreObjectPacket.toString());
+			client.handleScoreObject(scoreObjectPacket);
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate score object
+	 * processor is to be used.
+	 * @return A new {@code ScoreObjectProcessor} object.
+	 */
+	protected PacketProcessor getScoreObjectProcessor(){return new ScoreObjectProcessor();}
+	
+	/**
+	 * Processes Mine packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class MineProcessor implements PacketProcessor {
+		protected final MinePacket minePacket = new MinePacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			minePacket.readPacket(in);
+			if(PRINT_PACKETS)System.out.println('\n' + minePacket.toString());
+			client.handleMine(minePacket);
+		}
+	}
+	
+	/**
+	 * Note that subclasses should override this method if a separate mine
+	 * processor is to be used.
+	 * @return A new {@code MineProcessor} object.
+	 */
+	protected PacketProcessor getMineProcessor(){return new MineProcessor();}
+	
+	/**
+	 * Processes Cannon packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class CannonProcessor implements PacketProcessor {
+		protected final CannonPacket cannonPacket = new CannonPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			cannonPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + cannonPacket.toString());
 			
 			out.putByte(PKT_ACK_CANNON);
 			out.putInt(last_loops);
-			out.putShort((short)num);
+			out.putShort((short)cannonPacket.getNum());
 			
-			client.handleCannon(cannon.set(num, dead_time));
+			client.handleCannon(cannonPacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate cannon
+	 * processor is to be used.
+	 * @return A new {@code CannonProcessor} object.
+	 */
+	protected PacketProcessor getCannonProcessor(){return new CannonProcessor();}
 	
-	protected class FuelProcessor implements PacketProcessor
-	{
-		private FuelHolder f = new FuelHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			int num = in.getUnsignedShort();
-			int fuel = in.getUnsignedShort();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nFuel Packet\ntype = " + type +
-									"\nnum = " + num +
-									"\nfuel = " + fuel);
-			
+	/**
+	 * Processes Fuel packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class FuelProcessor implements PacketProcessor {
+		protected final FuelPacket fuelPacket = new FuelPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			fuelPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + fuelPacket.toString());
 			
 			out.putByte(PKT_ACK_FUEL);
 			out.putInt(last_loops);
-			out.putShort((short)num);
+			out.putShort((short)fuelPacket.getNum());
 			
-			client.handleFuel(f.setFuel(num, fuel));
+			client.handleFuel(fuelPacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate fuel
+	 * processor is to be used.
+	 * @return A new {@code FuelProcessor} object.
+	 */
+	protected PacketProcessor getFuelProcessor(){return new FuelProcessor();}
 	
-	protected class MissileProcessor implements PacketProcessor
-	{
-		private MissileHolder m = new MissileHolder();
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short len = in.getUnsignedByte();
-			short dir = in.getUnsignedByte();
-			
-			if(PRINT_PACKETS)
-			{
-				System.out.println("\nMissile Packet\ntype = " + type +
-									"\nx = " + x +
-									"\ny = " + y +
-									"\nlen = " + len +
-									"\ndir = " + dir);
-			}
-			
-			client.handleMissile(m.setMissile(x, y, len, dir));
+	/**
+	 * Processes Missile packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class MissileProcessor implements PacketProcessor {
+		protected final MissilePacket missilePacket = new MissilePacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			missilePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + missilePacket.toString());
+			client.handleMissile(missilePacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate missile
+	 * processor is to be used.
+	 * @return A new {@code MissileProcessor} object.
+	 */
+	protected PacketProcessor getMissileProcessor(){return new MissileProcessor();}
 	
 	protected class DamagedProcessor implements PacketProcessor
 	{

@@ -1,6 +1,7 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.BaseHolder;
+import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
  * Holds data from a base packet.
@@ -12,7 +13,7 @@ public final class BasePacket extends BaseHolder implements XPilotPacket {
 	 */
 	public static final int LENGTH = 1 + 2 + 4;//7
 	
-	private final ReliableReadException BASE_READ_EXCEPTION = new ReliableReadException();
+	private final ReliableReadException BASE_READ_EXCEPTION = new ReliableReadException("Base");
 	
 	private byte pkt_type;
 	

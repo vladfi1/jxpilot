@@ -1,6 +1,7 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.data.Items;
+import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
  * Holds data from Self Items packet.

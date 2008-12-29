@@ -1,7 +1,9 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
+
+import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
- * Holds data from an eyes packet.
+ * Holds data from an Eyes packet.
  * @author Vlad Firoiu
  */
 public class EyesPacket extends XPilotPacketAdaptor {

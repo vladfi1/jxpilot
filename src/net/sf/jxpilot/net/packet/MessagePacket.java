@@ -1,13 +1,15 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
+import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jxpilot.net.StringReadException;
 
 /**
  * Holds data from a Message packet.
  * @author Vlad Firoiu
  */
 public final class MessagePacket extends XPilotPacketAdaptor {
-	private final ReliableReadException MESSAGE_READ_EXCEPTION = new ReliableReadException();
+	private final ReliableReadException MESSAGE_READ_EXCEPTION = new ReliableReadException("Message");
 	
 	private String message;
 	public String getMessage(){return message;}

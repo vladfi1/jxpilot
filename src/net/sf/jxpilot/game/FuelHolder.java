@@ -1,11 +1,12 @@
 package net.sf.jxpilot.game;
 
-public class FuelHolder
-{
+import net.sf.jxpilot.util.Holder;
+
+public class FuelHolder implements Holder<FuelHolder> {
 	/**
 	 * Unsigned short.
 	 */
-	int num, fuel;
+	protected int num, fuel;
 	
 	public int getNum(){return num;}
 	public int getFuel(){return fuel;}
@@ -16,9 +17,12 @@ public class FuelHolder
 		this.fuel = fuel;
 		return this;
 	}
-	
-	public void set(FuelHolder other)
-	{
+	@Override
+	public void set(FuelHolder other) {
 		other.setFuel(num, fuel);
+	}
+	@Override
+	public void setFrom(Holder<FuelHolder> other) {
+		other.set(this);
 	}
 }

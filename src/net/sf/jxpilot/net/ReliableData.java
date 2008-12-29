@@ -1,9 +1,8 @@
 package net.sf.jxpilot.net;
 
-import static net.sf.jxpilot.JXPilot.*;
 import static net.sf.jxpilot.net.Ack.*;
-import static net.sf.jxpilot.net.Packet.*;
 import static net.sf.jxpilot.net.ReliableDataError.*;
+import static net.sf.jxpilot.net.packet.Packet.*;
 import net.sf.jxpilot.JXPilot;
 
 /**
@@ -11,7 +10,7 @@ import net.sf.jxpilot.JXPilot;
  * Note that this class takes complete care of the reliable data stream, including
  * dropping duplicate/out of order packets, copying reliable data, and sending acks(through a client).
  * 
- * @author vlad
+ * @author Vlad Firoiu
  */
 class ReliableData
 {
@@ -61,11 +60,13 @@ class ReliableData
 			return DUPLICATE_DATA;
 		}
 		
+		/*
+		 * I am not sure what this does, but the C client has this code
+		 * and without it errors sometimes occur.
+		 */
 		if (data.rel < data.offset) {
 			data.len -= (short)(data.offset - data.rel);
-			
 			in.position(in.position()+data.offset-data.rel);
-			
 			data.rel = data.offset;
 		}
 		

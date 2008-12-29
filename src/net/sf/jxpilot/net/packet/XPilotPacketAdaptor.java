@@ -1,4 +1,5 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
+
 
 /**
  * Convenience class that takes care of packet type.

@@ -1,4 +1,7 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
+
+import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jxpilot.net.StringReadException;
 
 /**
  * Holds data from a modifiers packet.

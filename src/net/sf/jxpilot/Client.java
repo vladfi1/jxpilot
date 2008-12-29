@@ -6,9 +6,9 @@ import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
-import net.sf.jxpilot.net.PlayerPacket;
-import net.sf.jxpilot.net.QuitPacket;
-import net.sf.jxpilot.net.ShutdownPacket;
+import net.sf.jxpilot.net.packet.PlayerPacket;
+import net.sf.jxpilot.net.packet.QuitPacket;
+import net.sf.jxpilot.net.packet.ShutdownPacket;
 import net.sf.jgamelibrary.preferences.Preferences;
 
 /**

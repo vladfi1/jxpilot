@@ -1,6 +1,7 @@
-package net.sf.jxpilot.net;
+package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.SelfHolder;
+import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
  * Holds data from a Self packet.

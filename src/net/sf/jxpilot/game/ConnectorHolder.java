@@ -2,13 +2,15 @@ package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.util.Holder;
 
-public class ConnectorHolder implements Holder<ConnectorHolder>
-{
+/**
+ * Defines the data to be held by any Connector object.
+ * @author Vlad Firoiu
+ */
+public class ConnectorHolder implements Holder<ConnectorHolder> {
 	protected short x0,y0,x1,y1;
 	protected byte tractor;
 	
-	public ConnectorHolder setConnector(short x0, short y0,short x1, short y1, byte tractor)
-	{	
+	public ConnectorHolder setConnector(short x0, short y0,short x1, short y1, byte tractor) {	
 		this.x0 = x0;
 		this.y0 = y0;
 		this.x1 = x1;
@@ -16,14 +18,12 @@ public class ConnectorHolder implements Holder<ConnectorHolder>
 		this.tractor = tractor;
 		return this;
 	}
-
-	public void set(ConnectorHolder other)
-	{
+	@Override
+	public void set(ConnectorHolder other) {
 		other.setConnector(x0, y0, x1, y1, tractor);
 	}
-	
-	public void setFrom(Holder<ConnectorHolder> other)
-	{
+	@Override
+	public void setFrom(Holder<ConnectorHolder> other) {
 		other.set(this);
 	}
 	
