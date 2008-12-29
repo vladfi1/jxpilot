@@ -1,96 +1,223 @@
 package net.sf.jxpilot.util;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.ListIterator;
 
 /**
- * Class to hold ExtendedDrawables without constantly creating new instances. 
- * Might be better implemented as a LinkedList.
- * @author vlad
+ * Holds a list of {@code Holder<? super E>} objects to store data
+ * without constantly creating new objects, thus avoiding costly 
+ * garbage collection.
+ * 
+ * @author Vlad Firoiu
  *
- * @param <T>
- * @param <G>
+ * @param <E> The element type.
  */
-public class HolderList<G extends Holder<G>, T extends G> extends java.util.ArrayList<T>
-{
+public class HolderList<E extends Holder<? super E>> implements List<E> {
 	/**
-	 * Represents the 1+the largest index used in the ArrayList.
-	 * (The number of indexes used).
+	 * The default number of elements in a {@code HolderList}.
 	 */
-	private int size;
+	public static final int DEFAULT_SIZE = 10;
 	
 	/**
-	 * A factory to generate new instances.
+	 * Default serial version UID.
 	 */
-	private Factory<? extends T> factory;
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Used to generate new holders.
+	 */
+	private Factory<? extends E> factory;
 	
-	public HolderList(Factory<? extends T> factory, int start_size)
-	{
-		super(start_size);
-		
-		//super();
+	/**
+	 * Actual storage of holder objects.
+	 */
+	private ArrayList<E> list;
+	
+	/**
+	 * Actual number of elements in use.
+	 */
+	private int size = 0;
+	
+	public HolderList(Factory<? extends E> factory, int start_size) {
+		list = new ArrayList<E>(start_size);
 		this.factory = factory;
-		for (int i = 0;i<start_size;i++)
-		{
-			super.add(factory.newInstance());
-		}		
-		this.clear();
+		for(int i = 0;i<start_size;i++) {
+			list.add(factory.newInstance());
+		}
+	}
+	
+	public HolderList(Factory<? extends E> factory) {
+		this(factory, DEFAULT_SIZE);
 	}
 	
 	/**
-	 * Returns the number of elements currently used.
-	 * 
-	 * @override size() in ArrayList
+	 * Returns the actual number of elements used in this {@code HolderList}.
 	 */
 	@Override
-	public int size()
-	{
+	public int size() {
 		return size;
 	}
 	
 	/**
-	 * De-activates all the Drawables in this ArrayList. This method only sets the size to 0,
-	 * it does not actually set the Drawables to inactive to save on time.
+	 * This method sets the size to zero, but does not actually clear any data.
 	 */
 	@Override
-	public void clear()
-	{
+	public void clear() {
 		size = 0;
 	}
 	
-	public boolean add(G holder)
-	{	
-		if (size < super.size())
-		{
-			//holder.set(this.get(size));
-			this.get(size).setFrom(holder);
+	/**
+	 * Stores the specified data into the list.
+	 * @param holder Containing the data to store.
+	 * @return The holder storing the data.
+	 */
+	public E add(Holder<? super E> holder) {
+		if(size==list.size()) {
+			list.add(factory.newInstance());
+			System.out.println("Increased HolderList size to " + (size+1));
 		}
-		else
-		{
-			T temp = factory.newInstance();
-			temp.setFrom(holder);
-			super.add(temp);
-			System.out.println("Increasing holderlist size to " + (size+1));
-		}
-		size++;
-		return true;
+		E temp = list.get(size++);
+		//holder.set(temp);
+		temp.setFrom(holder);
+		return temp;
 	}
 	
-	/*
-	public boolean add(Holder<? super T> holder)
-	{
-		if (size < super.size())
-		{
-			//holder.set(this.get(size));
-			this.get(size).setFrom(holder);
-		}
-		else
-		{
-			T temp = factory.newInstance();
-			temp.setFrom(holder);
-			super.add(temp);
-			System.out.println("Increasing holderlist size to " + (size+1));
-		}
-		size++;
+	@Override
+	public boolean add(E element) {
+		this.add((Holder<? super E>)element);
 		return true;
 	}
-	*/
+
+	@Override
+	public void add(int index, E element) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addAll(int index, Collection<? extends E> c) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean contains(Object o) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public E get(int index) {
+		return list.get(index);
+	}
+
+	@Override
+	public int indexOf(Object o) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+		return new HolderIterator();
+	}
+
+	private class HolderIterator implements Iterator<E> {
+		int index = 0;
+		public boolean hasNext(){return index<size();}
+		@Override
+		public E next() {
+			return list.get(index++);
+		}
+		@Override
+		public void remove() {throw new UnsupportedOperationException();}
+	}
+	
+	@Override
+	public int lastIndexOf(Object o) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public ListIterator<E> listIterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ListIterator<E> listIterator(int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean remove(Object o) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public E remove(int index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public E set(int index, E element) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<E> subList(int fromIndex, int toIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object[] toArray() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T[] toArray(T[] a) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
 }

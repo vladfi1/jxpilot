@@ -26,7 +26,7 @@ public class HUD implements Drawable{
 	private Player lockPlayer = null;
 	
 	private final int RADARS_SIZE = 10;
-	private HolderList<RadarHolder, Radar> radarHandler;
+	private HolderList<Radar> radarHandler;
 	
 	private TimedQueue<ScoreObject> scoreObjectHandler;
 	/**
@@ -57,7 +57,7 @@ public class HUD implements Drawable{
 	
 	private void initRadars()
 	{
-		radarHandler = new HolderList<RadarHolder, Radar>(radarFactory, RADARS_SIZE);
+		radarHandler = new HolderList<Radar>(radarFactory, RADARS_SIZE);
 	}
 	
 	public Iterable<Radar> getRadarHandler(){return radarHandler;}

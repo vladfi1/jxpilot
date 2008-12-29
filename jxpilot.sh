@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -Xmx1024m -cp jxpilot.jar:lib/xpilotpanel.jar:lib/jgamelibrary.jar net.sf.jxpilot.JXPilot
+java -Dsun.java2d.opengl=True -cp jxpilot.jar:lib/xpilotpanel.jar:lib/jgamelibrary.jar net.sf.jxpilot.JXPilot

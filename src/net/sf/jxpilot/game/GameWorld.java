@@ -25,26 +25,26 @@ public class GameWorld implements Drawable {
 	private LinkedList<Drawable> drawableList;
 	private Vector<Iterable<? extends Drawable>> drawables;
 	
-	private Collection<List<? extends Drawable>> holderLists;
+	private ArrayList<HolderList<? extends Drawable>> holderLists;
 	
 	//various collections to handle 
 	/**
 	 * Map holding the players by id number.
 	 */
 	private HashMap<Short, Player> playerMap = new HashMap<Short, Player>();
-	private NewHolderList<Ship> shipHandler;
+	private HolderList<Ship> shipHandler;
 	private final int SHIPS_SIZE = 10;
-	private NewHolderList<FastShot> shotHandler;
+	private HolderList<FastShot> shotHandler;
 	private final int SHOTS_SIZE = 300;
-	private NewHolderList<Connector> connectorHandler;
+	private HolderList<Connector> connectorHandler;
 	private final int CONNECTORS_SIZE = 10;
-	private NewHolderList<Ball> ballHandler;
+	private HolderList<Ball> ballHandler;
 	private final int BALLS_SIZE = 10;
-	private NewHolderList<Mine> mineHandler;
+	private HolderList<Mine> mineHandler;
 	private final int MINES_SIZE = 20;
-	private NewHolderList<Spark> sparkHandler;
+	private HolderList<Spark> sparkHandler;
 	private final int DEBRIS_SIZE = 200;
-	private NewHolderList<Missile> missileHandler;
+	private HolderList<Missile> missileHandler;
 	private final int MISSILE_SIZE = 20;
 
 	private final ArrayList<Cannon> cannons;
@@ -86,7 +86,7 @@ public class GameWorld implements Drawable {
 		drawables.add(bases);
 		
 		hud = new HUD(this);
-		//drawables.add(hud.getRadarHandler());
+		//drawables.add(hud.getRadarHandler());List
 		//drawables.add(hud.getScoreObjectHandler());
 		
 		initDrawableHandlers();
@@ -98,31 +98,31 @@ public class GameWorld implements Drawable {
 	
 	private void initDrawableHandlers()
 	{
-		holderLists = new ArrayList<List<? extends Drawable>>();
+		holderLists = new ArrayList<HolderList<? extends Drawable>>();
 
-		shotHandler = new NewHolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
+		shotHandler = new HolderList<FastShot>(fastShotFactory, SHOTS_SIZE);
 		holderLists.add(shotHandler);
 		
-		ballHandler = new NewHolderList<Ball>(ballFactory, BALLS_SIZE);
+		ballHandler = new HolderList<Ball>(ballFactory, BALLS_SIZE);
 		holderLists.add(ballHandler);
 		
-		connectorHandler = new NewHolderList<Connector>(connectorFactory, CONNECTORS_SIZE);
+		connectorHandler = new HolderList<Connector>(connectorFactory, CONNECTORS_SIZE);
 		holderLists.add(connectorHandler);
 		
-		mineHandler = new NewHolderList<Mine>(mineFactory, MINES_SIZE);
+		mineHandler = new HolderList<Mine>(mineFactory, MINES_SIZE);
 		holderLists.add(mineHandler);
 		
-		sparkHandler = new NewHolderList<Spark>(sparkFactory, DEBRIS_SIZE);
+		sparkHandler = new HolderList<Spark>(sparkFactory, DEBRIS_SIZE);
 		holderLists.add(sparkHandler);
 		
-		missileHandler = new NewHolderList<Missile>(missileFactory, MISSILE_SIZE);
+		missileHandler = new HolderList<Missile>(missileFactory, MISSILE_SIZE);
 		holderLists.add(missileHandler);
 		
 		//scoreObjectHandler = new TimedQueue<ScoreObject>(SCORE_OBJECT_DURATION);
 		//drawables.add(scoreObjectHandler);
 		//holderLists.add(scoreObjectHandler);
 		
-		shipHandler = new NewHolderList<Ship>(shipFactory, SHIPS_SIZE);
+		shipHandler = new HolderList<Ship>(shipFactory, SHIPS_SIZE);
 		holderLists.add(shipHandler);
 		
 		drawables.addAll(holderLists);
@@ -165,13 +165,13 @@ public class GameWorld implements Drawable {
 	public void setSelf(Player p){self=p;}
 	public Player getSelf(){return self;}
 	
-	public ArrayList<Ship> getShipHandler(){return shipHandler;}
-	public ArrayList<Ball> getBallHandler(){return ballHandler;}
-	public ArrayList<Connector> getConnectorHandler(){return connectorHandler;}
-	public ArrayList<Mine> getMineHandler(){return mineHandler;}
-	public ArrayList<Missile> getMissileHandler(){return missileHandler;}
-	public ArrayList<FastShot> getShotHandler(){return shotHandler;}
-	public ArrayList<Spark> getSparkHandler(){return sparkHandler;}
+	public List<Ship> getShipHandler(){return shipHandler;}
+	public List<Ball> getBallHandler(){return ballHandler;}
+	public List<Connector> getConnectorHandler(){return connectorHandler;}
+	public List<Mine> getMineHandler(){return mineHandler;}
+	public List<Missile> getMissileHandler(){return missileHandler;}
+	public List<FastShot> getShotHandler(){return shotHandler;}
+	public List<Spark> getSparkHandler(){return sparkHandler;}
 	
 	public Vector<Iterable<? extends Drawable>> getAllDrawables(){return drawables;}
 	public HUD getHud(){return hud;}
@@ -228,6 +228,7 @@ public class GameWorld implements Drawable {
 		p.setShip(s);
 		
 		shipHandler.add(s).player = p;
+		//System.out.println(shipHandler.size());
 	}
 	
 	public void addBall(BallHolder ball) {
