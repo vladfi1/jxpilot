@@ -267,6 +267,16 @@ public class Client implements AbstractClient, ClientInputListener
     	//TODO Implement handling of lasers. These should be added to GameWorld and drawn.
     }
     
+    @Override
+    public void handleECM(ECMHolder e) {
+    	//TODO Implement handling of ECM.
+    }
+    
+    @Override
+    public void handleRefuel(RefuelHolder r) {
+    	//TODO Implement handling of Refuel.
+    }
+    
 	//Client Input Listener methods
 	@Override
     public void quit() {

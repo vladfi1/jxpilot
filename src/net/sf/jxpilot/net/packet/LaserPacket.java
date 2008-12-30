@@ -26,7 +26,7 @@ public final class LaserPacket extends LaserHolder implements XPilotPacket {
 
 	@Override
 	public String toString() {
-		return "Laser Packet\ntype = " + pkt_type +
+		return "Laser Packet\npacket type = " + pkt_type +
 				"\ncolor = " + color +
 				"\nx = " + x +
 				"\ny = " + y +

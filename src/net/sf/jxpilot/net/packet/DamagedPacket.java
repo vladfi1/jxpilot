@@ -20,7 +20,7 @@ public final class DamagedPacket extends XPilotPacketAdaptor {
 
 	@Override
 	public String toString() {
-		return "Damaged Packet\ntype = " + pkt_type +
+		return "Damaged Packet\npacket type = " + pkt_type +
 				"\ndamaged = " + damaged;
 	}
 }

@@ -132,12 +132,12 @@ public class NetClient
 		processors[PKT_START]		= getStartProcessor();
 		processors[PKT_END]			= getEndProcessor();
 		processors[PKT_SELF]		= getSelfProcessor();
-		processors[PKT_DAMAGED]		= new DamagedProcessor();
+		processors[PKT_DAMAGED]		= getDamagedProcessor();
 		processors[PKT_CONNECTOR]	= getConnectorProcessor();
-		processors[PKT_LASER]		= new LaserProcessor();
-		processors[PKT_REFUEL]		= new RefuelProcessor();
+		processors[PKT_LASER]		= getLaserProcessor();
+		processors[PKT_REFUEL]		= getRefuelProcessor();
 		processors[PKT_SHIP]		= getShipProcessor();
-		processors[PKT_ECM]			= new ECMProcessor();
+		processors[PKT_ECM]			= getECMProcessor();
 		processors[PKT_TRANS]		= getTransProcessor();
 		processors[PKT_PAUSED]		= getPausedProcessor();
 		processors[PKT_ITEM]		= getItemProcessor();
@@ -1601,46 +1601,47 @@ public class NetClient
 	 */
 	protected PacketProcessor getLaserProcessor(){return new LaserProcessor();}
 	
-	protected class ECMProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short size = in.getShort();
-			
-			if (PRINT_PACKETS)
-			{
-				System.out.println("\nECM Packet\ntype = " + type +
-									"\nx = " + x +
-									"\ny = " + y +
-									"\nsize = " + size);
-			}
+	/**
+	 * Processes ECM packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class ECMProcessor implements PacketProcessor {
+		protected final ECMPacket ecmPacket = new ECMPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			ecmPacket.readPacket(in);
+			if (PRINT_PACKETS) System.out.println('\n' + ecmPacket.toString());
+			client.handleECM(ecmPacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate ECM
+	 * processor is to be used.
+	 * @return A new {@code ECMProcessor} object.
+	 */
+	protected PacketProcessor getECMProcessor(){return new ECMProcessor();}
 	
-	protected class RefuelProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short x0 = in.getShort();
-			short y0 = in.getShort();
-			short x1 = in.getShort();
-			short y1 = in.getShort();
-			
-			if(PRINT_PACKETS)
-			{
-				System.out.println("\nRefuel Packet\ntype = " + type +
-									"\nx0 = " + x0 +
-									"\ny0 = " + y0 +
-									"\nx1 = " + x1 +
-									"\ny1 = " + y1);
-			}
-			
+	/**
+	 * Processes Refuel packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class RefuelProcessor implements PacketProcessor {
+		protected final RefuelPacket refuelPacket = new RefuelPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			refuelPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + refuelPacket.toString());
+			client.handleRefuel(refuelPacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate refuel
+	 * processor is to be used.
+	 * @return A new {@code RefuelProcessor} object.
+	 */
+	protected PacketProcessor getRefuelProcessor(){return new RefuelProcessor();}
 	
 	protected class TalkAckProcessor implements PacketProcessor
 	{

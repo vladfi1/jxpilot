@@ -118,9 +118,8 @@ public class HUD implements Drawable{
 	{
 		paintScoreObjects(g2d);
 		
-		for(Radar r : radarHandler)
-		{
-			r.paintDrawable(g2d);
+		for(int i = 0;i<radarHandler.size();i++) {
+			radarHandler.get(i).paintDrawable(g2d);
 		}
 		
 		paintLockedPlayer(g2d);
@@ -131,7 +130,7 @@ public class HUD implements Drawable{
 		if(lockPlayer!=null)
 		{
 			g2d.setColor(Color.WHITE);
-			Utilities.drawAdjustedStringDown(g2d,lockPlayer.getName(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
+			Utilities.drawAdjustedStringUp(g2d,lockPlayer.getName(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
 		}
 	}
 	

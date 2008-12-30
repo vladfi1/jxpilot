@@ -36,6 +36,8 @@ public interface AbstractClient
 	public void handleSelfItems(byte[] items);
 	public void handleModifiers(String modifiers);
 	public void handleLaser(LaserHolder l);
+	public void handleECM(ECMHolder e);
+	public void handleRefuel(RefuelHolder r);
 	
 	/**
      * Prints message in client window.
