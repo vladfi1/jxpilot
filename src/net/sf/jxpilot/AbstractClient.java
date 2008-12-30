@@ -3,7 +3,6 @@ package net.sf.jxpilot;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jgamelibrary.preferences.Preferences;
-import net.sf.jxpilot.net.*;
 import net.sf.jxpilot.net.packet.QuitPacket;
 import net.sf.jxpilot.net.packet.ShutdownPacket;
 
@@ -36,7 +35,8 @@ public interface AbstractClient
 	public void handleEyes(short id);
 	public void handleSelfItems(byte[] items);
 	public void handleModifiers(String modifiers);
-
+	public void handleLaser(LaserHolder l);
+	
 	/**
      * Prints message in client window.
      * 

@@ -131,8 +131,7 @@ public class Client implements AbstractClient, ClientInputListener
 	}
 	
 	@Override
-	public void handleShip(ShipHolder s)
-	{
+	public void handleShip(ShipHolder s) {
 		world.addShip(s);
 	}
 	
@@ -150,14 +149,12 @@ public class Client implements AbstractClient, ClientInputListener
 	}
 	
 	@Override
-	public void handleRadar(RadarHolder r)
-	{
+	public void handleRadar(RadarHolder r) {
 		world.handleRadar(r);
 	}
 	
 	@Override
-	public void handleLeave(short id)
-	{
+	public void handleLeave(short id) {
 		world.removePlayer(id);
 	}
 	
@@ -200,8 +197,6 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	@Override
 	public void handleConnector(ConnectorHolder connector) {
-		//connectorHandler.addDrawable((Holder)connector);
-		
 		world.addConnector(connector);
 	}
 	
@@ -264,8 +259,13 @@ public class Client implements AbstractClient, ClientInputListener
     
     @Override
 	public void handleModifiers(String modifiers) {
-		//TODO Implement handling of modifiers. Perhaps display in HUD.
+		//TODO Implement handling of modifiers. Perhaps display them in HUD.
 	}
+    
+    @Override
+    public void handleLaser(LaserHolder l) {
+    	//TODO Implement handling of lasers. These should be added to GameWorld and drawn.
+    }
     
 	//Client Input Listener methods
 	@Override

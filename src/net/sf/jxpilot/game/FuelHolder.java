@@ -2,6 +2,10 @@ package net.sf.jxpilot.game;
 
 import net.sf.jxpilot.util.Holder;
 
+/**
+ * Holds Fuel data.
+ * @author Vlad Firoiu
+ */
 public class FuelHolder implements Holder<FuelHolder> {
 	/**
 	 * Unsigned short.

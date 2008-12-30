@@ -1559,44 +1559,47 @@ public class NetClient
 	 */
 	protected PacketProcessor getMissileProcessor(){return new MissileProcessor();}
 	
-	protected class DamagedProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			short damaged = in.getUnsignedByte();
-			
-			if (PRINT_PACKETS)
-			{
-				System.out.println("\nDamaged Packet\ntype = " + type +
-									"\ndamaged = " + damaged);
-			}
+	/**
+	 * Processes Damaged packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class DamagedProcessor implements PacketProcessor {
+		protected final DamagedPacket damagedPacket = new DamagedPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			damagedPacket.readPacket(in);
+			if (PRINT_PACKETS) System.out.println('\n' + damagedPacket.toString());
+			//TODO: Implement handling of Damaged packets.
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate damaged
+	 * processor is to be used.
+	 * @return A new {@code DamagedProcessor} object.
+	 */
+	protected PacketProcessor getDamagedProcessor(){return new DamagedProcessor();}
 	
-	protected class LaserProcessor implements PacketProcessor
-	{
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			
-			byte color = in.getByte();
-			short x = in.getShort();
-			short y = in.getShort();
-			short len = in.getShort();
-			short dir = in.getUnsignedByte();
-			
-			if(PRINT_PACKETS)
-			{
-				System.out.println("\nLaser Packet\ntype = " + type +
-									"\ncolor = " + color +
-									"\nx = " + x +
-									"\ny = " + y +
-									"\nlen = " + len +
-									"\ndir = " + dir);
-			}
+	/**
+	 * Processes Laser packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class LaserProcessor implements PacketProcessor {
+		protected final LaserPacket laserPacket = new LaserPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			laserPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + laserPacket.toString());
+			client.handleLaser(laserPacket);
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate laser
+	 * processor is to be used.
+	 * @return A new {@code LaserProcessor} object.
+	 */
+	protected PacketProcessor getLaserProcessor(){return new LaserProcessor();}
 	
 	protected class ECMProcessor implements PacketProcessor
 	{
@@ -1769,7 +1772,6 @@ public class NetClient
 	
 	/**
 	 * Processes Seek Packets.
-	 * TODO: Implement handling of packet data.
 	 * @author Vlad Firoiu
 	 */
 	protected class SeekProcessor implements PacketProcessor
@@ -1796,8 +1798,8 @@ public class NetClient
 		
 		public void processPacket(ByteBufferWrap in, AbstractClient client) {
 			readPacket(in);
-			
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
+			//TODO: Implement handling of Seek packets.
 		}
 		
 		@Override
