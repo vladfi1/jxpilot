@@ -18,6 +18,7 @@ import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.map.BlockMapSetup;
 import net.sf.jxpilot.net.packet.*;
 import net.sf.jxpilot.util.BitVector;
+import net.sf.jxpilot.util.HolderList;
 import net.sf.jxpilot.util.Utilities;
 import net.sf.jgamelibrary.preferences.Preferences;
 
@@ -151,7 +152,7 @@ public class NetClient
 		processors[PKT_CANNON]		= getCannonProcessor();
 		processors[PKT_TARGET]		= getTargetProcessor();
 		processors[PKT_RADAR]		= getRadarProcessor();
-		processors[PKT_FASTRADAR]	= new FastRadarProcessor();
+		processors[PKT_FASTRADAR]	= getFastRadarProcessor();
 		processors[PKT_RELIABLE]	= getReliableProcessor();
 		processors[PKT_QUIT]		= getQuitProcessor();
 		processors[PKT_MODIFIERS]  	= getModifiersProcessor();
@@ -177,7 +178,7 @@ public class NetClient
 		processors[PKT_TEAM_SCORE]	= getTeamScoreProcessor();
 		processors[PKT_PLAYER]		= getPlayerProcessor();
 		processors[PKT_SCORE]		= getScoreProcessor();
-		processors[PKT_TIMING]		= new TimingProcessor();
+		processors[PKT_TIMING]		= getTimingProcessor();
 		processors[PKT_LEAVE]		= getLeaveProcessor();
 		processors[PKT_WAR]			= getWarProcessor();
 		processors[PKT_SEEK]		= getSeekProcessor();
@@ -185,7 +186,7 @@ public class NetClient
 		processors[PKT_QUIT]		= getQuitProcessor();
 		processors[PKT_STRING]		= getStringProcessor();
 		processors[PKT_SCORE_OBJECT]= getScoreObjectProcessor();
-		processors[PKT_TALK_ACK]	= new TalkAckProcessor();
+		processors[PKT_TALK_ACK]	= getTalkAckProcessor();
 		processors[PKT_REPLY]		= getReplyProcessor();
 	}
 
@@ -1301,44 +1302,31 @@ public class NetClient
 	 */
 	protected PacketProcessor getItemProcessor(){return new ItemProcessor();}
 	
-	protected class FastRadarProcessor implements PacketProcessor
-	{
-		private RadarHolder radar = new RadarHolder();
+	/**
+	 * Processes Fast Radar packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class FastRadarProcessor implements PacketProcessor {
+		protected final FastRadarPacket fastRadarPacket = new FastRadarPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-		{
-			byte type = in.getByte();
-			int n = (in.getByte() & 0xFF);
-			int x, y, size;
-
-			int pos = in.position();
-
-			for (int i =0;i<n;i++)
-			{
-				x = in.getUnsignedByte();
-				y= in.getUnsignedByte();
-
-				byte b = in.getByte();
-
-				y |= (b&0xC0) << 2;
-
-				size = (b & 0x07);
-				if ((b & 0x20)!=0)
-				{
-					size |= 0x80;
-				}
-
-				client.handleRadar(radar.setRadar(x, y, size));
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+			fastRadarPacket.clear();
+			fastRadarPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + fastRadarPacket.toString());
+			HolderList<RadarHolder> radarHolders = fastRadarPacket.getRadarHolders();
+			for(int i = 0;i<radarHolders.size();i++) {
+				client.handleRadar(radarHolders.get(i));
 			}
-
-			if(PRINT_PACKETS)
-				System.out.println("\nFast Radar Packet:\ntype = " + type +
-					"\nn = " + n +
-					"\nbuffer advanced " + (in.position()-pos));
 		}
-
 	}
 
+	/**
+	 * Note that subclasses should override this method if a separate fast radar
+	 * processor is to be used.
+	 * @return A new {@code FastRadarProcessor} object.
+	 */
+	protected PacketProcessor getFastRadarProcessor(){return new FastRadarProcessor();}
+	
 	/**
 	 * Processes data from a Paused packet.
 	 * @author Vlad Firoiu
@@ -1643,46 +1631,48 @@ public class NetClient
 	 */
 	protected PacketProcessor getRefuelProcessor(){return new RefuelProcessor();}
 	
-	protected class TalkAckProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1+4;//5
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
-			
-			byte type = in.getByte();
-			int talk_ack = in.getInt();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nTalk Ack Packet\ntype = " + type +
-									"\ntalk ack = " + talk_ack);
-			
-			if (talk_ack >= talk_pending) {
+	/**
+	 * Processes Talk Ack packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class TalkAckProcessor implements PacketProcessor {
+		protected final TalkAckPacket talkAckPacket = new TalkAckPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			talkAckPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + talkAckPacket.toString());
+			if (talkAckPacket.getTalkAck() >= talk_pending) {
 				talk_pending = 0;
 			}
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate talk ack
+	 * processor is to be used.
+	 * @return A new {@code TalkAckProcessor} object.
+	 */
+	protected PacketProcessor getTalkAckProcessor(){return new TalkAckProcessor();}
 	
-	protected class TimingProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1+2+2;//5
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException
-		{
-			if(in.remaining()<LENGTH) throw PacketProcessor.reliableReadException;
-			
-			byte type = in.getByte();
-			short id = in.getShort();
-			int timing = in.getUnsignedShort();
-			
-			if(PRINT_PACKETS)
-				System.out.println("\nTiming Packet\ntype = " + type +
-									"\nid = " + id +
-									"\ntiming = " + timing);
-			
+	/**
+	 * Processes Timing packets.
+	 * @author Vlad Firoiu
+	 */
+	protected class TimingProcessor implements PacketProcessor {
+		protected final TimingPacket timingPacket = new TimingPacket();
+		@Override
+		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+			timingPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + timingPacket.toString());
 		}
 	}
+
+	/**
+	 * Note that subclasses should override this method if a separate timing
+	 * processor is to be used.
+	 * @return A new {@code TimingProcessor} object.
+	 */
+	protected PacketProcessor getTimingProcessor(){return new TimingProcessor();}
 	
 	/**
 	 * Processes target packets.

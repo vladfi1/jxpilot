@@ -1,10 +1,10 @@
 package net.sf.jxpilot.util;
 
+import java.util.AbstractList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.ListIterator;
+import java.util.RandomAccess;
 
 /**
  * Holds a list of {@code Holder<? super E>} objects to store data
@@ -15,7 +15,7 @@ import java.util.ListIterator;
  *
  * @param <E> The element type.
  */
-public class HolderList<E extends Holder<? super E>> implements List<E> {
+public class HolderList<E extends Holder<? super E>> extends AbstractList<E> implements RandomAccess {
 	/**
 	 * The default number of elements in a {@code HolderList}.
 	 */
@@ -41,6 +41,12 @@ public class HolderList<E extends Holder<? super E>> implements List<E> {
 	 */
 	private int size = 0;
 	
+	/**
+	 * Creates a new {@code HolderList} with the specified holder factory
+	 * and initial size.
+	 * @param factory The desired holder factory.
+	 * @param start_size The initial size.
+	 */
 	public HolderList(Factory<? extends E> factory, int start_size) {
 		list = new ArrayList<E>(start_size);
 		this.factory = factory;
@@ -49,6 +55,11 @@ public class HolderList<E extends Holder<? super E>> implements List<E> {
 		}
 	}
 	
+	/**
+	 * Creates a new {@code HolderList} with the specified holder factory
+	 * and the default initial size.
+	 * @param factory The desired holder factory.
+	 */
 	public HolderList(Factory<? extends E> factory) {
 		this(factory, DEFAULT_SIZE);
 	}
@@ -77,7 +88,7 @@ public class HolderList<E extends Holder<? super E>> implements List<E> {
 	public E add(Holder<? super E> holder) {
 		if(size==list.size()) {
 			list.add(factory.newInstance());
-			System.out.println("Increased HolderList size to " + (size+1));
+			//System.out.println("Increased HolderList size to " + (size+1));
 		}
 		E temp = list.get(size++);
 		//holder.set(temp);
@@ -91,34 +102,42 @@ public class HolderList<E extends Holder<? super E>> implements List<E> {
 		return true;
 	}
 
-	@Override
-	public void add(int index, E element) {
-		// TODO Auto-generated method stub
+	/**
+	 * Efficient bulk add operation for random access lists.
+	 * @param <T> The list type.
+	 * @param l The list.
+	 * @return True.
+	 */
+	public <T extends List<? extends E> & RandomAccess> boolean addAll(T l) {
+		int num = this.size() + l.size();
+		if(num>list.size()) {
+			list.ensureCapacity(num);
+			for(int i = list.size();i<num;i++) {
+				list.add(factory.newInstance());
+			}
+		}
 		
+		for(int i = 0;i<l.size();i++) {
+			list.get(size++).setFrom(l.get(i));
+		}
+		
+		return true;
 	}
 
+	
 	@Override
 	public boolean addAll(Collection<? extends E> c) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean addAll(int index, Collection<? extends E> c) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean contains(Object o) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean containsAll(Collection<?> c) {
-		// TODO Auto-generated method stub
-		return false;
+		int num = this.size() + c.size();
+		if(num>list.size()) {
+			list.ensureCapacity(num);
+			for(int i = list.size();i<num;i++) {
+				list.add(factory.newInstance());
+			}
+		}
+		for(E e : c) {
+			list.get(size++).setFrom(e);
+		}
+		return true;
 	}
 
 	@Override
@@ -127,97 +146,9 @@ public class HolderList<E extends Holder<? super E>> implements List<E> {
 	}
 
 	@Override
-	public int indexOf(Object o) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return size() == 0;
-	}
-
-	@Override
-	public Iterator<E> iterator() {
-		return new HolderIterator();
-	}
-
-	private class HolderIterator implements Iterator<E> {
-		int index = 0;
-		public boolean hasNext(){return index<size();}
-		@Override
-		public E next() {
-			return list.get(index++);
-		}
-		@Override
-		public void remove() {throw new UnsupportedOperationException();}
-	}
-	
-	@Override
-	public int lastIndexOf(Object o) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public ListIterator<E> listIterator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ListIterator<E> listIterator(int index) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean remove(Object o) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public E remove(int index) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean removeAll(Collection<?> c) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public E set(int index, E element) {
-		// TODO Auto-generated method stub
-		return null;
+		E temp = list.get(index);
+		temp.setFrom(element);
+		return temp;
 	}
-
-	@Override
-	public List<E> subList(int fromIndex, int toIndex) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object[] toArray() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public <T> T[] toArray(T[] a) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	
 }
