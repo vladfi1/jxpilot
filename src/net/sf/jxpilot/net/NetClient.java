@@ -681,7 +681,7 @@ public class NetClient
 			{
 				try
 				{
-					processors[type].processPacket(in, client);
+					processors[type].processPacket(in);
 				}
 				catch(PacketReadException e)
 				{
@@ -709,7 +709,7 @@ public class NetClient
 				int pos = reliableBuf.position();//stores reliable buffer's position
 				try
 				{
-					processors[type].processPacket(reliableBuf, client);
+					processors[type].processPacket(reliableBuf);
 				}
 				catch (ReliableReadException e) //happens if reliable data is broken up
 				{
@@ -735,16 +735,6 @@ public class NetClient
 			reliableBuf.clear();
 		}
 	}
-	
-	/**
-	 * Processes XPilot packets.
-	 * @author Vlad Firoiu
-	 */
-	protected interface PacketProcessor {
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException;	
-		static final ReliableReadException reliableReadException = new ReliableReadException();
-	}
-	
 
 	//public send methods for Client
 	
@@ -852,12 +842,22 @@ public class NetClient
 	
 	
 	//various classes to handle different packet types
+	
+	/**
+	 * Processes XPilot packets.
+	 * @author Vlad Firoiu
+	 */
+	protected interface PacketProcessor {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException;	
+		//static final ReliableReadException reliableReadException = new ReliableReadException();
+	}
+	
 	/**
 	 * Processes reliable packets.
 	 * @author Vlad Firoiu
 	 */
 	protected class ReliableProcessor implements PacketProcessor {
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+		public void processPacket(ByteBufferWrap in) {
 			ReliableDataError error = reliable.readReliableData(in, NetClient.this, reliableBuf);
 			if(PRINT_PACKETS) System.out.println(error);
 		}
@@ -875,7 +875,7 @@ public class NetClient
 	 */
 	protected class ReplyProcessor implements PacketProcessor {
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			ReplyData data = readReplyData(in, reply);
 			if(PRINT_PACKETS) System.out.println(data);
 		}
@@ -895,7 +895,7 @@ public class NetClient
 	protected class QuitProcessor implements PacketProcessor {
 		protected QuitPacket quitPacket = new QuitPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			quitPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n'+quitPacket.toString());
 			client.handleQuit(quitPacket);
@@ -918,7 +918,7 @@ public class NetClient
 		protected StartPacket startPacket = new StartPacket();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			startPacket.readPacket(in);
 
 			//packet is duplicate or out of order
@@ -992,7 +992,7 @@ public class NetClient
 	protected class PlayerProcessor implements PacketProcessor {
 		protected PlayerPacket playerPacket = new PlayerPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			playerPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + playerPacket.toString());
 			client.handlePlayer(playerPacket);
@@ -1014,7 +1014,7 @@ public class NetClient
 		protected ScorePacket scorePacket = new ScorePacket();
 
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			scorePacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + scorePacket.toString());
 			client.handleScore(scorePacket.getId(), scorePacket.getScore(), scorePacket.getLife());
@@ -1067,7 +1067,7 @@ public class NetClient
 	protected class BaseProcessor implements PacketProcessor {
 		protected final BasePacket basePacket = new BasePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			basePacket.readPacket(in);
 			if(PRINT_PACKETS)System.out.println('\n' + basePacket.toString());
 			client.handleBase(basePacket);
@@ -1088,7 +1088,7 @@ public class NetClient
 	protected class MessageProcessor implements PacketProcessor {
 		protected final MessagePacket messagePacket = new MessagePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			messagePacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + messagePacket.toString());
 			client.handleMessage(messagePacket.getMessage());
@@ -1111,7 +1111,7 @@ public class NetClient
 		protected final AbstractDebrisHolder debrisHolder = new AbstractDebrisHolder();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			debrisPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + debrisPacket.toString());
 			for (int i = 0;i<debrisPacket.getNum();i++) {
@@ -1134,7 +1134,7 @@ public class NetClient
 	protected class SelfItemsProcessor implements PacketProcessor {
 		protected final SelfItemsPacket selfItemsPacket = new SelfItemsPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			selfItemsPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + selfItemsPacket.toString());
 			client.handleSelfItems(selfItemsPacket.getItems());
@@ -1156,7 +1156,7 @@ public class NetClient
 		protected final SelfPacket selfPacket = new SelfPacket();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			selfPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + selfPacket.toString());
 			client.handleSelf(selfPacket);
@@ -1177,7 +1177,7 @@ public class NetClient
 	protected class ModifiersProcessor implements PacketProcessor {
 		protected final ModifiersPacket modifiersPacket = new ModifiersPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			modifiersPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + modifiersPacket.toString());
 			client.handleModifiers(modifiersPacket.getModifiers());
@@ -1198,7 +1198,7 @@ public class NetClient
 	protected class EndProcessor implements PacketProcessor {
 		protected final EndPacket endPacket = new EndPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			endPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + endPacket.toString());
 			client.handleEnd(endPacket.getLoops());
@@ -1220,7 +1220,7 @@ public class NetClient
 		protected final BallPacket ballPacket = new BallPacket();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			ballPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + ballPacket.toString());
 			client.handleBall(ballPacket);
@@ -1242,7 +1242,7 @@ public class NetClient
 		protected final ShipPacket shipPacket = new ShipPacket();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			shipPacket.readPacket(in);
 			if(PRINT_PACKETS)System.out.println('\n' + shipPacket.toString());
 			client.handleShip(shipPacket);
@@ -1265,7 +1265,7 @@ public class NetClient
 		protected final AbstractDebrisHolder fastShotHolder = new AbstractDebrisHolder();
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			fastShotPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + fastShotPacket.toString());
 			for(int i = 0;i<fastShotPacket.getNum();i++) {
@@ -1288,7 +1288,7 @@ public class NetClient
 	protected class ItemProcessor implements PacketProcessor {
 		protected final ItemPacket itemPacket = new ItemPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			itemPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + itemPacket.toString());
 			//TODO: Implement handling of item packets.
@@ -1309,7 +1309,7 @@ public class NetClient
 	protected class FastRadarProcessor implements PacketProcessor {
 		protected final FastRadarPacket fastRadarPacket = new FastRadarPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			fastRadarPacket.clear();
 			fastRadarPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + fastRadarPacket.toString());
@@ -1334,7 +1334,7 @@ public class NetClient
 	protected class PausedProcessor implements PacketProcessor {
 		protected final PausedPacket pausedPacket = new PausedPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			pausedPacket.readPacket(in);
 			if(PRINT_PACKETS)System.out.println('\n' + pausedPacket.toString());
 			//TODO: Implement handling of Paused packets.
@@ -1355,7 +1355,7 @@ public class NetClient
 	protected class WreckageProcessor implements PacketProcessor {
 		protected final WreckagePacket wreckagePacket = new WreckagePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			wreckagePacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + wreckagePacket.toString());
 			//TODO: Implement handling of Wreckage packets.
@@ -1376,7 +1376,7 @@ public class NetClient
 	protected class WarProcessor implements PacketProcessor {
 		protected final WarPacket warPacket = new WarPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			warPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + warPacket.toString());
 			//TODO: Implement handling of War packets.
@@ -1397,7 +1397,7 @@ public class NetClient
 	protected class ConnectorProcessor implements PacketProcessor {
 		protected final ConnectorPacket connectorPacket = new ConnectorPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			connectorPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + connectorPacket.toString());
 			client.handleConnector(connectorPacket);
@@ -1418,7 +1418,7 @@ public class NetClient
 	protected class LeaveProcessor implements PacketProcessor {
 		protected final LeavePacket leavePacket = new LeavePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			leavePacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + leavePacket.toString());
 			client.handleLeave(leavePacket.getId());
@@ -1439,7 +1439,7 @@ public class NetClient
 	protected class ScoreObjectProcessor implements PacketProcessor {
 		protected final ScoreObjectPacket scoreObjectPacket = new ScoreObjectPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			scoreObjectPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + scoreObjectPacket.toString());
 			client.handleScoreObject(scoreObjectPacket);
@@ -1460,7 +1460,7 @@ public class NetClient
 	protected class MineProcessor implements PacketProcessor {
 		protected final MinePacket minePacket = new MinePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			minePacket.readPacket(in);
 			if(PRINT_PACKETS)System.out.println('\n' + minePacket.toString());
 			client.handleMine(minePacket);
@@ -1481,7 +1481,7 @@ public class NetClient
 	protected class CannonProcessor implements PacketProcessor {
 		protected final CannonPacket cannonPacket = new CannonPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			cannonPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + cannonPacket.toString());
 			
@@ -1507,7 +1507,7 @@ public class NetClient
 	protected class FuelProcessor implements PacketProcessor {
 		protected final FuelPacket fuelPacket = new FuelPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			fuelPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + fuelPacket.toString());
 			
@@ -1533,7 +1533,7 @@ public class NetClient
 	protected class MissileProcessor implements PacketProcessor {
 		protected final MissilePacket missilePacket = new MissilePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			missilePacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + missilePacket.toString());
 			client.handleMissile(missilePacket);
@@ -1554,7 +1554,7 @@ public class NetClient
 	protected class DamagedProcessor implements PacketProcessor {
 		protected final DamagedPacket damagedPacket = new DamagedPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			damagedPacket.readPacket(in);
 			if (PRINT_PACKETS) System.out.println('\n' + damagedPacket.toString());
 			//TODO: Implement handling of Damaged packets.
@@ -1575,7 +1575,7 @@ public class NetClient
 	protected class LaserProcessor implements PacketProcessor {
 		protected final LaserPacket laserPacket = new LaserPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			laserPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + laserPacket.toString());
 			client.handleLaser(laserPacket);
@@ -1596,7 +1596,7 @@ public class NetClient
 	protected class ECMProcessor implements PacketProcessor {
 		protected final ECMPacket ecmPacket = new ECMPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			ecmPacket.readPacket(in);
 			if (PRINT_PACKETS) System.out.println('\n' + ecmPacket.toString());
 			client.handleECM(ecmPacket);
@@ -1617,7 +1617,7 @@ public class NetClient
 	protected class RefuelProcessor implements PacketProcessor {
 		protected final RefuelPacket refuelPacket = new RefuelPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			refuelPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + refuelPacket.toString());
 			client.handleRefuel(refuelPacket);
@@ -1638,7 +1638,7 @@ public class NetClient
 	protected class TalkAckProcessor implements PacketProcessor {
 		protected final TalkAckPacket talkAckPacket = new TalkAckPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			talkAckPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + talkAckPacket.toString());
 			if (talkAckPacket.getTalkAck() >= talk_pending) {
@@ -1661,9 +1661,10 @@ public class NetClient
 	protected class TimingProcessor implements PacketProcessor {
 		protected final TimingPacket timingPacket = new TimingPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws ReliableReadException {
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
 			timingPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + timingPacket.toString());
+			//TODO Implement handling of Timing packet.
 		}
 	}
 
@@ -1681,9 +1682,10 @@ public class NetClient
 	protected class TargetProcessor implements PacketProcessor {
 		protected TargetPacket targetPacket = new TargetPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			targetPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + targetPacket.toString());
+			//TODO Implement handling of Target packet.
 			//acks target packet
 			out.putByte(PKT_ACK_TARGET).putInt(last_loops).putShort(targetPacket.getNum());
 		}
@@ -1703,12 +1705,13 @@ public class NetClient
 	protected class EyesProcessor implements PacketProcessor {
 		protected EyesPacket eyesPacket = new EyesPacket();
 		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) throws PacketReadException {
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
 			eyesPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + eyesPacket.toString());
 			client.handleEyes(eyesPacket.getId());
 		}
 	}
+	
 	/**
 	 * Note that subclasses should override this method if a separate eyes
 	 * processor is to be used.
@@ -1718,40 +1721,15 @@ public class NetClient
 	
 	/**
 	 * Processes Team Score packets.
-	 * TODO: Implement handling of team score.
 	 * @author Vlad Firoiu
 	 */
-	protected class TeamScoreProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short team;
-		protected double score;
-		
-		public byte getPacketType() {return pkt_type;}
-		public short getTeam() {return team;}
-		public double getScore() {return score;}
-		
-		/**
-		 * Reads the type, team, and score.
-		 * @param in The buffer from which to read the data.
-		 */
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			team = in.getShort();
-			score = (double)in.getInt()/100.0;
-		}
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
-			readPacket(in);
-			
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
+	protected class TeamScoreProcessor implements PacketProcessor {
+		protected final TeamScorePacket teamScorePacket = new TeamScorePacket();
 		@Override
-		public String toString() {
-			return "Eyes Packet\ntype = " + pkt_type +
-					"\nteam = " + team +
-					"\nscore = " + score;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			teamScorePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + teamScorePacket.toString());
+			//TODO Implement handling of Team score.
 		}
 	}
 	/**
@@ -1762,49 +1740,23 @@ public class NetClient
 	protected PacketProcessor getTeamScoreProcessor(){return new TeamScoreProcessor();}
 	
 	/**
-	 * Processes Seek Packets.
+	 * Processes Seek packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class SeekProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short programmer_id, robot_id, sought_id;
-		
-		public byte getPacketType(){return pkt_type;}
-		public short getProgrammerId(){return this.programmer_id;}
-		public short getRobotId(){return this.robot_id;}
-		public short getSoughtId(){return this.sought_id;}
-		
-		/**
-		 * Reads the packet type, the programmer id, the robot id, and the
-		 * sought id.
-		 * @param in The buffer to read from.
-		 */
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			programmer_id = in.getShort();
-			robot_id = in.getShort();
-			sought_id = in.getShort();
-		}
-		
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-			//TODO: Implement handling of Seek packets.
-		}
-		
+	protected class SeekProcessor implements PacketProcessor {
+		protected final SeekPacket seekPacket = new SeekPacket();
 		@Override
-		public String toString() {
-			return "Seek Packet\ntype = " + pkt_type +
-					"\nprogrammer id = " + this.programmer_id +
-					"\nrobot id = " + this.robot_id +
-					"\nsought id = " + this.sought_id;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			seekPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + seekPacket.toString());
+			client.handleSeek(seekPacket);
 		}
 	}
+	
 	/**
 	 * Note that subclasses should override this method if a separate seek
 	 * processor is to be used.
-	 * @return A new SeekProcessor object.
+	 * @return A new {@code SeekProcessor} object.
 	 */
 	protected PacketProcessor getSeekProcessor(){return new SeekProcessor();}
 	
@@ -1830,7 +1782,7 @@ public class NetClient
 		}
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client) {
+		public void processPacket(ByteBufferWrap in) {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
 		}
@@ -1853,102 +1805,39 @@ public class NetClient
 	
 	/**
 	 * Processes wormhole packets.
-	 * TODO: Implement handling of wormholes.
 	 * @author Vlad Firoiu
 	 * @since xpilot version 4.5.0
 	 */
-	protected class WormholeProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short x, y;
-
-		public byte getPacketType(){return pkt_type;}
-		public short getX(){return x;}
-		public short getY(){return y;}
-		
-		/**
-		 * Reads the packet type, x and y.
-		 * @param in The buffer to read from.
-		 */
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			x = in.getShort();
-			y = in.getShort();
-		}
-		
+	protected class WormholeProcessor implements PacketProcessor {
+		protected final WormholePacket wormholePacket = new WormholePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Wormhole Packet\ntype = " + pkt_type +
-					"\nx = " + x +
-					"\ny = " + y;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			wormholePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + wormholePacket.toString());
+			//TODO Implement handling of Wormhole packet.
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate wormhole
 	 * processor is to be used.
-	 * @return A new WormholeProcessor object.
+	 * @return A new {@code WormholeProcessor} object.
 	 * @since xpilot version 4.5.0
 	 */
 	protected PacketProcessor getWormholeProcessor(){return new WormholeProcessor();}
 	
 	/**
 	 * Processes asteroid packets.
-	 * TODO: Implement handling of asteroids.
 	 * @author Vlad Firoiu
 	 * @since xpilot version 4.4.0
 	 */
-	protected class AsteroidProcessor implements PacketProcessor
-	{
-		protected byte pkt_type, 
-		type_size, type, 
-		size, rot;
-		protected short x, y;
-		
-		public byte getPacketType(){return pkt_type;}
-		public byte getType(){return type;}
-		public byte getSize(){return size;}
-		public byte getRot(){return rot;}
-		public short getX(){return x;}
-		public short getY(){return y;}
-		
-		/**
-		 * Reads the packet type, x, y, type, size, and  rotation.
-		 * @param in The buffer to read from.
-		 */
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			x = in.getShort();
-			y = in.getShort();
-			type_size = in.getByte();
-			rot = in.getByte();
-			
-			type = (byte) ((type_size >> 4) & 0x0F);
-			size = (byte) (type_size & 0x0F);
-		}
-
+	protected class AsteroidProcessor implements PacketProcessor {
+		protected final AsteroidPacket asteroidPacket = new AsteroidPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			asteroidPacket.readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Asteroid Packet\npacket type = " + type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\ntype = " + type +
-					"\nsize = " + size +
-					"\nrot = " + rot;
+			client.handleAsteroid(asteroidPacket);
 		}
 	}
 	/**
@@ -1961,32 +1850,15 @@ public class NetClient
 	
 	/**
 	 * Processes lose item packets.
-	 * TODO: Implement handling of lose items.
 	 * @author Vlad Firoiu
 	 */
-	protected class LoseItemProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short lose_item;//unsigned byte
-		
-		public byte getPacketType(){return pkt_type;}
-		public short getLoseItem(){return lose_item;}
-
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			lose_item = in.getUnsignedByte();
-		}
-		
+	protected class LoseItemProcessor implements PacketProcessor {
+		protected final LoseItemPacket loseItemPacket = new LoseItemPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n'+this.toString());
-		}
-		
-		public String toString() {
-			return "Lose Item Packet\npacket type = " + pkt_type +
-					"\nlose item = " + lose_item;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			loseItemPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + loseItemPacket.toString());
+			//TODO Implement handling of Lose Item packet.
 		}
 	}
 	
@@ -1999,36 +1871,15 @@ public class NetClient
 	
 	/**
 	 * Processes round delay packets.
-	 * TODO: Implement handling of round delay.
 	 * @author Vlad Firoiu
 	 */
-	protected class RoundDelayProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short count, max;
-		
-		public byte getPacketType(){return pkt_type;}
-		protected short getCount(){return count;}
-		public short getMax(){return max;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			count = in.getShort();
-			max = in.getShort();
-		}
-		
+	protected class RoundDelayProcessor implements PacketProcessor {
+		protected final RoundDelayPacket roundDelayPacket = new RoundDelayPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Round Delay Packet\npacket type = " + pkt_type +
-					"\ncount = " + count +
-					"\nmax = " + max;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			roundDelayPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + roundDelayPacket.toString());
+			//TODO Implement handling of round delay.
 		}
 	}
 	
@@ -2040,37 +1891,16 @@ public class NetClient
 	protected PacketProcessor getRoundDelayProcessor(){return new RoundDelayProcessor();}
 	
 	/**
-	 * Processes phasing time packets.
-	 * TODO: Implement handling of phasing time.
+	 * Processes Phasing Time packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class PhasingTimeProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short count, max;
-		
-		public byte getPacketType(){return pkt_type;}
-		protected short getCount(){return count;}
-		public short getMax(){return max;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			count = in.getShort();
-			max = in.getShort();
-		}
-		
+	protected class PhasingTimeProcessor implements PacketProcessor {
+		protected final PhasingTimePacket phasingTimePacket = new PhasingTimePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Phasing Time Packet\npacket type = " + pkt_type +
-					"\ncount = " + count +
-					"\nmax = " + max;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			phasingTimePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + phasingTimePacket.toString());
+			//TODO Implement handling of Phasing Time packet.
 		}
 	}
 	
@@ -2082,37 +1912,16 @@ public class NetClient
 	protected PacketProcessor getPhasingTimeProcessor(){return new PhasingTimeProcessor();}
 	
 	/**
-	 * Processes thrust time packets.
-	 * TODO: Implement handling of thrust time.
+	 * Processes Thrust Time packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class ThrustTimeProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short count, max;
-		
-		public byte getPacketType(){return pkt_type;}
-		protected short getCount(){return count;}
-		public short getMax(){return max;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			count = in.getShort();
-			max = in.getShort();
-		}
-		
+	protected class ThrustTimeProcessor implements PacketProcessor {
+		protected final ThrustTimePacket thrustTimePacket = new ThrustTimePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Thrust Time Packet\npacket type = " + pkt_type +
-					"\ncount = " + count +
-					"\nmax = " + max;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			thrustTimePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + thrustTimePacket.toString());
+			//TODO Implement handling of Thrust Time packet.
 		}
 	}
 	
@@ -2124,37 +1933,16 @@ public class NetClient
 	protected PacketProcessor getThrustTimeProcessor(){return new ThrustTimeProcessor();}
 	
 	/**
-	 * Processes shield time packets.
-	 * TODO: Implement handling of shield time.
+	 * Processes Shield Time packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class ShieldTimeProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short count, max;
-		
-		public byte getPacketType(){return pkt_type;}
-		protected short getCount(){return count;}
-		public short getMax(){return max;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			count = in.getShort();
-			max = in.getShort();
-		}
-		
+	protected class ShieldTimeProcessor implements PacketProcessor {
+		protected final ShieldTimePacket shieldTimePacket = new ShieldTimePacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Shield Time Packet\npacket type = " + pkt_type +
-					"\ncount = " + count +
-					"\nmax = " + max;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			shieldTimePacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + shieldTimePacket.toString());
+			//TODO Implement handling of Shield Time packet.
 		}
 	}
 	
@@ -2167,109 +1955,43 @@ public class NetClient
 	
 	/**
 	 * Processes MOTD (Message of the Day) packets.
-	 * @TODO: Implement handling of motd.
 	 * @author Vlad Firoiu
 	 */
-	protected class MOTDProcessor implements PacketProcessor
-	{
-		public static final int LENGTH = 1 + 4 + 2 + 4;//11
-		
-		protected byte pkt_type;
-		protected int offset, size;
-		protected short length;
-		protected String motd;
-		
-		public byte getPacketType(){return pkt_type;}
-		public int getOffset(){return offset;}
-		public short getLength(){return length;}
-		public int getSize(){return size;}
-		public String getMOTD(){return motd;}
-		
-		protected void readPacket(ByteBufferWrap in) throws ReliableReadException {
-			in.setReading();
-			if(in.remaining()<=LENGTH) throw reliableReadException;
-			pkt_type = in.getByte();
-			offset = in.getInt();
-			length = in.getShort();
-			size = in.getInt();
-			
-			try {
-				motd = in.getString();
-			} catch(StringReadException e) {
-				throw reliableReadException;
-			}
-		}
-		
+	protected class MOTDProcessor implements PacketProcessor {
+		protected final MOTDPacket motdPacket = new MOTDPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws ReliableReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "MOTD Packet\npacket type = " + pkt_type +
-					"\noffset = " + offset +
-					"\nlength = " + length +
-					"\nsize = " + size +
-					"\nmotd = " + motd;
+		public void processPacket(ByteBufferWrap in) throws ReliableReadException {
+			motdPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + motdPacket.toString());
+			//TODO Implement handling of MOTD packet.
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate motd
 	 * processor is to be used.
-	 * @return A new MOTDProcessor object.
+	 * @return A new {@code MOTDProcessor} object.
 	 */
 	protected PacketProcessor getMOTDProcessor(){return new MOTDProcessor();}
 	
 	/**
 	 * Processes radar packets.
-	 * TODO: Implement handling of radar.
 	 * @author Vlad Firoiu
 	 */
-	protected class RadarProcessor extends RadarHolder implements PacketProcessor
-	{
-		protected byte pkt_type;
-		
-		public byte getPacketType(){return pkt_type;}
-		
-		/**
-		 * Reads the packet type, x, y, and size.
-		 * @param in The buffer to read from.
-		 */
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			x = in.getShort();
-			y = in.getShort();
-			size= in.getUnsignedByte();
-			
-			//x = (int)((double)(x * 256) / Setup->width + 0.5);
-			//y = (int)((double)(y * RadarHeight) / Setup->height + 0.5);
-		}
-		
+	protected class RadarProcessor implements PacketProcessor {
+		protected final RadarPacket radarPacket = new RadarPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-			client.handleRadar(this);
-		}
-		
-		@Override
-		public String toString() {
-			return "Radar Packet\npacket type = " + pkt_type +
-					"\nx = " + x +
-					"\ny = " + y +
-					"\nsize = " + size;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			radarPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + radarPacket.toString());
+			client.handleRadar(radarPacket);
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate radar
 	 * processor is to be used.
-	 * @return A new RadarProcessor object.
+	 * @return A new {@code RadarProcessor} object.
 	 */
 	protected PacketProcessor getRadarProcessor(){return new RadarProcessor();}
 
@@ -2292,7 +2014,7 @@ public class NetClient
 		}
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		public void processPacket(ByteBufferWrap in)
 				throws PacketReadException {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
@@ -2319,7 +2041,7 @@ public class NetClient
 	protected class ShutdownProcessor extends ShutdownPacket implements PacketProcessor
 	{
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		public void processPacket(ByteBufferWrap in)
 				throws PacketReadException {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + super.toString());
@@ -2358,7 +2080,7 @@ public class NetClient
 		}
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		public void processPacket(ByteBufferWrap in)
 				throws PacketReadException {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
@@ -2400,7 +2122,7 @@ public class NetClient
 		}
 		
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		public void processPacket(ByteBufferWrap in)
 				throws PacketReadException {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
@@ -2439,7 +2161,7 @@ public class NetClient
 		}
 
 		@Override
-		public void processPacket(ByteBufferWrap in, AbstractClient client)
+		public void processPacket(ByteBufferWrap in)
 				throws PacketReadException {
 			readPacket(in);
 			if(PRINT_PACKETS) System.out.println('\n' + this.toString());

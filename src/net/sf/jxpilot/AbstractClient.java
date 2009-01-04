@@ -38,6 +38,8 @@ public interface AbstractClient
 	public void handleLaser(LaserHolder l);
 	public void handleECM(ECMHolder e);
 	public void handleRefuel(RefuelHolder r);
+	public void handleSeek(SeekHolder s);
+	public void handleAsteroid(AsteroidHolder a);
 	
 	/**
      * Prints message in client window.

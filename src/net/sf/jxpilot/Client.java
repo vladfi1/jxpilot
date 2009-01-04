@@ -277,6 +277,16 @@ public class Client implements AbstractClient, ClientInputListener
     	//TODO Implement handling of Refuel.
     }
     
+    @Override
+    public void handleSeek(SeekHolder s) {
+    	//TODO Implement handling of Seek.
+    }
+    
+    @Override
+    public void handleAsteroid(AsteroidHolder a) {
+    	//TODO Implement handling of Asteroid.
+    }
+    
 	//Client Input Listener methods
 	@Override
     public void quit() {
