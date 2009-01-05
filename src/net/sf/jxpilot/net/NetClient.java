@@ -22,19 +22,23 @@ import net.sf.jxpilot.util.HolderList;
 import net.sf.jxpilot.util.Utilities;
 import net.sf.jgamelibrary.preferences.Preferences;
 
-public class NetClient
-{
+public class NetClient {
 	//private final Random rnd = new Random();
+
+	/**
+	 * This client's version. Currently 0x4401 is used by fxi.
+	 */
+	public static final int CLIENT_VERSION = 0x4401;
+	/**
+	 * The magic password shared by all xpilot clients and servers.
+	 */
+	public static final int MAGIC_PASSWORD = 0xF4ED;
 	
 	/**
-	 * MAGIC = 0x4401F4ED
-	 * 
-	 * 4401 is version number. This is the version used by fxi.
-	 * Block maps and integer scores are used.
-	 * 
-	 * F4ED is the magic password-all xpilot clients/servers must have these as the lower 2 bytes of their magic.
+	 * The first 2 bytes are the client version.
+	 * The last 2 bytes are the magic password.
 	 */
-	public static final int MAGIC =0x4401F4ED;
+	public static final int MAGIC = CLIENT_VERSION<<2*8 | MAGIC_PASSWORD;
 	
 	//these are used for testing, should be changed later to support preferences
 	public static final int TEAM = 0x0000FFFF;
@@ -239,7 +243,7 @@ public class NetClient
 				System.out.println(message);
 			}
 
-			int server_port = message.getValue();
+			int server_port = Utilities.getUnsignedShort(message.getValue());
 			System.out.println("New server port: "+server_port);
 
 			try
@@ -364,8 +368,7 @@ public class NetClient
 		in.putBytes(temp);
 	}
 	
-	public void putJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team)
-	{
+	public void putJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team) {
 		buf.clear();
 		
 		buf.putInt(MAGIC);
@@ -381,8 +384,7 @@ public class NetClient
 		buf.putInt(team);
 	}
 	
-	public void sendJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team)
-	{
+	public void sendJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team) {
 		buf.clear();
 		putJoinRequest(buf, real_name, port, nick, host, team);
 		try
