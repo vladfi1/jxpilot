@@ -55,18 +55,17 @@ public class NetClient {
 	public static final byte NUM_SPARK_COLORS = 0x08;
 	public static final byte SPARK_RAND = 0x33;
 
-	private final ShipShape SHIP = ShipShape.defaultShip;
+	private final ShipShape SHIP = ShipShape.DEFAULT_SHIP;
 
 	// Nick, user and host to send to server. This default values are for if
     // JXPilot was lauched w/o XPilotPanel.
-    private String NICK = null;
-    private String REAL_NAME = null;
-    private String HOST = null;
+	private Preferences preferences;
+    private String NICK = null, REAL_NAME = null, HOST = null;
 
     /**
      * Amount of time to wait for server before giving up.
      */
-    public static final int SOCKET_TIMEOUT = 15*1000;
+    public static final int SOCKET_TIMEOUT = 5*1000;
     
     /**
 	 * 2^12=4096
@@ -117,10 +116,9 @@ public class NetClient {
 	private String talkString;
 	
 	//for measurement
-	private long numPackets = 0;
-	private long numPacketsReceived = 0;
-	private long numFrames = 0;
-	private long startTime;
+	private long numPackets = 0, numPacketsReceived = 0, numFrames = 0, startTime;
+	
+	private int server_version;
 	
 	private AbstractClient client;	
 	
@@ -192,6 +190,22 @@ public class NetClient {
 		processors[PKT_SCORE_OBJECT]= getScoreObjectProcessor();
 		processors[PKT_TALK_ACK]	= getTalkAckProcessor();
 		processors[PKT_REPLY]		= getReplyProcessor();
+		
+		// Processing preferences for this client.
+		preferences = client.getPreferences();
+		if (preferences != null) {
+			NICK = preferences.get("XPilotName");
+			REAL_NAME = preferences.get("XPilotUser");
+			HOST = preferences.get("XPilotHost");
+		}
+
+		if (NICK == null || NICK.isEmpty())
+			NICK = System.getProperty("user.name");
+		if (REAL_NAME == null || REAL_NAME.isEmpty())
+			REAL_NAME = NICK;
+		if (HOST == null || HOST.isEmpty())
+			HOST = "java.client";
+
 	}
 
 	public String getNick(){return NICK;}
@@ -202,7 +216,8 @@ public class NetClient {
 	{
 		try {
 			server_address = new InetSocketAddress(serverIP, serverPort);
-
+			//socket = new DatagramSocket(server_address);
+			
 			channel = DatagramChannel.open();
 			socket = channel.socket();
 			//socket.connect(server_address);
@@ -215,59 +230,52 @@ public class NetClient {
 			System.exit(1);
 		}
 
-		// Processing preferences for this client.
-		Preferences prefs = client.getPreferences();
-		if (prefs != null) {
-			NICK = prefs.get("XPilotName");
-			REAL_NAME = prefs.get("XPilotUser");
-			HOST = prefs.get("XPilotHost");
-		}
-
-		if (NICK == null || NICK.isEmpty())
-			NICK = System.getProperty("user.name");
-		if (REAL_NAME == null || REAL_NAME.isEmpty())
-			REAL_NAME = NICK;
-		if (HOST == null || HOST.isEmpty())
-			HOST = "java.client";
-
 		try {
+			System.out.println("Sending join request.");
 			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
-
+			sendJoinRequest(out, REAL_NAME, socket.getLocalPort(), NICK, HOST, TEAM);
+			
+			System.out.println("Wating for reply message.");
 			getReplyMessage(in, message);
+			System.out.println('\n' + message.toString());
 
-			//getReplyMessage(in, message);
-			System.out.println(message);
-
+			if(message.getStatus() != Status.SUCCESS) {
+				JOptionPane.showMessageDialog(null, "Can't connect to server.");
+				System.out.println("Can't connect to server.");
+				return;
+			}
+			
+			server_version = message.getMagic() >> 2*8;
+			System.out.println(String.format("\nserver version = %x", server_version));
+			
 			while(message.getPack()!=ENTER_GAME_pack) {
 				getReplyMessage(in, message);
-				System.out.println(message);
+				System.out.println('\n' + message.toString());
 			}
 
 			int server_port = Utilities.getUnsignedShort(message.getValue());
 			System.out.println("New server port: "+server_port);
 
-			try
-			{
+			try {
 				server_address = new InetSocketAddress(serverIP, server_port);
 				channel.disconnect();
 				channel.connect(server_address);
-			}
-			catch(IOException e)
-			{
+			} catch(IOException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}
 
 			System.out.println("Sending Verify");
 			sendVerify(out, REAL_NAME, NICK);
-
+			sendVerify(out, REAL_NAME, NICK);
+			
 			ReliableDataError result=null;
 			while (result!=ReliableDataError.NO_ERROR) {
 				result = getReliableData(reliable, in);
 				//System.out.println(result);
 
 				if (result != ReliableDataError.BAD_PACKET && result != ReliableDataError.NOT_RELIABLE_DATA) {
-					sendPacket(out);
+					sendPacket(out);//sends ack to reliable data
 				}
 			}
 
@@ -293,8 +301,7 @@ public class NetClient {
 
 			System.out.println("\nEnd of input loop");
 		}
-		catch (InterruptedIOException e)
-		{
+		catch (SocketTimeoutException e) {
 			JOptionPane.showMessageDialog(null, "Server timed out!");
 			client.handleTimeout();
 		}
@@ -305,7 +312,7 @@ public class NetClient {
 	 * The pointer, keyboard, and talk info are then sent to the server.
 	 * @throws InterruptedIOException If the server takes too long.
 	 */
-	private void inputLoop() throws InterruptedIOException
+	private void inputLoop() throws SocketTimeoutException
 	{	
 		try {
 			channel.configureBlocking(true);
@@ -344,7 +351,7 @@ public class NetClient {
 	 * Reads the last packet sent into in.
 	 * @param in The ByteBufferWrap in which the packet is read.
 	 */
-	private void readLatestPacket(ByteBufferWrap in) throws InterruptedIOException {
+	private void readLatestPacket(ByteBufferWrap in) throws SocketTimeoutException {
 		try {
 			channel.configureBlocking(true);
 		} catch(IOException e) {
@@ -387,13 +394,10 @@ public class NetClient {
 	public void sendJoinRequest(ByteBufferWrap buf, String real_name, int port, String nick, String host, int team) {
 		buf.clear();
 		putJoinRequest(buf, real_name, port, nick, host, team);
-		try
-		{
+		try {
 			//buf.flip();
 			buf.sendPacket(channel, server_address);	
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -402,18 +406,17 @@ public class NetClient {
 	 * Note that this method clears buf.
 	 * @param buf The buffer in which the input should be received.
 	 * @return The number of bytes read, or -1 if no packets available.
+	 * @see {@link ByteBufferWrap#readPacket(DatagramChannel)}
 	 */
-	private int readPacket(ByteBufferWrap buf) throws InterruptedIOException
-	{
+	private int readPacket(ByteBufferWrap buf) throws SocketTimeoutException {
 		buf.clear();
-		try
-		{
+		try {
 			int read = buf.readPacket(channel);
 			numPackets++;
 			numPacketsReceived++;
 			if (PRINT_PACKETS) System.out.println("\nGot Packet-number: " + numPackets + ", " + buf.position() + " bytes.");
 			return read;
-		} catch(InterruptedIOException e) {
+		} catch(SocketTimeoutException e) {
 			throw e;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -422,8 +425,33 @@ public class NetClient {
 	}
 	
 	/**
+	 * Note that this method clears buf.
+	 * @param buf The buffer in which the input should be received.
+	 * @return The number of bytes read.
+	 * @see {@link ByteBufferWrap#receivePacket(DatagramChannel)}
+	 */
+	private int receivePacket(ByteBufferWrap buf) throws SocketTimeoutException {
+		buf.clear();
+		try {
+			if(buf.receivePacket(channel) == null) return -1;
+			numPackets++;
+			numPacketsReceived++;
+			int read = buf.position();
+			if(PRINT_PACKETS) System.out.println("\nGot Packet-number: " + numPackets + ", " + read + " bytes.");
+			return read;
+		} catch(SocketTimeoutException e) {
+			throw e;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	/**
+	 * Sends a packet to the server.
 	 * Note that this method clears the buffer.
 	 * @param buf The buffer from which the output should be sent.
+	 * @see {@link ByteBufferWrap#sendPacket(DatagramChannel, SocketAddress)}
 	 */
 	private void sendPacket(ByteBufferWrap buf) {
 		if (buf.remaining() <= 0) return;
@@ -457,7 +485,7 @@ public class NetClient {
 
 	private void sendAck(ByteBufferWrap buf, Ack ack) {
 		putAck(buf, ack);
-		if(PRINT_PACKETS) System.out.println("\n"+ack);
+		if(PRINT_PACKETS) System.out.println('\n' + ack.toString());
 	}
 	
 	public void sendAck(Ack ack) {
@@ -550,16 +578,16 @@ public class NetClient {
 	}
 	
 	
-	private ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in) throws InterruptedIOException {
+	private ReliableDataError getReliableData(ReliableData data, ByteBufferWrap in) throws SocketTimeoutException {
 		in.clear();
-		readPacket(in);
+		receivePacket(in);
 		//in.flip();
 		
 		return data.readReliableData(in, this);
 	}
 	
-	private ReplyMessage getReplyMessage(ByteBufferWrap in, ReplyMessage message) throws InterruptedIOException {
-		readPacket(in);
+	private ReplyMessage getReplyMessage(ByteBufferWrap in, ReplyMessage message) throws SocketTimeoutException {
+		receivePacket(in);
 		//buf.flip();
 		return ReplyMessage.readReplyMessage(in, message);
 	}
@@ -572,7 +600,7 @@ public class NetClient {
 		return remaining;
 	}
 	
-	private int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable) throws InterruptedIOException {
+	private int getMapPacket(ByteBufferWrap in, ByteBufferWrap map, ReliableData reliable) throws SocketTimeoutException {
 		ReliableDataError error = getReliableData(reliable, in);
 		
 		if (error == ReliableDataError.NO_ERROR) {
@@ -594,7 +622,8 @@ public class NetClient {
 		return remaining;
 	}
 	
-	private int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable) throws InterruptedIOException {
+	private int getFirstMapPacket(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
+			throws SocketTimeoutException {
 		ReliableDataError error = getReliableData(reliable, in);
 		
 		while(error!=ReliableDataError.NO_ERROR) {
@@ -643,7 +672,8 @@ public class NetClient {
 	 * Uncompresses the map if necessary.
 	 * 
 	 */
-	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable) throws InterruptedIOException {
+	private void netSetup(ByteBufferWrap in, ByteBufferWrap map, BlockMapSetup setup, ReliableData reliable)
+			throws SocketTimeoutException {
 		int i = getFirstMapPacket(in, map, setup, reliable);
 		System.out.println(setup);
 		
@@ -1999,40 +2029,22 @@ public class NetClient {
 
 	/**
 	 * Processes destruct packets.
-	 * TODO: Implement handling of destruct.
 	 * @author Vlad Firoiu
 	 */
-	protected class DestructProcessor implements PacketProcessor
-	{
-		protected byte pkt_type;
-		protected short count;
-		
-		public byte getPacketType(){return pkt_type;}
-		public short getCount(){return count;}
-		
-		protected void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			count = in.getShort();
-		}
-		
+	protected class DestructProcessor implements PacketProcessor {
+		protected final DestructPacket destructPacket = new DestructPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Destruct Packet\npacket type = " + pkt_type +
-					"\ncount = " + count;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			destructPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + destructPacket.toString());
+			//TODO Implement handling of shutdown.
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate destruct
 	 * processor is to be used.
-	 * @return A new DestructProcessor object.
+	 * @return A new {@code DestructProcessor} object.
 	 */	
 	protected PacketProcessor getDestructProcessor(){return new DestructProcessor();}
 	
@@ -2040,61 +2052,34 @@ public class NetClient {
 	 * Processes shutdown packets.
 	 * @author Vlad Firoiu
 	 */
-	protected class ShutdownProcessor extends ShutdownPacket implements PacketProcessor
-	{
+	protected class ShutdownProcessor implements PacketProcessor {
+		protected final ShutdownPacket shutdownPacket = new ShutdownPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + super.toString());
-			client.handleShutdown(this);
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			shutdownPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + shutdownPacket.toString());
+			client.handleShutdown(shutdownPacket);
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate shutdown
 	 * processor is to be used.
-	 * @return A new ShutdownProcessor object.
+	 * @return A new {@code ShutdownProcessor} object.
 	 */	
 	protected PacketProcessor getShutdownProcessor(){return new ShutdownProcessor();}
 	
 	/**
 	 * Processes trans packets.
-	 * TODO: Implement handling of trans.
 	 * @author Vlad Firoiu
 	 */
 	protected class TransProcessor implements PacketProcessor {
-		protected byte pkt_type;
-		protected short x1, y1, x2, y2;
-		
-		public byte getPacketType() {return pkt_type;}
-		public short getX1(){return x1;}
-		public short getY1(){return y1;}
-		public short getX2(){return x2;}
-		public short getY2(){return y2;}
-		
-		public void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			x1 = in.getShort();
-			y1 = in.getShort();
-			x2 = in.getShort();
-			y2 = in.getShort();
-		}
-		
+		protected final TransPacket transPacket = new TransPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-
-		@Override
-		public String toString() {
-			return "Trans Packet\npacket type = " + pkt_type +
-					"\nx1 = " + x1 +
-					"\ny1 = " + y2 +
-					"\nx2 = " + x2 +
-					"\ny2 = " + y2;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			transPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + transPacket.toString());
+			//TODO Implement handling of trans.
 		}
 	}
 	
@@ -2107,72 +2092,37 @@ public class NetClient {
 	
 	/**
 	 * Processes audio packets.
-	 * TODO: Implement handling of audio.
+	 * 
 	 * @author Vlad Firoiu
 	 */
 	protected class AudioProcessor implements PacketProcessor {
-		protected byte pkt_type, type, volume;
-		
-		public byte getPacketType(){return pkt_type;}
-		public byte getType(){return type;}
-		public byte getVolume(){return volume;}
-		
-		public void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			type = in.getByte();
-			volume = in.getByte();
-		}
-		
+		protected final AudioPacket audioPacket = new AudioPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Audio Packet\npacket type = " + pkt_type +
-					"\ntype = " + type +
-					"\nvolume = " + volume;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			audioPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + audioPacket.toString());
+			//TODO Implement handling of audio.
 		}
 	}
 	
 	/**
 	 * Note that subclasses should override this method if a separate audio
 	 * processor is to be used.
-	 * @return A new AudioProcessor object.
+	 * @return A new {@code AudioProcessor} object.
 	 */	
 	protected PacketProcessor getAudioProcessor(){return new AudioProcessor();}
 	
 	/**
 	 * Processes time left packets.
-	 * TODO: Implement handling of time left.
 	 * @author Vlad Firoiu
 	 */
 	protected class TimeLeftProcessor implements PacketProcessor {
-		protected byte pkt_type;
-		protected int seconds;
-		
-		public byte getPacketType(){return pkt_type;}
-		public int getSeconds(){return seconds;}
-		
-		public void readPacket(ByteBufferWrap in) {
-			pkt_type = in.getByte();
-			seconds = in.getInt();
-		}
-
+		protected final TimeLeftPacket timeLeftPacket = new TimeLeftPacket();
 		@Override
-		public void processPacket(ByteBufferWrap in)
-				throws PacketReadException {
-			readPacket(in);
-			if(PRINT_PACKETS) System.out.println('\n' + this.toString());
-		}
-		
-		@Override
-		public String toString() {
-			return "Time Left Packet\npacket type = " + pkt_type +
-					"\nseconds = " + seconds;
+		public void processPacket(ByteBufferWrap in) throws PacketReadException {
+			timeLeftPacket.readPacket(in);
+			if(PRINT_PACKETS) System.out.println('\n' + timeLeftPacket.toString());
+			//TODO Implement handling of time left.
 		}
 	}
 	

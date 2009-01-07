@@ -1,11 +1,22 @@
 package net.sf.jxpilot.net;
 
+import net.sf.jxpilot.net.packet.Status;
+
 public class ReplyMessage {
 	private int magic;
-	private byte pack_type, status;
+	private byte pack_type;
+	private Status status;
 	private short value;//unsigned short
 	
 	public ReplyMessage setMessage(int magic, byte pack_type, byte status, short value) {
+		this.magic = magic;
+		this.pack_type = pack_type;
+		this.status = Status.getStatus(status);
+		this.value = value;
+		return this;
+	}
+	
+	public ReplyMessage setMessage(int magic, byte pack_type, Status status, short value) {
 		this.magic = magic;
 		this.pack_type = pack_type;
 		this.status = status;
@@ -15,15 +26,15 @@ public class ReplyMessage {
 	
 	public int getMagic(){return magic;}
 	public byte getPack(){return pack_type;}
-	public byte getStatus(){return status;}
+	public Status getStatus(){return status;}
 	public short getValue(){return value;}
 	
 	public String toString() {
-		return "Reply Message"
-				+"\nmagic = " + String.format("%x", magic)
-				+"\npack_type = " + String.format("%x", pack_type)
-				+"\nstatus = " + String.format("%x", status)
-				+"\nvalue = " + String.format("%x", value);
+		return "Reply Message" +
+				"\nmagic = " + String.format("%x", magic) +
+				"\npack type = " + String.format("%x", pack_type) +
+				"\nstatus = " + status +
+				"\nvalue = " + String.format("%x", value);
 	}
 	
 	public static ReplyMessage readReplyMessage(ByteBufferWrap buf, ReplyMessage message) {

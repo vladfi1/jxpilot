@@ -23,55 +23,52 @@ public class Utilities {
 	 * @param m The modulus.
 	 * @return A positive value for x mod m, since x%m sometimes returns negative values.
 	 */
-	public static int trueMod(int x, int m)
-	{
+	public static int trueMod(int x, int m) {
 		//return ((x%m)+m)%m;
 		
 		int intMod = x%m;
 		return intMod >= 0 ? intMod : intMod+m;
 	}
 	
-	public static int getUnsignedShort(short val)
-	{
+	public static int getUnsignedShort(short val) {
 		return (int)((char)val);
 	}
-	public static short getUnsignedByte(byte val)
-	{		
-		return (short)(0xFF & (int)val);
+	public static short getUnsignedByte(byte val) {
+		return (short)(0xFF & val);
 	}
 	
 	/**
 	 * @param heading The angle in 128 degree mode.
 	 * @return The angle in radians.
 	 */
-	public static double getAngleFrom128(double heading)
-	{
+	public static double getAngleFrom128(double heading) {
 		return Math.PI/64.0 * heading;
 	}
 	
-	public static double pow(double base, int exponent)
-	{
+	public static double pow(double base, int exponent) {
 		double product=1;
-		for(int i = 0;i<exponent;i++)
-		{
-			product *= base;
-		}
 		
-		return exponent>=0 ? product : 1/product;
+		if(exponent<0) {
+			for(int i = 0;i>exponent;i--) {product *= base;}
+			return 1.0/product;
+		} else {
+			for(int i = 0;i<exponent;i++) {product *= base;}
+			return product;
+		}
 	}
 	
-	public static int pow(int base, int exponent)
-	{
-		int product=1;
-		for(int i = 0;i<Math.abs(exponent);i++)
-		{
-			product *= base;
-		}
+	public static long pow(int base, int exponent) {
+		long product = 1;
+		for(int i = 0;i<exponent;i++) {product *= base;}
 		
-		return exponent>=0 ? product : 1/product;
+		return product;
 	}
 	
 	public static int square(int base){return base*base;}
+	
+	public static int times2(int n) {return n << 1;}
+	public static int pow2(int exp) {return 1 << exp;}
+	public static int timesPow2(int n, int exp) {return n << exp;}
 	
 	/**
 	 * Draws a String taking into account a flip of the Graphics object.
@@ -221,7 +218,6 @@ public class Utilities {
 	 */
 	public static final char NULL_CHAR = '\0';
 	
-	public static final String EMPTY_STRING = "";
 	/**
      * Removes null character from end of string.<br>
      * It doesn't copy the string. See {@link String#substring(int, int)}.
@@ -231,8 +227,7 @@ public class Utilities {
      * @return Fixed string, w/o nul character in end.
      */
     public static String removeNullCharacter(String stringToFix) {
-    	
-    	if(stringToFix.length()==0) return EMPTY_STRING;
+    	if(stringToFix.isEmpty()) return stringToFix;
     	
     	if (stringToFix.charAt(stringToFix.length()-1) != NULL_CHAR) return stringToFix;
     	

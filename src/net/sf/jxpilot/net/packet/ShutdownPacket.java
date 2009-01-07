@@ -10,7 +10,6 @@ public class ShutdownPacket extends XPilotPacketAdaptor {
 
 	protected short count, delay;
 	
-	public byte getPacketType(){return pkt_type;}
 	public short getCount(){return count;}
 	public short getDelay(){return delay;}
 	

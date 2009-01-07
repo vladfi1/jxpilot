@@ -14,7 +14,14 @@ import net.sf.jxpilot.util.Utilities;
  */
 
 public class ByteBufferWrap {
-	public static final byte END_OF_STRING = 0x00;
+	/**
+	 * Marks the end of a C-style string.
+	 */
+	public static final byte END_OF_STRING = 0;
+	/**
+	 * The key for encoding bytes in ASCII.
+	 */
+	public static final String ASCII_ENCODING = "US-ASCII";
 	
 	private boolean writing=true;
 	private ByteBuffer buffer;
@@ -47,7 +54,6 @@ public class ByteBufferWrap {
 		if (writing) {
 			buffer.limit(buffer.position());
 			buffer.position(mark);
-			//buffer.reset();
 			writing = false;
 		}
 	}
@@ -62,9 +68,10 @@ public class ByteBufferWrap {
 	 * This method does not automatically clear the underlying ByteBuffer before reading a UDP packet.
 	 * @param channel The UDP channel to read from.
 	 * @return The number of bytes read.
-	 * @throws IOException if {@code channel.read(ByteBuffer)} throws an IOException.
+	 * @throws IOException if {@link DatagramChannel#read(ByteBuffer)} throws an IOException.
 	 * @return The number of bytes read (possibly 0) or -1 if no packets available
 	 * 			and the channel is in non-blocking mode.
+	 * @see {@link DatagramChannel#read(ByteBuffer)}
 	 */
 	public int readPacket(DatagramChannel channel) throws IOException {
 		setWriting();
@@ -76,6 +83,7 @@ public class ByteBufferWrap {
 	 * @param channel The desired channel.
 	 * @return The number of bytes written.
 	 * @throws IOException Passes along any exceptions thrown by {@code channel.write(ByteBuffer)}.
+	 * @see {@link DatagramChannel#write(ByteBuffer)}
 	 */
 	public int writePacket(DatagramChannel channel) throws IOException {
 		setReading();
@@ -83,20 +91,24 @@ public class ByteBufferWrap {
 	}
 	
 	/**
-	 * 
-	 * @param channel
-	 * @return
-	 * @throws IOException
+	 * @see {@link DatagramChannel#receive(ByteBuffer)}
 	 */
 	public SocketAddress receivePacket(DatagramChannel channel) throws IOException {
 		setWriting();
 		return channel.receive(buffer);
 	}
 	
-	public void sendPacket(DatagramChannel channel, SocketAddress address) throws IOException
-	{
+	/**
+	 * Sends all remaining bytes in this buffer.
+	 * @param channel The channel to send through.
+	 * @param address The address to send to.
+	 * @return The number of bytes sent.
+	 * @throws IOException Passes along any IOExceptions thrown by {@code DatagramChannel.send(ByteBuffer, SocketAddress)}
+	 * @see {@link DatagramChannel#send(ByteBuffer)}
+	 */
+	public int sendPacket(DatagramChannel channel, SocketAddress address) throws IOException {
 		setReading();
-		channel.send(buffer, address);
+		return channel.send(buffer, address);
 	}
 	
 	public int remaining() {
@@ -221,7 +233,6 @@ public class ByteBufferWrap {
 	 */
 	public ByteBufferWrap putString(String str) {
 		setWriting();
-		
 		try {
 			buffer.put(str.getBytes("US-ASCII"));
 			if (!str.endsWith(String.valueOf((char)END_OF_STRING)))
@@ -320,36 +331,35 @@ public class ByteBufferWrap {
 	 * @return A String read from the buffer using ASCII encoding.
 	 * @throws StringReadException If the buffer is read to the end but no null char is found.
 	 */
-	public String getString() throws StringReadException
-	{
+	public String getString() throws StringReadException {
 		setReading();
-		
+
 		StringBuilder temp = new StringBuilder();
 		
 		byte ch;
 		//boolean ends_with_null = false;
 
 		do {
-			if (buffer.remaining()<=0) {
-				/*
-					System.out.println("*****error reading string!******");
-					String soFar = "";
+			if (buffer.remaining()>0) {
+				ch = buffer.get();
 
-					for (byte c : b.toString().getBytes())
-					{
-						soFar += String.format("%x ", c);
-					}
-					System.out.println("So far getString() has read:\n" +soFar);
+				//if (ch==END_OF_STRING)
+				//	ends_with_null = true;
+
+				temp.append((char)ch);
+			} else {
+				/*
+				System.out.println("*****error reading string!******");
+				String soFar = "";
+
+				for (byte c : b.toString().getBytes())
+				{
+					soFar += String.format("%x ", c);
+				}
+				System.out.println("So far getString() has read:\n" +soFar);
 				 */
 				throw STRING_READ_EXCEPTION;
 			}
-
-			ch = buffer.get();
-
-			//if (ch==END_OF_STRING)
-			//	ends_with_null = true;
-
-			temp.append((char)ch);
 		} while(ch != END_OF_STRING);
 
 		return temp.toString();
