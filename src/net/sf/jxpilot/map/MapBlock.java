@@ -6,7 +6,7 @@ import static net.sf.jxpilot.map.BlockMapSetup.*;
 
 /**
  * Represents a block of a BlockMap. Note that things that can change such as cannons are not represented by MapBlocks.
- * @author vlad
+ * @author Vlad Firoiu
  */
 public class MapBlock extends DrawableBlock
 {
@@ -14,8 +14,7 @@ public class MapBlock extends DrawableBlock
 	
 	public final int num, x,y;
 	
-	private MapBlock(DrawableBlock block, int num, int x, int y)
-	{
+	private MapBlock(DrawableBlock block, int num, int x, int y) {
 		super(block);
 		this.num = num;
 		this.x= x;

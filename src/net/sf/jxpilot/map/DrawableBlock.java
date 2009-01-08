@@ -41,8 +41,7 @@ public class DrawableBlock implements Drawable
 	 */
 	protected static final DrawableBlock[] staticBlocks;
 	
-	static
-	{
+	static {
 		REC = getDefaultRectangle();
 		CIRCLE = getDefaultCircle();
 		
@@ -51,29 +50,24 @@ public class DrawableBlock implements Drawable
 		REC_LU = getRec(false, true);
 		REC_LD = getRec(false, false);
 		
-		
 		staticBlocks = new DrawableBlock[256];
 		
 		initBlocks();
 	}
 
-	protected static DrawableBlock getBlock(byte block_type)
-	{
+	protected static DrawableBlock getBlock(byte block_type) {
 		return staticBlocks[Utilities.getUnsignedByte(block_type)];
 	}
 	
-	private static Rectangle getDefaultRectangle()
-	{
+	private static Rectangle getDefaultRectangle() {
 		return new Rectangle(0,0, BLOCK_SIZE,BLOCK_SIZE);
 	}
 	
-	private static Ellipse2D getDefaultCircle()
-	{
+	private static Ellipse2D getDefaultCircle() {
 		return new Ellipse2D.Float(0,0, BLOCK_SIZE,BLOCK_SIZE);
 	}	
 	
-	private static Polygon getRec(boolean right, boolean up)
-	{
+	private static Polygon getRec(boolean right, boolean up) {
 		Polygon poly = new Polygon();
 		if (right)
 		{
@@ -89,9 +83,7 @@ public class DrawableBlock implements Drawable
 				poly.addPoint(BLOCK_SIZE, BLOCK_SIZE);
 				poly.addPoint(0, 0);			
 			}
-		}
-		else
-		{
+		} else {
 			if (up)
 			{
 				poly.addPoint(0, 0);
@@ -132,8 +124,7 @@ public class DrawableBlock implements Drawable
 		case SETUP_WORM_OUT: return new DrawableBlock(SETUP_WORM_OUT, CIRCLE, WORMHOLE_COLOR, true);
 		}
 		
-		if (block_type>= SETUP_TREASURE && block_type <SETUP_TREASURE + 10)
-		{
+		if (block_type>= SETUP_TREASURE && block_type <SETUP_TREASURE + 10) {
 			return new DrawableBlock(block_type, CIRCLE, TREASURE_COLOR,false);
 		}
 		
@@ -176,8 +167,7 @@ public class DrawableBlock implements Drawable
 	 * This constructor is used for non-drawable blocks.
 	 * @param block_type
 	 */
-	private DrawableBlock(byte block_type)
-	{
+	private DrawableBlock(byte block_type) {
 		this.block_type=block_type;
 		this.isDrawn=false;
 		this.shape = null;
@@ -190,8 +180,7 @@ public class DrawableBlock implements Drawable
 	 * Creates a clone of other. To be used by subclasses.
 	 * @param other 
 	 */
-	protected DrawableBlock(DrawableBlock other)
-	{
+	protected DrawableBlock(DrawableBlock other) {
 		this.block_type = other.block_type;
 		this.isDrawn = other.isDrawn;
 		this.shape = other.shape;
@@ -207,8 +196,7 @@ public class DrawableBlock implements Drawable
 	 * @param color
 	 * @param fill
 	 */
-	private DrawableBlock(byte block_type, Shape shape, Color color, boolean fill)
-	{
+	private DrawableBlock(byte block_type, Shape shape, Color color, boolean fill) {
 		this.block_type = block_type;
 		this.isDrawn=true;
 		this.shape = shape;
@@ -217,8 +205,7 @@ public class DrawableBlock implements Drawable
 		image = createImage();
 	}
 	
-	private BufferedImage createImage()
-	{
+	private BufferedImage createImage() {
 		//BufferedImage temp = new BufferedImage(BLOCK_SIZE, BLOCK_SIZE, BufferedImage.TYPE_INT_ARGB);
 		
 		BufferedImage temp = Accelerator.createCompatibleImage(BLOCK_SIZE, BLOCK_SIZE);
