@@ -12,6 +12,8 @@ import net.sf.jxpilot.graphics.Drawable;
 import net.sf.jxpilot.map.*;
 import net.sf.jxpilot.util.*;
 
+import net.sf.jgamelibrary.graphics.Renderable;
+
 /**
  * Class that manages the various objects in the world.
  * All drawable objects are contained in here.
@@ -303,8 +305,8 @@ public class GameWorld implements Drawable {
 		hud.update();
 	}
 	
-	//inner Drawable classes	
-	public class Ship extends ShipHolder implements Drawable {
+	//inner Drawable classes
+	public class Ship extends ShipHolder implements Drawable, Renderable {
 		public static final int SHIP_RADIUS = 16;
 		private final Color SELF_COLOR = Color.WHITE;
 		private final Color ENEMY_COLOR = Color.WHITE;
@@ -365,6 +367,11 @@ public class GameWorld implements Drawable {
 			//g2d.translate(-x,-y);
 			//g2d.rotate(-heading, -x, -y);
 			//g2d.setTransform(saved);
+		}
+		
+		@Override
+		public void render(Graphics2D g2d) {
+			
 		}
 	}
 	public final Factory<Ship> shipFactory = new Factory<Ship>(){

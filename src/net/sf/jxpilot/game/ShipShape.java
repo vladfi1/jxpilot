@@ -2,6 +2,7 @@ package net.sf.jxpilot.game;
 
 import java.awt.*;
 import java.util.regex.*;
+import net.sf.jgamelibrary.geom.Polygon2D;
 
 /**
  * Simple class that defines the basic elements of a shipshape and
@@ -67,13 +68,14 @@ public class ShipShape implements Cloneable {
 	}
 	
 	/**
-	 * Default triangular ShipShape.
+	 * Default triangular {@code ShipShape}.
 	 */
 	public static final ShipShape DEFAULT_SHIP = 
 		new ShipShape(new Point(-8,0), new Point(14,0), new Point(-8,8), new Point(-8,-8), new Point(14,0));
 	
 	private short version = 0x3200;
 	private Polygon shape;
+	private Polygon2D shape2D;
 	private Point engine, main_gun,
 					left_light, right_light,
 					main_rack;
@@ -93,6 +95,7 @@ public class ShipShape implements Cloneable {
 		shape.addPoint(main_gun.x, main_gun.y);
 		shape.addPoint(left_light.x, left_light.y);
 		shape.addPoint(right_light.x, right_light.y);
+		shape2D = new Polygon2D(shape);
 	}
 	
 	public Polygon getShape(){return shape;}
@@ -131,7 +134,6 @@ public class ShipShape implements Cloneable {
 		ShipShape ship=new ShipShape();
 		
 		Matcher parenthesesMatcher = parenthesesPattern.matcher(shipStr);
-		
 		
 		/**
 		 * Whether or not the ship's polygon is empty.
@@ -205,8 +207,7 @@ public class ShipShape implements Cloneable {
 		}
 		
 		//makes sure ship isn't empty
-		if(empty)
-		{
+		if(empty) {
 			Polygon shape = ship.shape;
 			
 			//shape.addPoint(ship.engine.x, ship.engine.y);
@@ -215,7 +216,7 @@ public class ShipShape implements Cloneable {
 			shape.addPoint(ship.right_light.x, ship.right_light.y);
 			//shape.addPoint(ship.main_rack.x, ship.main_rack.y);	
 		}
-		
+		ship.shape2D = new Polygon2D(ship.shape);
 		ship.extras = extension;
 		
 		return ship;
