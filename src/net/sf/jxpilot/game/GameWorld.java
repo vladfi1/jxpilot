@@ -356,9 +356,9 @@ public class GameWorld implements Drawable {
 				}
 			}
 			
-			if (shield)
-			{
-				g2d.draw(shieldShape);
+			if (shield) {
+				//g2d.draw(shieldShape);
+				g2d.drawOval(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
 			}
 			
 			g2d.rotate(getAngleFrom128(heading));

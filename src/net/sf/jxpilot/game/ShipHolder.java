@@ -6,8 +6,7 @@ import net.sf.jxpilot.util.Holder;
  * Holds ship data.
  * @author Vlad Firoiu
  */
-public class ShipHolder implements Holder<ShipHolder>
-{
+public class ShipHolder implements Holder<ShipHolder> {
 	protected short x, y, id, heading;
 	protected boolean shield, cloak, emergency_shield, phased, deflector;
 	

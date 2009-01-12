@@ -4,7 +4,8 @@ import java.awt.*;
 
 /**
  * Holds all Player information.
- * @author vlad
+ * @see {@link PlayerHolder}
+ * @author Vlad Firoiu
  */
 public class Player extends PlayerHolder {
 	/**

@@ -77,13 +77,10 @@ public class JXPilot {
         if (icon == null) {
             URL u = AboutWindow.class.getClassLoader().getResource(
                     "data/JXPilotIcon.png");
-            if(u != null)
-            {
+            if(u != null) {
                 icon = new javax.swing.ImageIcon(u).getImage();
-            }
-            else
-        	try
-        	{
+            } else
+        	try {
         		icon = javax.imageio.ImageIO.read(new java.io.File("data/JXPilotIcon.png"));
         	}
         	catch(Exception e){e.printStackTrace();}
