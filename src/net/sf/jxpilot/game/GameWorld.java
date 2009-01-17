@@ -13,6 +13,8 @@ import net.sf.jxpilot.map.*;
 import net.sf.jxpilot.util.*;
 
 import net.sf.jgamelibrary.graphics.Renderable;
+import net.sf.jgamelibrary.graphics.GfxUtil;
+import net.sf.jgamelibrary.geom.Segment2D;
 
 /**
  * Class that manages the various objects in the world.
@@ -187,16 +189,15 @@ public class GameWorld implements Drawable {
 	 * Paints all objects in the world. Does NOT paint the HUD.
 	 */
 	@Override
-	public void paintDrawable(Graphics2D g2d)
-	{
-		AffineTransform saved = g2d.getTransform();
+	public void paintDrawable(Graphics2D g2d) {
+		//AffineTransform saved = g2d.getTransform();
 		
 		for(Iterable<? extends Drawable> i: drawables)
 		{
 			for(Drawable d : i)
 			{
 				d.paintDrawable(g2d);
-				g2d.setTransform(saved);
+				//g2d.setTransform(saved);
 			}
 		}
 	}
@@ -268,8 +269,7 @@ public class GameWorld implements Drawable {
 	}
 	
 	public void handleBase(BaseHolder b) {
-		for(Base base : bases)
-		{
+		for(Base base : bases) {
 			if(base.getId()==b.getId())
 				base.leave();
 		}
@@ -279,13 +279,11 @@ public class GameWorld implements Drawable {
 		bases.get(b.getNum()).setFrom(b);
 	}
 	
-	public void handleFuel(FuelHolder f)
-	{
+	public void handleFuel(FuelHolder f) {
 		f.set(fuelStations.get(f.getNum()));
 	}
 	
-	public void handleRadar(RadarHolder r)
-	{
+	public void handleRadar(RadarHolder r) {
 		hud.addRadar(r);
 	}
 	
@@ -331,10 +329,51 @@ public class GameWorld implements Drawable {
 			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
 			
-			g2d.translate(x, y);
+			if(player.getLife()==0)
+			{
+				g2d.setColor(LAST_LIFE_COLOR);
+			}
+			else
+			{
+				if(player == self)
+				{
+					g2d.setColor(SELF_COLOR);
+				}
+				else if(self!=null && player.getTeam()==self.getTeam())
+				{
+					g2d.setColor(ALLY_COLOR);
+				}
+				else
+				{
+					g2d.setColor(ENEMY_COLOR);
+				}
+			}
+			
+			if (shield) {
+				//g2d.draw(shieldShape);
+				g2d.drawOval(x-SHIP_RADIUS, y-SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
+			}
+			
+			player.getShipBounds().setPolygon(x, y, Utilities.getAngleFrom128(heading));
+			g2d.draw(player.getShipBounds());
 			
 			g2d.setColor(NAME_COLOR);
-			Utilities.drawAdjustedStringDown(g2d, player.getName(), 0, -SHIP_RADIUS);
+			Utilities.drawAdjustedStringDown(g2d, player.getName(), x, y-SHIP_RADIUS);
+			
+			//g2d.rotate(getAngleFrom128(heading));
+			//g2d.rotate(-heading);
+			//g2d.translate(-x,-y);
+			//g2d.rotate(-heading, -x, -y);
+			//g2d.setTransform(saved);
+		}
+		
+		@Override
+		public void render(Graphics2D g2d) {
+			if(player == null) 	player = getPlayer(super.id);
+			if(player == null) return;
+			
+			int x = Utilities.wrap(map.getWidth(), viewX, super.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, super.y);
 			
 			if(player.getLife()==0)
 			{
@@ -358,33 +397,24 @@ public class GameWorld implements Drawable {
 			
 			if (shield) {
 				//g2d.draw(shieldShape);
-				g2d.drawOval(-SHIP_RADIUS, -SHIP_RADIUS, 2*SHIP_RADIUS, 2*SHIP_RADIUS);
+				GfxUtil.drawCenteredOval(x, y, SHIP_RADIUS << 1, SHIP_RADIUS << 1, g2d);
 			}
 			
-			g2d.rotate(getAngleFrom128(heading));
-			g2d.draw(player.getShape());
-			//g2d.rotate(-heading);
-			//g2d.translate(-x,-y);
-			//g2d.rotate(-heading, -x, -y);
-			//g2d.setTransform(saved);
-		}
-		
-		@Override
-		public void render(Graphics2D g2d) {
+			player.getShipBounds().setPolygon(x, y, Utilities.getAngleFrom128(heading));
+			player.getShipBounds().render(g2d);
 			
+			g2d.setColor(NAME_COLOR);
+			GfxUtil.drawCenteredStringDown(player.getName(), x, y-SHIP_RADIUS, g2d);
 		}
 	}
 	public final Factory<Ship> shipFactory = new Factory<Ship>(){
 		public Ship newInstance(){return new Ship();}
 	};
 	
-	public class Ball extends BallHolder implements Drawable
-	{
-		public static final int Ball_RADIUS = 10;
+	public class Ball extends BallHolder implements Drawable, Renderable {
+		public static final int BALL_RADIUS = 10;
 		private final Color BALL_COLOR = Color.GREEN;
-		private final Ellipse2D ballShape = 
-			new Ellipse2D.Float(-Ball_RADIUS,-Ball_RADIUS,2*Ball_RADIUS,2*Ball_RADIUS);
-		
+
 		private Player player;
 		private Connector connector;
 		
@@ -420,7 +450,7 @@ public class GameWorld implements Drawable {
 			setPlayer();
 			//setConnector();
 		}
-		
+		@Override
 		public void paintDrawable(Graphics2D g2d) {
 			//AffineTransform saved = g2d.getTransform();
 
@@ -429,32 +459,43 @@ public class GameWorld implements Drawable {
 			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
 			
-			g2d.translate(x, y);
-
-			g2d.fill(ballShape);
-			g2d.translate(-x, -y);
-			//g2d.setTransform(saved);
-
+			g2d.fillOval(x-BALL_RADIUS, y-BALL_RADIUS, 2*BALL_RADIUS, 2*BALL_RADIUS);
+			
 			if(player!=null) {
 				setConnector();
 				connector.paintDrawable(g2d);
 			}
-		}	
+		}
+		
+		@Override
+		public void render(Graphics2D g2d) {
+			g2d.setColor(BALL_COLOR);
+			
+			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			
+			GfxUtil.fillOval(x-BALL_RADIUS, y-BALL_RADIUS, BALL_RADIUS << 1, BALL_RADIUS << 1, g2d);
+			
+			if(player!=null) {
+				setConnector();
+				connector.render(g2d);
+			}
+		}
+		
 	}
 	public final Factory<Ball> ballFactory = new Factory<Ball>(){
 		public Ball newInstance(){return new Ball();}
 	};
 	
 	
-	public class Connector extends ConnectorHolder implements Drawable {
+	public class Connector extends ConnectorHolder implements Drawable, Renderable {
 		private final Color CONNECTOR_COLOR = Color.GREEN;
-		private final Line2D.Float connectorShape= new Line2D.Float();
+		private final Segment2D connectorShape = new Segment2D();
 
 		/**
 		 * Makes sure that the connector is wrapped properly.
 		 */
-		private void checkWrap()
-		{
+		private void checkWrap() {
 			//Utilities.wrapLine(map.getWidth(), map.getHeight(), connectorShape);
 			
 			Utilities.wrapLine(map.getWidth(), map.getHeight(),
@@ -463,9 +504,8 @@ public class GameWorld implements Drawable {
 			
 			//System.out.println("Wrapping connector!");
 		}
-		
-		public void paintDrawable(Graphics2D g2d)
-		{	
+		@Override
+		public void paintDrawable(Graphics2D g2d) {
 			//AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(CONNECTOR_COLOR);
@@ -477,18 +517,25 @@ public class GameWorld implements Drawable {
 			
 			//g2d.setTransform(saved);
 		}
+		@Override
+		public void render(Graphics2D g2d) {
+			connectorShape.setLine(x0, y0, x1, y1);
+			checkWrap();
+			
+			g2d.setColor(CONNECTOR_COLOR);
+			connectorShape.render(g2d);
+		}
 	}
 	public final Factory<Connector> connectorFactory = new Factory<Connector>(){
 		public Connector newInstance(){return new Connector();}
 	};
 	
-	public class Mine extends MineHolder implements Drawable
-	{	
+	public class Mine extends MineHolder implements Drawable, Renderable {
 		public static final String EXPIRED_MINE_NAME = "Expired";
 		
 		private final Color MINE_COLOR = Color.CYAN;
 		public static final int X_RADIUS = 10, Y_RADIUS = 5;
-		private final Ellipse2D.Float mineShape= new Ellipse2D.Float(-X_RADIUS, -Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);
+		
 		private Player player;
 		private String name;
 		
@@ -508,18 +555,27 @@ public class GameWorld implements Drawable {
 			
 			return player.getName();
 		}
-		
+		@Override
 		public void paintDrawable(Graphics2D g2d) {
 			g2d.setColor(MINE_COLOR);
 			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
 			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
 			
-			g2d.translate(x, y);
-			g2d.fill(mineShape);
+			g2d.fillOval(x-X_RADIUS, y-Y_RADIUS, 2*X_RADIUS, 2*Y_RADIUS);
 			
-			if (name!=null)
-			{
-				Utilities.drawAdjustedStringDown(g2d, name, 0, -Y_RADIUS);
+			if (name!=null) {
+				Utilities.drawAdjustedStringDown(g2d, name, x, y-Y_RADIUS);
+			}
+		}
+		@Override
+		public void render(Graphics2D g2d) {
+			int x = Utilities.wrap(map.getWidth(), viewX, this.x);
+			int y = Utilities.wrap(map.getHeight(), viewY, this.y);
+			
+			g2d.setColor(MINE_COLOR);
+			GfxUtil.fillOval(x-X_RADIUS, y-Y_RADIUS, X_RADIUS << 1, Y_RADIUS << 1, g2d);
+			if (name!=null) {
+				GfxUtil.drawCenteredStringDown(name, x, y-Y_RADIUS, g2d);
 			}
 		}
 	}
@@ -527,14 +583,12 @@ public class GameWorld implements Drawable {
 		public Mine newInstance(){return new Mine();}
 	};
 	
-	public class Missile extends MissileHolder implements Drawable
-	{
+	public class Missile extends MissileHolder implements Drawable {
 		public static final int MISSILE_WIDTH = 4;
 		private final Color MISSILE_COLOR = Color.WHITE;
 		private final Rectangle2D.Float missileShape= new Rectangle2D.Float();
 		
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			g2d.setColor(MISSILE_COLOR);
 			
 			missileShape.setRect(-len/2, MISSILE_WIDTH/2, len, MISSILE_WIDTH);
@@ -547,13 +601,8 @@ public class GameWorld implements Drawable {
 		public Missile newInstance(){return new Missile();}
 	};
 	
-	public abstract class AbstractDebris<T extends AbstractDebris<T>> extends AbstractDebrisHolder implements Drawable
-	{
-
-		//drawing info
-		protected Color COLOR;
-		protected Ellipse2D debrisShape;
-
+	public abstract class AbstractDebris<T extends AbstractDebris<T>>
+		extends AbstractDebrisHolder implements Drawable, Renderable {
 		//methods/variables for dealing with areas
 		/**
 		 * 256 = 1+max value of an unsigned byte
@@ -585,19 +634,6 @@ public class GameWorld implements Drawable {
 		public int getY() {
 			return y+viewY + getYArea(type)*AREA_SIZE;	
 		}
-		
-		public AbstractDebris(){}
-		public AbstractDebris(Color c, Ellipse2D shape) {
-			COLOR = c;
-			debrisShape = shape;
-		}
-
-		@Override
-		public void paintDrawable(Graphics2D g2d) {
-			g2d.setColor(COLOR);
-			g2d.translate(getX(), getY());
-			g2d.fill(debrisShape);
-		}
 	}
 	
 	public class FastShot extends AbstractDebris<FastShot> {
@@ -605,14 +641,8 @@ public class GameWorld implements Drawable {
 		public static final int SHOT_RADIUS = 2;
 		private final Color TEAM_COLOR = Color.BLUE;
 		private final Color ENEMY_COLOR = Color.WHITE;
-		private final Ellipse2D shotShape = 
-			new Ellipse2D.Float(-SHOT_RADIUS,-SHOT_RADIUS,2*SHOT_RADIUS,2*SHOT_RADIUS);
 		
-		public FastShot()
-		{
-			super.debrisShape = shotShape;
-			//super.COLOR = ENEMY_COLOR;
-		}
+		private Color color;
 		
 		@Override
 		public void setFrom(Holder<AbstractDebrisHolder> other) {
@@ -625,7 +655,18 @@ public class GameWorld implements Drawable {
 		 * TODO: Set the shot's color based on the type.
 		 */
 		private void setColor() {
-			super.COLOR = ENEMY_COLOR;
+			color = ENEMY_COLOR;
+		}
+		
+		@Override
+		public void paintDrawable(Graphics2D g2d) {
+			g2d.setColor(color);
+			g2d.fillOval(super.getX()-SHOT_RADIUS, super.getY()-SHOT_RADIUS, 2*SHOT_RADIUS, 2*SHOT_RADIUS);
+		}
+		@Override
+		public void render(Graphics2D g2d) {
+			g2d.setColor(color);
+			GfxUtil.fillOval(super.getX()-SHOT_RADIUS, super.getY()-SHOT_RADIUS, SHOT_RADIUS << 1, SHOT_RADIUS << 1, g2d);
 		}
 	}
 	public final Factory<FastShot> fastShotFactory = new Factory<FastShot>(){
@@ -635,28 +676,25 @@ public class GameWorld implements Drawable {
 	
 	public class Spark extends AbstractDebris<Spark> {
 		//drawing info
-		public static final float SPARK_RADIUS = 0.5f;
+		public static final int SPARK_RADIUS = 1;
 		private final Color SPARK_COLOR = Color.RED;
-		private final Ellipse2D sparkShape = 
-			new Ellipse2D.Float(-SPARK_RADIUS,-SPARK_RADIUS,2*SPARK_RADIUS,2*SPARK_RADIUS);
-		
-		private void setDebris() {
-			//super.COLOR = SPARK_COLOR;
-			super.debrisShape = sparkShape;
-		}
-		
-		public Spark() {
-			setDebris();
-		}
 		
 		@Override
 		public void setFrom(Holder<AbstractDebrisHolder> other) {
 			super.setFrom(other);
-			setColor();
 		}
 		
-		private void setColor() {
-			super.COLOR = SPARK_COLOR;
+		@Override
+		public void paintDrawable(Graphics2D g2d) {
+			g2d.setColor(SPARK_COLOR);
+			//g2d.drawOval(super.getX()-SPARK_RADIUS, super.getY()-SPARK_RADIUS, 2*SPARK_RADIUS, 2*SPARK_RADIUS);
+			g2d.fillRect(super.getX(), super.getY(), SPARK_RADIUS, SPARK_RADIUS);
+		}
+		@Override
+		public void render(Graphics2D g2d) {
+			g2d.setColor(SPARK_COLOR);
+			//g2d.drawOval(super.getX()-SPARK_RADIUS, super.getY()-SPARK_RADIUS, 2*SPARK_RADIUS, 2*SPARK_RADIUS);
+			GfxUtil.fillRect(super.getX(), super.getY(), SPARK_RADIUS, SPARK_RADIUS, g2d);
 		}
 	}
 	public final Factory<Spark> sparkFactory = new Factory<Spark>(){
@@ -678,12 +716,9 @@ public class GameWorld implements Drawable {
 		public void setFrom(Holder<BaseHolder> other) {
 			super.setFrom(other);
 			
-			if(super.id == Player.NO_ID)
-			{
+			if(super.id == Player.NO_ID) {
 				player = null;
-			}
-			else
-			{
+			} else {
 				player = getPlayer(id);
 			}
 		}

@@ -7,7 +7,10 @@ import net.sf.jxpilot.graphics.Drawable;
 import static net.sf.jxpilot.map.BlockMapSetup.*;
 import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
 
-public class Base extends BaseHolder implements Drawable
+import net.sf.jgamelibrary.graphics.Renderable;
+import net.sf.jgamelibrary.graphics.GfxUtil;
+
+public class Base extends BaseHolder implements Drawable, Renderable
 {
 	public static final Color BASE_COLOR = Color.WHITE;
 	
@@ -94,6 +97,36 @@ public class Base extends BaseHolder implements Drawable
 		g2d.translate(-x, -y);
 		
 		//g2d.setTransform(saved);
+	}
+	
+	/**
+	 * Note that this only draws the line, not any player names.
+	 */
+	@Override
+	public void render(Graphics2D g2d)
+	{
+		//AffineTransform saved = g2d.getTransform();
+		
+		int x = this.x*BLOCK_SIZE;
+		int y = this.y*BLOCK_SIZE;
+		
+		g2d.setColor(BASE_COLOR);
+		
+		switch(base_type)
+		{
+		case LEFT:
+			GfxUtil.drawLine(BLOCK_SIZE+x, y, BLOCK_SIZE+x, BLOCK_SIZE+y, g2d);
+			break;
+		case RIGHT:
+			GfxUtil.drawLine(x, y, x, BLOCK_SIZE+y, g2d);
+			break;
+		case DOWN:
+			GfxUtil.drawLine(x, y, BLOCK_SIZE+x, y, g2d);
+			break;
+		case UP:
+			GfxUtil.drawLine(x, BLOCK_SIZE+y, BLOCK_SIZE+x, BLOCK_SIZE+y, g2d);
+			break;	
+		}
 	}
 	
 	private static Line2D getBaseShape(BaseType type)

@@ -2,7 +2,7 @@ package net.sf.jxpilot.game;
 
 import java.awt.*;
 import java.util.regex.*;
-import net.sf.jgamelibrary.geom.MovingPolygon2D;
+//import net.sf.jgamelibrary.geom.MovingPolygon2D;
 
 /**
  * Simple class that defines the basic elements of a shipshape and
@@ -74,7 +74,7 @@ public class ShipShape implements Cloneable {
 	
 	private short version = 0x3200;
 	private Polygon shape;
-	private MovingPolygon2D shape2D;
+	//private MovingPolygon2D shape2D;
 	private Point engine, main_gun,
 					left_light, right_light,
 					main_rack;
@@ -94,7 +94,7 @@ public class ShipShape implements Cloneable {
 		shape.addPoint(main_gun.x, main_gun.y);
 		shape.addPoint(left_light.x, left_light.y);
 		shape.addPoint(right_light.x, right_light.y);
-		shape2D = new MovingPolygon2D(shape);
+		//shape2D = new MovingPolygon2D(shape);
 	}
 	
 	public Polygon getShape(){return shape;}
@@ -103,7 +103,7 @@ public class ShipShape implements Cloneable {
 	public Point getLeftLight(){return left_light;}
 	public Point getRightLight(){return right_light;}
 	public Point getMainRack(){return main_rack;}
-	public MovingPolygon2D getShape2D(){return shape2D;}
+	//public MovingPolygon2D getShape2D(){return shape2D;}
 	public String getExtras(){return extras;}
 	
 	/**
