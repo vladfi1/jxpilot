@@ -10,5 +10,6 @@ public class SpaceBlock extends Block {
 
 	@Override
 	public void render(Graphics2D g2d) {}
-
+	@Override
+	public void render(int x, int y, Graphics2D g2d){}
 }

@@ -13,7 +13,9 @@ public enum BlockType {
 		public Block createBlock(int num, int x, int y) {return new FilledBlock(this, num, x, y);}	
 	},
 	FILLED_NO_DRAW,
-	FUEL,
+	FUEL {
+		
+	},
 	REC_RU,
 	REC_RD,
 	REC_LU,
