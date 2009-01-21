@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * Class that holds (most) drawing info for blocks.
- * @author vlad
+ * @author Vlad Firoiu
  */
 public class DrawableBlock implements Drawable
 {
@@ -100,10 +100,8 @@ public class DrawableBlock implements Drawable
 		return poly;
 	}
 	
-	private static void initBlocks()
-	{
-		for(int i =0;i<staticBlocks.length;i++)
-		{
+	private static void initBlocks() {
+		for(int i =0;i<staticBlocks.length;i++) {
 			staticBlocks[i] = createBlock((byte)i);
 		}
 	}

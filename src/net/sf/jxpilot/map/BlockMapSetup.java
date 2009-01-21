@@ -1,14 +1,17 @@
 package net.sf.jxpilot.map;
 
-import static net.sf.jxpilot.JXPilot.*;
 import static net.sf.jxpilot.map.MapError.*;
 import net.sf.jxpilot.net.ByteBufferWrap;
 import net.sf.jxpilot.net.StringReadException;
 import net.sf.jxpilot.util.Utilities;
 
-public class BlockMapSetup implements java.io.Serializable
-{
+public class BlockMapSetup implements java.io.Serializable {
 	
+	/**
+	 * Default UID.
+	 */
+	private static final long serialVersionUID = 1L;
+
 	/*
 	 * Definitions to tell the client how the server has been setup.
 	 */
@@ -24,7 +27,7 @@ public class BlockMapSetup implements java.io.Serializable
 	 */
 	
 	public static final byte  SETUP_MAP_ORDER_XY = 1;
-	public static final byte SETUP_MAP_ORDER_YX	= 1;
+	public static final byte SETUP_MAP_ORDER_YX	= 2;//unused
 	public static final byte SETUP_MAP_UNCOMPRESSED = 3;
 	
 	/*
@@ -47,65 +50,65 @@ public class BlockMapSetup implements java.io.Serializable
 	public static final byte SETUP_REC_RD = 			5;
 	public static final byte SETUP_REC_LU = 			6;
 	public static final byte SETUP_REC_LD = 			7;
-	public static final byte  SETUP_ACWISE_GRAV = 		8;
-	public static final byte  SETUP_CWISE_GRAV = 		9;
-	public static final byte  SETUP_POS_GRAV = 			10;
-	public static final byte  SETUP_NEG_GRAV = 			11;
-	public static final byte  SETUP_WORM_NORMAL = 		12;
-	public static final byte  SETUP_WORM_IN = 			13;
-	public static final byte  SETUP_WORM_OUT = 			14;
-	public static final byte  SETUP_CANNON_UP	= 		15;
-	public static final byte  SETUP_CANNON_RIGHT = 		16;
-	public static final byte  SETUP_CANNON_DOWN = 		17;
-	public static final byte  SETUP_CANNON_LEFT = 		18;
-	public static final byte  SETUP_SPACE_DOT	= 		19;
-	public static final byte  SETUP_TREASURE	 = 		20;	/* + team number (10) */
+	public static final byte SETUP_ACWISE_GRAV = 		8;
+	public static final byte SETUP_CWISE_GRAV = 		9;
+	public static final byte SETUP_POS_GRAV = 			10;
+	public static final byte SETUP_NEG_GRAV = 			11;
+	public static final byte SETUP_WORM_NORMAL = 		12;
+	public static final byte SETUP_WORM_IN = 			13;
+	public static final byte SETUP_WORM_OUT = 			14;
+	public static final byte SETUP_CANNON_UP	= 		15;
+	public static final byte SETUP_CANNON_RIGHT = 		16;
+	public static final byte SETUP_CANNON_DOWN = 		17;
+	public static final byte SETUP_CANNON_LEFT = 		18;
+	public static final byte SETUP_SPACE_DOT	= 		19;
+	public static final byte SETUP_TREASURE	 = 			20;	/* + team number (10) */
 	/**
 	 * The number of bases used for a certain base type. This is used for storing the team name.
 	 */
-	public static final byte NUM_BASES_PER_TYPE = 10;
-	public static final byte  SETUP_BASE_LOWEST = 		30;	/* lowest base number */
-	public static final byte  SETUP_BASE_UP = 			30;	/* + team number (10) */
-	public static final byte  SETUP_BASE_RIGHT = 		40;	/* + team number (10) */
-	public static final byte  SETUP_BASE_DOWN	= 		50;	/* + team number (10) */
-	public static final byte  SETUP_BASE_LEFT	= 		60;	/* + team number (10) */
-	public static final byte  SETUP_BASE_HIGHEST = 		69;	/* highest base number */
-	public static final byte  SETUP_TARGET = 			70;	/* + team number (10) */
-	public static final byte  SETUP_CHECK	= 			80;	/* + check point number (26) */
-	public static final byte  SETUP_ITEM_CONCENTRATOR = 110;
-	public static final byte  SETUP_DECOR_FILLED = 		111;
-	public static final byte  SETUP_DECOR_RU = 			112;
-	public static final byte  SETUP_DECOR_RD = 			113;
-	public static final byte  SETUP_DECOR_LU = 			114;
-	public static final byte  SETUP_DECOR_LD = 			115;
-	public static final byte  SETUP_DECOR_DOT_FILLED =	116;
-	public static final byte  SETUP_DECOR_DOT_RU = 		117;
-	public static final byte  SETUP_DECOR_DOT_RD = 		118;
-	public static final byte  SETUP_DECOR_DOT_LU = 		119;
-	public static final byte  SETUP_DECOR_DOT_LD = 		120;
-	public static final byte  SETUP_UP_GRAV = 			121;
-	public static final byte  SETUP_DOWN_GRAV = 		122;
-	public static final byte  SETUP_RIGHT_GRAV = 		123;
-	public static final byte  SETUP_LEFT_GRAV	 = 		124;
-	public static final byte  SETUP_ASTEROID_CONCENTRATOR = 125;
+	public static final byte NUM_BASES_PER_TYPE = 		10;
+	public static final byte SETUP_BASE_LOWEST = 		30;	/* lowest base number */
+	public static final byte SETUP_BASE_UP = 			30;	/* + team number (10) */
+	public static final byte SETUP_BASE_RIGHT = 		40;	/* + team number (10) */
+	public static final byte SETUP_BASE_DOWN	= 		50;	/* + team number (10) */
+	public static final byte SETUP_BASE_LEFT	= 		60;	/* + team number (10) */
+	public static final byte SETUP_BASE_HIGHEST = 		69;	/* highest base number */
+	public static final byte SETUP_TARGET = 			70;	/* + team number (10) */
+	public static final byte SETUP_CHECK	= 			80;	/* + check point number (26) */
+	public static final byte SETUP_ITEM_CONCENTRATOR = 	110;
+	public static final byte SETUP_DECOR_FILLED = 		111;
+	public static final byte SETUP_DECOR_RU = 			112;
+	public static final byte SETUP_DECOR_RD = 			113;
+	public static final byte SETUP_DECOR_LU = 			114;
+	public static final byte SETUP_DECOR_LD = 			115;
+	public static final byte SETUP_DECOR_DOT_FILLED =	116;
+	public static final byte SETUP_DECOR_DOT_RU = 		117;
+	public static final byte SETUP_DECOR_DOT_RD = 		118;
+	public static final byte SETUP_DECOR_DOT_LU = 		119;
+	public static final byte SETUP_DECOR_DOT_LD = 		120;
+	public static final byte SETUP_UP_GRAV = 			121;
+	public static final byte SETUP_DOWN_GRAV = 			122;
+	public static final byte SETUP_RIGHT_GRAV = 		123;
+	public static final byte SETUP_LEFT_GRAV	 = 		124;
+	public static final byte SETUP_ASTEROID_CONCENTRATOR = 125;
 
-	public static final byte  BLUE_UP =			0x01;
-	public static final byte  BLUE_RIGHT =		0x02;
-	public static final byte  BLUE_DOWN	=		0x04;
-	public static final byte  BLUE_LEFT	=		0x08;
-	public static final byte  BLUE_OPEN	=		0x10;		/* diagonal botleft -> rightup */
-	public static final byte  BLUE_CLOSED =		0x20;		/* diagonal topleft -> rightdown */
-	public static final byte  BLUE_FUEL	=		0x30;		/* when filled block is fuelstation */
-	public static final byte  BLUE_BELOW =		0x40;		/* when triangle is below diagonal */
-	public static final byte  BLUE_BIT =		(byte)0x80;	/* set when drawn with blue lines */
+	public static final byte BLUE_UP =			0x01;
+	public static final byte BLUE_RIGHT =		0x02;
+	public static final byte BLUE_DOWN	=		0x04;
+	public static final byte BLUE_LEFT	=		0x08;
+	public static final byte BLUE_OPEN	=		0x10;		/* diagonal botleft -> rightup */
+	public static final byte BLUE_CLOSED =		0x20;		/* diagonal topleft -> rightdown */
+	public static final byte BLUE_FUEL	=		0x30;		/* when filled block is fuelstation */
+	public static final byte BLUE_BELOW =		0x40;		/* when triangle is below diagonal */
+	public static final byte BLUE_BIT =		(byte)0x80;	/* set when drawn with blue lines */
 
-	public static final byte  DECOR_LEFT =		0x01;
-	public static final byte  DECOR_RIGHT =		0x02;
-	public static final byte  DECOR_DOWN =		0x04;
-	public static final byte  DECOR_UP =		0x08;
-	public static final byte  DECOR_OPEN =		0x10;
-	public static final byte  DECOR_CLOSED =	0x20;
-	public static final byte  DECOR_BELOW =		0x40;
+	public static final byte DECOR_LEFT =		0x01;
+	public static final byte DECOR_RIGHT =		0x02;
+	public static final byte DECOR_DOWN =		0x04;
+	public static final byte DECOR_UP =		0x08;
+	public static final byte DECOR_OPEN =		0x10;
+	public static final byte DECOR_CLOSED =	0x20;
+	public static final byte DECOR_BELOW =		0x40;
 
 	//game mode types
 	public static final int TEAM_PLAY = (1<<8),
@@ -166,7 +169,7 @@ public class BlockMapSetup implements java.io.Serializable
 	 */
 	public int getMapDataLen(){return map_data_len;}
 	public int getMode(){return mode;}
-	public boolean wrapPlay(){return (mode&WRAP_PLAY) != 0;}
+	public boolean wrapPlay(){return (mode & WRAP_PLAY) != 0;}
 	public short getLives(){return lives;}
 	/**
 	 * @return The number of blocks in the map x-wise.
@@ -184,8 +187,6 @@ public class BlockMapSetup implements java.io.Serializable
 	public String getName(){return name;}
 	public String getAuthor(){return author;}
 	public byte[] getMapData(){return map_data;}
-	
-	public void setMapOrder(short order){map_order = order;}
 	
 	public String toString()
 	{
@@ -213,8 +214,7 @@ public class BlockMapSetup implements java.io.Serializable
 	 * Because we uncompress the map backwards to save on
 	 * memory usage there is some complexity involved.
 	 */
-	private static MapError uncompressMap(ByteBufferWrap map, BlockMapSetup setup)
-	{
+	private static MapError uncompressMap(ByteBufferWrap map, BlockMapSetup setup) {
 		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
 		
@@ -225,8 +225,7 @@ public class BlockMapSetup implements java.io.Serializable
 		map.setReading();
 		int remaining = map.remaining();
 		
-		for (int i =0;i<remaining;i++)
-		{
+		for (int i =0;i<remaining;i++) {
 			map_bytes[i] = map.getByte();
 		}
 		
@@ -238,8 +237,7 @@ public class BlockMapSetup implements java.io.Serializable
 		int		i,
 		count;
 
-		if(setup.getMapOrder() != BlockMapSetup.SETUP_MAP_ORDER_XY)
-		{
+		if(setup.getMapOrder() != SETUP_MAP_ORDER_XY) {
 			return UNKNOWN_MAP_ORDER;
 		}
 		
@@ -281,7 +279,7 @@ public class BlockMapSetup implements java.io.Serializable
 					return MAP_COMPRESS_ERROR;
 				}
 				
-				map_bytes[cmp] &= ~BlockMapSetup.SETUP_COMPRESSED;
+				map_bytes[cmp] &= ~SETUP_COMPRESSED;
 				for (i = 0; i < count; i++) {
 					map_bytes[ump] = map_bytes[cmp];
 					ump--;
@@ -301,7 +299,7 @@ public class BlockMapSetup implements java.io.Serializable
 			return MAP_COMPRESS_ERROR;
 		}
 		
-		setup.setMapOrder(BlockMapSetup.SETUP_MAP_UNCOMPRESSED);
+		setup.map_order = SETUP_MAP_UNCOMPRESSED;
 		map.clear();
 		//map.putBytes(map_bytes);
 		
@@ -378,63 +376,49 @@ public class BlockMapSetup implements java.io.Serializable
 	}
 	*/
 	
-	public MapError uncompressMap(ByteBufferWrap map)
-	{
+	public MapError uncompressMap(ByteBufferWrap map) {
 		return uncompressMap(map, this);
 	}
 
-	private static BlockMapSetup readMapSetup(ByteBufferWrap in, BlockMapSetup setup)
-	{	
-		try
-		{
+	private static BlockMapSetup readMapSetup(ByteBufferWrap in, BlockMapSetup setup) {
+		try {
 			return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
 				in.getShort(), in.getShort(), in.getString(), in.getString());
-		}
-		catch (StringReadException e)
-		{
+		} catch (StringReadException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	public BlockMapSetup readMapSetup(ByteBufferWrap in)
-	{	
+	public BlockMapSetup readMapSetup(ByteBufferWrap in) {
 		return readMapSetup(in, this);
 	}
 	
-	public void printMapData()
-	{
-		for (int y = this.y-1;y>=0;y--)
-		{
-			for (int x =0;x<this.x; x++)
-			{
+	public void printMapData() {
+		for (int y = this.y-1;y>=0;y--) {
+			for (int x =0;x<this.x; x++) {
 				System.out.print(MapBlock.getBlockChar(getBlockType(x,y)));
 			}
 			System.out.println();
 		}
 	}
 	
-	public byte getBlockType(int x, int y)
-	{	
+	public byte getBlockType(int x, int y) {	
 		return map_data[getNum(x, y)];
 	}
 	
-	public byte getBlockType(int num)
-	{
+	public byte getBlockType(int num) {
 		return map_data[num];
 	}
 	
-	public int getX(int num)
-	{
+	public int getX(int num) {
 		return num / y;
 	}
-	public int getY(int num)
-	{
+	public int getY(int num) {
 		return num % y;
 	}
 	
-	public int getNum(int x, int y)
-	{
+	public int getNum(int x, int y) {
 		return y + x*this.y;
 	}
 }

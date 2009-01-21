@@ -5,7 +5,7 @@ import java.awt.*;
 import static net.sf.jxpilot.map.BlockMapSetup.*;
 
 /**
- * Represents a block of a BlockMap. Note that things that can change such as cannons are not represented by MapBlocks.
+ * Represents a block of an {@code BlockMap}. Note that things that can change such as cannons are not represented by MapBlocks.
  * @author Vlad Firoiu
  */
 public class MapBlock extends DrawableBlock
@@ -51,8 +51,7 @@ public class MapBlock extends DrawableBlock
 			super.paintBlock(g2d, x, y);
 	}
 	
-	public static MapBlock getMapBlock(BlockMapSetup setup, int num)
-	{
+	public static MapBlock getMapBlock(BlockMapSetup setup, int num) {
 		byte block_type = setup.getMapData()[num];
 		
 		DrawableBlock block = DrawableBlock.getBlock(block_type);

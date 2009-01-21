@@ -13,11 +13,15 @@ import net.sf.jxpilot.game.Base.BaseType;
 import net.sf.jxpilot.game.Cannon.CannonType;
 
 /**
- * Represents a block-based xpilot map.
- * @author vlad
+ * Represents a block-based XPilot map.
+ * @author Vlad Firoiu
  */
-public class BlockMap implements java.io.Serializable
-{
+public class BlockMap implements java.io.Serializable {
+	/**
+	 * Default UID.
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private final BlockMapSetup setup;
 	private final MapBlock[][] blocks;
 	/**
@@ -29,16 +33,13 @@ public class BlockMap implements java.io.Serializable
 	private ArrayList<Base> bases;
 	private ArrayList<FuelStation> fuelStations;
 	
-	public BlockMap(BlockMapSetup setup)
-	{
+	public BlockMap(BlockMapSetup setup) {
 		this.setup = setup;
 		
 		blocks = new MapBlock[setup.getX()][setup.getY()];
 		
-		for (int x = 0;x<setup.getX();x++)
-		{
-			for (int y = 0 ; y<setup.getY();y++)
-			{
+		for (int x = 0;x<setup.getX();x++) {
+			for (int y = 0 ; y<setup.getY();y++) {
 				blocks[x][y] = MapBlock.getMapBlock(setup, setup.getNum(x, y));
 			}
 		}
@@ -85,25 +86,17 @@ public class BlockMap implements java.io.Serializable
 			int y = setup.getY(i);
 			
 			Cannon c = Cannon.createCannon(block_type, num_cannons, x, y);
-			
-			if(c!=null)
-			{
-				cannons.add(num_cannons, c);
-				num_cannons++;
+			if(c!=null) {
+				cannons.add(num_cannons++, c);
 			}
 			
 			Base b = Base.createBase(block_type, num_bases, x, y);
-			
-			if(b!=null)
-			{
-				bases.add(num_bases, b);
-				num_bases++;
+			if(b!=null) {
+				bases.add(num_bases++, b);
 			}
 			
-			if(block_type==BlockMapSetup.SETUP_FUEL)
-			{
-				fuelStations.add(num_fuels, new FuelStation(num_fuels, x, y));
-				num_fuels++;
+			if(block_type==BlockMapSetup.SETUP_FUEL) {
+				fuelStations.add(num_fuels++, new FuelStation(num_fuels, x, y));
 			}
 		}
 	}
@@ -111,8 +104,7 @@ public class BlockMap implements java.io.Serializable
 	public MapBlock[][] getBlocks(){return blocks;}
 	public BlockMapSetup getSetup(){return setup;}
 	public MapBlock getBlock(short x, short y){return blocks[x][y];}
-	public MapBlock getBlock(int num)
-	{
+	public MapBlock getBlock(int num) {
 		return blocks[setup.getX(num)][setup.getY(num)];
 	}
 	
@@ -123,17 +115,15 @@ public class BlockMap implements java.io.Serializable
 	public ArrayList<Base> getBases(){return bases;}
 	public ArrayList<FuelStation> getFuelStations(){return fuelStations;}
 	
-	public String toString()
-	{
-		String temp = "";
-		for (int y=setup.getY()-1;y>=0;y--)
-		{
-			for (int x = 0;x<setup.getY();x++)
-			{
-				temp += blocks[x][y];
+	@Override
+	public String toString() {
+		StringBuilder temp = new StringBuilder();
+		for (int y=setup.getY()-1;y>=0;y--) {
+			for (int x = 0;x<setup.getY();x++) {
+				temp.append(blocks[x][y]);
 			}
-			temp+='\n';
+			temp.append('\n');
 		}
-		return temp;
+		return temp.toString();
 	}
 }

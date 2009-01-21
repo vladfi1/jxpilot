@@ -16,8 +16,7 @@ import net.sf.jxpilot.util.Utilities;
 
 /**
  * Class responsible for rendering the game.
- * @author Vlad
- *
+ * @author Vlad Firoiu
  */
 public class GameRenderer {
 	
