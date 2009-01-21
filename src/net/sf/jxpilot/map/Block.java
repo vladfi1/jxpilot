@@ -1,0 +1,29 @@
+package net.sf.jxpilot.map;
+
+import net.sf.jgamelibrary.graphics.Renderable;
+
+public abstract class Block implements AbstractBlock, Renderable {
+	public static final int BLOCK_SIZE = 35;
+	
+	public final BlockType type;
+	public final int num, x, y;
+	
+	public Block(BlockType type, int num, int x, int y) {
+		this.type = type;
+		this.num = num;
+		this.x = x;
+		this.y = y;
+	}
+
+	@Override
+	public BlockType getBlockType() {return type;}
+
+	@Override
+	public int getNum() {return num;}
+
+	@Override
+	public int getX() {return x;}
+
+	@Override
+	public int getY() {return y;}
+}

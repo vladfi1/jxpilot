@@ -4,8 +4,14 @@ import static net.sf.jxpilot.util.Utilities.getUnsignedByte;
 
 public enum BlockType {
 
-	SPACE,
-	FILLED,
+	SPACE {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new SpaceBlock(this, num, x, y);}
+	},
+	FILLED {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new FilledBlock(this, num, x, y);}	
+	},
 	FILLED_NO_DRAW,
 	FUEL,
 	REC_RU,
@@ -24,7 +30,112 @@ public enum BlockType {
 	CANNON_DOWN,
 	CANNON_LEFT,
 	SPACE_DOT,
-	TREASURE;
+	TREASURE_0,
+	TREASURE_1,
+	TREASURE_2,
+	TREASURE_3,
+	TREASURE_4,
+	TREASURE_5,
+	TREASURE_6,
+	TREASURE_7,
+	TREASURE_8,
+	TREASURE_9,
+	BASE_UP_0,
+	BASE_UP_1,
+	BASE_UP_2,
+	BASE_UP_3,
+	BASE_UP_4,
+	BASE_UP_5,
+	BASE_UP_6,
+	BASE_UP_7,
+	BASE_UP_8,
+	BASE_UP_9,
+	BASE_RIGHT_0,
+	BASE_RIGHT_1,
+	BASE_RIGHT_2,
+	BASE_RIGHT_3,
+	BASE_RIGHT_4,
+	BASE_RIGHT_5,
+	BASE_RIGHT_6,
+	BASE_RIGHT_7,
+	BASE_RIGHT_8,
+	BASE_RIGHT_9,
+	BASE_DOWN_0,
+	BASE_DOWN_1,
+	BASE_DOWN_2,
+	BASE_DOWN_3,
+	BASE_DOWN_4,
+	BASE_DOWN_5,
+	BASE_DOWN_6,
+	BASE_DOWN_7,
+	BASE_DOWN_8,
+	BASE_DOWN_9,
+	BASE_LEFT_0,
+	BASE_LEFT_1,
+	BASE_LEFT_2,
+	BASE_LEFT_3,
+	BASE_LEFT_4,
+	BASE_LEFT_5,
+	BASE_LEFT_6,
+	BASE_LEFT_7,
+	BASE_LEFT_8,
+	BASE_LEFT_9,
+	TARGET_0,
+	TARGET_1,
+	TARGET_2,
+	TARGET_3,
+	TARGET_4,
+	TARGET_5,
+	TARGET_6,
+	TARGET_7,
+	TARGET_8,
+	TARGET_9,
+	CHECK_0,
+	CHECK_1,
+	CHECK_2,
+	CHECK_3,
+	CHECK_4,
+	CHECK_5,
+	CHECK_6,
+	CHECK_7,
+	CHECK_8,
+	CHECK_9,
+	CHECK_10,
+	CHECK_11,
+	CHECK_12,
+	CHECK_13,
+	CHECK_14,
+	CHECK_15,
+	CHECK_16,
+	CHECK_17,
+	CHECK_18,
+	CHECK_19,
+	CHECK_20,
+	CHECK_21,
+	CHECK_22,
+	CHECK_23,
+	CHECK_24,
+	CHECK_25,
+	UNUSED_106,
+	UNUSED_107,
+	UNUSED_108,
+	UNUSED_109,
+	ITEM_CONCENTRATOR,
+	DECOR_FILLED,
+	DECOR_RU,
+	DECOR_RD,
+	DECOR_LU,
+	DECOR_LD,
+	DECOR_DOT_FILLED,
+	DECOR_DOT_RU,
+	DECOR_DOT_RD,
+	DECOR_DOT_LU,
+	DECOR_DOT_LD,
+	UP_GRAV,
+	DOWN_GRAV,
+	RIGHT_GRAV,
+	LEFT_GRAV,
+	ASTEROID_CONCENTRATOR;
 	
 	public static final byte SETUP_SPACE =				0;
 	public static final byte SETUP_FILLED = 			1;
@@ -58,7 +169,7 @@ public enum BlockType {
 	public static final byte SETUP_BASE_LEFT	= 		60;	/* + team number (10) */
 	public static final byte SETUP_BASE_HIGHEST = 		69;	/* highest base number */
 	public static final byte SETUP_TARGET = 			70;	/* + team number (10) */
-	public static final byte SETUP_CHECK	= 			80;	/* + check point number (26) */
+	public static final byte SETUP_CHECK =				80;	/* + check point number (26) */
 	public static final byte SETUP_ITEM_CONCENTRATOR = 	110;
 	public static final byte SETUP_DECOR_FILLED = 		111;
 	public static final byte SETUP_DECOR_RU = 			112;
@@ -73,9 +184,8 @@ public enum BlockType {
 	public static final byte SETUP_UP_GRAV = 			121;
 	public static final byte SETUP_DOWN_GRAV = 			122;
 	public static final byte SETUP_RIGHT_GRAV = 		123;
-	public static final byte SETUP_LEFT_GRAV	 = 		124;
+	public static final byte SETUP_LEFT_GRAV =			124;
 	public static final byte SETUP_ASTEROID_CONCENTRATOR = 125;
-	
 	
 	private static final BlockType[] VALUES = values();
 	
@@ -94,5 +204,9 @@ public enum BlockType {
 	
 	private BlockType() {
 		this.SETUP_TYPE = (byte)this.ordinal();
+	}
+	
+	public Block createBlock(int num, int x, int y) {
+		return null;
 	}
 }
