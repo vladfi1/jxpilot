@@ -15,12 +15,12 @@ public class FuelHolder implements Holder<FuelHolder> {
 	public int getNum(){return num;}
 	public int getFuel(){return fuel;}
 	
-	public FuelHolder setFuel(int num, int fuel)
-	{
+	public FuelHolder setFuel(int num, int fuel) {
 		this.num = num;
 		this.fuel = fuel;
 		return this;
 	}
+	
 	@Override
 	public void set(FuelHolder other) {
 		other.setFuel(num, fuel);

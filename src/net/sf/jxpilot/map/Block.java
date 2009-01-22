@@ -3,8 +3,6 @@ package net.sf.jxpilot.map;
 import net.sf.jgamelibrary.graphics.Renderable;
 
 public abstract class Block implements AbstractBlock, Renderable {
-	public static final int BLOCK_SIZE = 35;
-	
 	public final BlockType type;
 	public final int num, x, y;
 	

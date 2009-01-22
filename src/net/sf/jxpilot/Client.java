@@ -137,9 +137,11 @@ public class Client implements AbstractClient, ClientInputListener
 	
 	@Override
 	public void handlePlayer(PlayerHolder p) {
-		Player player = new Player(p.getId(), p.getTeam(), p.getChar(), p.getName(), p.getReal(), p.getHost(), p.getShipShape());
+		Player player = new Player(p);
+		//System.out.println(player);
+		//System.out.println("Our nick is: " + netClient.getNick());
 		
-		if(player.getName().equals(netClient.getNick())) {
+		if(player.getName().equalsIgnoreCase(netClient.getNick())) {
 			self = player;
 			world.setSelf(player);
 			System.out.println("Found self!");

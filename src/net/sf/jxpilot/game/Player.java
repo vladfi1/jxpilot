@@ -29,15 +29,16 @@ public class Player extends PlayerHolder {
 	 */
 	private MovingPolygon2D shipBounds;
 	
-	public Player(short id, byte my_team, byte my_char, String nick, String real, String host, ShipShape shape) {
-		super.setPlayer(id, my_team, my_char, nick, real, host, shape);
+	public Player(short id, byte my_team, byte my_char, String nick, String real, String host, ShipShape ship_shape) {
+		super.setPlayer(id, my_team, my_char, nick, real, host, ship_shape);
 		ship = new ShipHolder();
-		shipBounds = new MovingPolygon2D(shape.getShape());
+		shipBounds = new MovingPolygon2D(ship_shape.getShape());
 	}
 	
 	public Player(PlayerHolder p) {
 		super.setFrom(p);
 		ship = new ShipHolder();
+		shipBounds = new MovingPolygon2D(ship_shape.getShape());
 	}
 	
 	public void setScore(short score){this.score = score;}
@@ -57,9 +58,5 @@ public class Player extends PlayerHolder {
 		active = true;
 		ship.setFrom(s);
 		//shipBounds.setPolygon(ship.getX(), ship.getY(), Utilities.getAngleFrom128(s.getHeading()));
-	}
-	
-	public String toString() {
-		return name + '(' + life+')' + ' ' + score;
 	}
 }

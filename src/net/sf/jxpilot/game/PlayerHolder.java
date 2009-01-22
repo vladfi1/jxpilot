@@ -43,4 +43,14 @@ public class PlayerHolder implements Holder<PlayerHolder> {
 	public void setFrom(Holder<PlayerHolder> other) {
 		other.set(this);
 	}
+	
+	@Override
+	public String toString() {
+		return "Player\nid = " + id +
+				"\nmy team = " + my_team +
+				"\nmy char = " + my_char +
+				"\nname = " + name +
+				"\nreal = " + real +
+				"\nhost = " + host;
+	}
 }

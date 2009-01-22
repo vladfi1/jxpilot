@@ -433,37 +433,27 @@ public class JXPilotFrame extends Frame
 	{
 		optionHandlers = new EnumMap<UserOption, OptionHandler>(UserOption.class);
 		
-		optionHandlers.put(UserOption.QUIT, new OptionHandler()
-		{
-			public void fireOption()
-			{
+		optionHandlers.put(UserOption.QUIT, new OptionHandler() {
+			public void fireOption() {
 				clientInputListener.quit();
 			}
 		});
 		
-		optionHandlers.put(UserOption.TOGGLE_MOUSE_CONTROL, new OptionHandler()
-		{
-			public void fireOption()
-			{
-				if (mouseControl)
-				{
+		optionHandlers.put(UserOption.TOGGLE_MOUSE_CONTROL, new OptionHandler() {
+			public void fireOption() {
+				if (mouseControl) {
 					showCursor();
 					mouseControl = false;
-				}
-				else
-				{
+				} else {
 					hideCursor();
 					mouseControl = true;
 				}
 			}
 		});
 		
-		optionHandlers.put(UserOption.TALK, new OptionHandler()
-		{
-			public void fireOption()
-			{
-				if(displayMode != DisplayMode.FSEM)
-				{
+		optionHandlers.put(UserOption.TALK, new OptionHandler() {
+			public void fireOption() {
+				if(displayMode != DisplayMode.FSEM) {
 					typing = true;
 					String message = JOptionPane.showInputDialog(JXPilotFrame.this, "Enter a message: ");
 					if(message != null && !message.isEmpty())
@@ -473,33 +463,32 @@ public class JXPilotFrame extends Frame
 			}
 		});
 		
-		optionHandlers.put(UserOption.BALL_GONE, new OptionHandler()
-		{
-			public void fireOption()
-			{
+		optionHandlers.put(UserOption.BALL_GONE, new OptionHandler() {
+			public void fireOption() {
 				clientInputListener.talk("***BALL IS GONE SAVE IT NOW***");
 			}
 		});
 		
-		optionHandlers.put(UserOption.BALL_SAFE, new OptionHandler()
-		{
-			public void fireOption()
-			{
+		optionHandlers.put(UserOption.BALL_SAFE, new OptionHandler() {
+			public void fireOption() {
 				clientInputListener.talk("***BALL IS SAFE, DON'T SHOOT YOURSELF***");
 			}
 		});
-		optionHandlers.put(UserOption.COVER, new OptionHandler()
-		{
-			public void fireOption()
-			{
+		optionHandlers.put(UserOption.COVER, new OptionHandler() {
+			public void fireOption() {
 				clientInputListener.talk("***BALL IS APPROACHING BASE COVER NOW***");
 			}
 		});
-		optionHandlers.put(UserOption.BALL_POP, new OptionHandler()
-		{
-			public void fireOption()
-			{
+		optionHandlers.put(UserOption.BALL_POP, new OptionHandler() {
+			public void fireOption() {
 				clientInputListener.talk("***BALL HAS POPPED***");
+			}
+		});
+		optionHandlers.put(UserOption.SWITCH_TEAMS, new OptionHandler() {
+			public void fireOption() {
+				world.getSelf();
+				byte team = world.getSelf().getTeam();
+				clientInputListener.talk("/team " + (6-team));
 			}
 		});
 	}
@@ -518,6 +507,7 @@ public class JXPilotFrame extends Frame
 		userPreferences.put(KeyEvent.VK_F2, UserOption.BALL_SAFE);
 		userPreferences.put(KeyEvent.VK_F3, UserOption.COVER);
 		userPreferences.put(KeyEvent.VK_F4, UserOption.BALL_POP);
+		userPreferences.put(KeyEvent.VK_F5, UserOption.SWITCH_TEAMS);
 		userPreferences.put(KeyEvent.VK_M, UserOption.TALK);
 	}
 	

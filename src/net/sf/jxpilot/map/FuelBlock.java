@@ -3,6 +3,8 @@ package net.sf.jxpilot.map;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import net.sf.jgamelibrary.graphics.GfxUtil;
+
 import net.sf.jxpilot.game.FuelHolder;
 
 public class FuelBlock extends FuelHolder implements AbstractBlock {
@@ -30,27 +32,25 @@ public class FuelBlock extends FuelHolder implements AbstractBlock {
 	public static final Color FUEL_COLOR = Color.RED;
 
 	@Override
-	public BlockType getBlockType() {
-		// TODO Auto-generated method stub
-		return null;
+	public BlockType getBlockType() {return BlockType.FUEL;}
+
+	public final int x, y;
+	
+	public FuelBlock(int num, int x, int y) {
+		this.num = num;
+		this.x = x;
+		this.y = y;
 	}
+	
+	@Override
+	public int getX() {return x;}
 
 	@Override
-	public int getX() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	public int getY() {return y;}
 
 	@Override
-	public int getY() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void render(int x, int y, Graphics2D g2d) {
-		// TODO Auto-generated method stub
-		
+	public void render(int x, int y, Graphics2D g) {
+		GfxUtil.fillRect(x, y, BLOCK_SIZE, (BLOCK_SIZE * super.fuel)/MAX_STATION_FUEL, g);
 	}
 	
 }
