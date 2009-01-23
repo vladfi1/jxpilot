@@ -14,7 +14,7 @@ public class FilledBlock extends Block {
 
 	@Override
 	public void render(int x, int y, Graphics2D g2d) {
-		GfxUtil.fillRect(x, y+BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, g2d);
+		GfxUtil.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE, g2d);
 	}
 
 	@Override

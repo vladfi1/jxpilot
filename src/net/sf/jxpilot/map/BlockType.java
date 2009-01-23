@@ -10,11 +10,12 @@ public enum BlockType {
 	},
 	FILLED {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new FilledBlock(this, num, x, y);}	
+		public Block createBlock(int num, int x, int y) {return new FilledBlock(this, num, x, y);}
 	},
 	FILLED_NO_DRAW,
 	FUEL {
-		
+		//@Override
+		//public Block createBlock(int num, int x, int y) {return new FuelBlock(num, x, y);}
 	},
 	REC_RU,
 	REC_RD,
@@ -208,7 +209,7 @@ public enum BlockType {
 		this.SETUP_TYPE = (byte)this.ordinal();
 	}
 	
-	public Block createBlock(int num, int x, int y) {
+	public AbstractBlock createBlock(int num, int x, int y) {
 		return null;
 	}
 }
