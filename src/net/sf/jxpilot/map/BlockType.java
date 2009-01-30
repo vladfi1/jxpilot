@@ -6,11 +6,11 @@ public enum BlockType {
 
 	SPACE {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new SpaceBlock(this, num, x, y);}
+		public Block createBlock(int num, int x, int y) {return new SpaceBlock(num, x, y);}
 	},
 	FILLED {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new FilledBlock(this, num, x, y);}
+		public Block createBlock(int num, int x, int y) {return new FilledBlock(num, x, y);}
 	},
 	FILLED_NO_DRAW,
 	FUEL {

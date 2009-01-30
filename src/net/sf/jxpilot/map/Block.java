@@ -1,8 +1,11 @@
 package net.sf.jxpilot.map;
 
+import java.awt.Graphics2D;
+
 import net.sf.jgamelibrary.graphics.Renderable;
 
 public abstract class Block implements AbstractBlock, Renderable {
+
 	public final BlockType type;
 	public final int num, x, y;
 	
@@ -24,4 +27,7 @@ public abstract class Block implements AbstractBlock, Renderable {
 
 	@Override
 	public int getY() {return y;}
+	
+	@Override
+	public void render(Graphics2D g2d) {render(x, y, g2d);}
 }
