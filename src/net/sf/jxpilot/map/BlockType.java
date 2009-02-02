@@ -14,35 +14,98 @@ public enum BlockType {
 	},
 	FILLED_NO_DRAW,
 	FUEL {
-		//@Override
-		//public Block createBlock(int num, int x, int y) {return new FuelBlock(num, x, y);}
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new FuelBlock(num, x, y);}
 	},
-	REC_RU,
-	REC_RD,
-	REC_LU,
-	REC_LD,
+	REC_RU {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new RecRUBlock(num, x, y);}
+	},
+	REC_RD {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new RecRDBlock(num, x, y);}
+	},
+	REC_LU {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new RecLUBlock(num, x, y);}
+	},
+	REC_LD {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new RecLDBlock(num, x, y);}
+	},
 	ACWISE_GRAV,
 	CWISE_GRAV,
 	POS_GRAV,
 	NEG_GRAV,
-	WORM_NORMAL,
-	WORM_IN,
-	WORM_OUT,
-	CANNON_UP,
-	CANNON_RIGHT,
-	CANNON_DOWN,
-	CANNON_LEFT,
+	WORM_NORMAL {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new WormNormalBlock(num, x, y);}
+	},
+	WORM_IN {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new WormInBlock(num, x, y);}
+	},
+	WORM_OUT {
+		@Override
+		public Block createBlock(int num, int x, int y) {return new WormOutBlock(num, x, y);}
+	},
+	CANNON_UP {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new CannonUpBlock(num, x, y);}
+	},
+	CANNON_RIGHT {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new CannonRightBlock(num, x, y);}
+	},
+	CANNON_DOWN {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new CannonDownBlock(num, x, y);}
+	},
+	CANNON_LEFT {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new CannonLeftBlock(num, x, y);}
+	},
 	SPACE_DOT,
-	TREASURE_0,
-	TREASURE_1,
-	TREASURE_2,
-	TREASURE_3,
-	TREASURE_4,
-	TREASURE_5,
-	TREASURE_6,
-	TREASURE_7,
-	TREASURE_8,
-	TREASURE_9,
+	TREASURE_0 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 0, num, x, y);}
+	},
+	TREASURE_1 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 1, num, x, y);}
+	},
+	TREASURE_2 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 2, num, x, y);}
+	},
+	TREASURE_3 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 3, num, x, y);}
+	},
+	TREASURE_4 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 4, num, x, y);}
+	},
+	TREASURE_5 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 5, num, x, y);}
+	},
+	TREASURE_6 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 6, num, x, y);}
+	},
+	TREASURE_7 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 7, num, x, y);}
+	},
+	TREASURE_8 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 8, num, x, y);}
+	},
+	TREASURE_9 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 9, num, x, y);}
+	},
 	BASE_UP_0,
 	BASE_UP_1,
 	BASE_UP_2,
@@ -209,6 +272,13 @@ public enum BlockType {
 		this.SETUP_TYPE = (byte)this.ordinal();
 	}
 	
+	/**
+	 * Creates a block with the specified 
+	 * @param num
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public AbstractBlock createBlock(int num, int x, int y) {
 		return null;
 	}

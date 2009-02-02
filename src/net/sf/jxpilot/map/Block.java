@@ -6,18 +6,18 @@ import net.sf.jgamelibrary.graphics.Renderable;
 
 public abstract class Block implements AbstractBlock, Renderable {
 
-	public final BlockType type;
+	public final BlockType block_type;
 	public final int num, x, y;
 	
 	public Block(BlockType type, int num, int x, int y) {
-		this.type = type;
+		this.block_type = type;
 		this.num = num;
 		this.x = x;
 		this.y = y;
 	}
 
 	@Override
-	public BlockType getBlockType() {return type;}
+	public BlockType getBlockType() {return block_type;}
 
 	@Override
 	public int getNum() {return num;}

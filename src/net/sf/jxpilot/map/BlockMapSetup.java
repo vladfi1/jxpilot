@@ -229,8 +229,6 @@ public class BlockMapSetup implements java.io.Serializable {
 			map_bytes[i] = map.getByte();
 		}
 		
-		
-		
 		int	cmp,		/* compressed map pointer */
 		ump,		/* uncompressed map pointer */
 		p;		/* temporary search pointer */

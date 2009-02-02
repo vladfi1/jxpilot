@@ -6,8 +6,7 @@ import net.sf.jxpilot.util.Holder;
  * Carries information server sends for bases.
  * @author Vlad Firoiu
  */
-public class BaseHolder implements Holder<BaseHolder>
-{
+public class BaseHolder implements Holder<BaseHolder> {
 	/**
 	 * Id of player that has taken base.
 	 */
@@ -17,21 +16,17 @@ public class BaseHolder implements Holder<BaseHolder>
 	 */
 	protected int num;
 	
-	public BaseHolder setBase(short id, int num)
-	{
+	public BaseHolder setBase(short id, int num) {
 		this.id = id;
-		this.num = num;
-		
+		this.num = num;		
 		return this;
 	}
 	
-	public void set(BaseHolder other)
-	{
+	public void set(BaseHolder other) {
 		other.setBase(id, num);
 	}
 	
-	public void setFrom(Holder<BaseHolder> other)
-	{
+	public void setFrom(Holder<BaseHolder> other) {
 		other.set(this);
 	}
 	
