@@ -1,7 +1,15 @@
 package net.sf.jxpilot.graphics;
 
+import static net.sf.jxpilot.map.MapBlock.BLOCK_SIZE;
+
 import java.util.*;
 import java.awt.event.*;
+
+import net.sf.jgamelibrary.geom.Vector2D;
+import net.sf.jgamelibrary.graphics.AbstractRenderer;
+import net.sf.jgamelibrary.graphics.BufferedFrame;
+import net.sf.jgamelibrary.graphics.FrameMode;
+import net.sf.jgamelibrary.graphics.GfxUtil;
 import net.sf.jxpilot.data.Keys;
 import java.awt.*;
 import java.awt.geom.*;
@@ -10,9 +18,18 @@ import javax.swing.*;
 import net.sf.jxpilot.user.*;
 import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
+import net.sf.jxpilot.game.GameWorld.Ball;
+import net.sf.jxpilot.game.GameWorld.FastShot;
+import net.sf.jxpilot.game.GameWorld.Ship;
+import net.sf.jxpilot.game.GameWorld.Spark;
+import net.sf.jxpilot.map.AbstractBlock;
 
-public class JXPilotFrame extends Frame
-{
+public class JXPilotFrame extends BufferedFrame {
+	/**
+	 * Default UID.
+	 */
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Whether or not to try to recenter the mouse after every movement.
 	 */
@@ -86,18 +103,8 @@ public class JXPilotFrame extends Frame
 	private EnumMap<UserOption, OptionHandler> optionHandlers;
 	
 	private WorldRenderer renderer;
-	public JXPilotFrame(DisplayMode mode, GameWorld world, ClientInputListener l)
-	{			
-		super(Accelerator.gfxConfig);
-		
-		if(mode==null)
-		{
-			this.displayMode = defaultDisplayMode;
-		}
-		else
-		{
-			this.displayMode = mode;
-		}
+	public JXPilotFrame(DisplayMode mode, GameWorld world, ClientInputListener l) {
+		super(mode.FRAME_MODE);
 		
 		this.world = world;
 		clientInputListener = l;
@@ -112,33 +119,7 @@ public class JXPilotFrame extends Frame
 		this.world = world;
 		renderer = new WorldRenderer(world);		
 
-		if(displayMode == DisplayMode.FSEM)
-		{
-			if(!Accelerator.gfxDevice.isFullScreenSupported())
-			{
-				JOptionPane.showMessageDialog(this, "FSEM is not supported!");
-				displayMode = defaultDisplayMode;
-			}
-		}
-
-		if (displayMode == DisplayMode.FSEM)
-			initFullScreen();
-		else
-		{
-			if(displayMode == DisplayMode.UFS)
-			{
-				this.setUndecorated(true);
-			}
-			
-			this.setIgnoreRepaint(true);
-			this.setSize(screenSize);
-			this.setVisible(true);
-			this.setResizable(true);
-			setBufferStrategy();
-		}
-		
-		System.out.println("Using " + displayMode);
-		
+		System.out.println("Using " + super.getFrameMode());
 		
 		messagePool = new MessagePool();
 		playerTable = new PlayerTable(20, super.getHeight()/2, world.getPlayers());
@@ -256,7 +237,7 @@ public class JXPilotFrame extends Frame
 	/**
 	 * Class that handles MouseMovement. It sends movement to the server so the ship can turn.
 	 * It also attempts to move the mouse pointer back to the center of the screen, if allowed by the system.
-	 * @author vlad
+	 * @author Vlad Firiou
 	 */
 	private class MouseMotionHandler extends MouseMotionAdapter
 	{
@@ -486,7 +467,6 @@ public class JXPilotFrame extends Frame
 		});
 		optionHandlers.put(UserOption.SWITCH_TEAMS, new OptionHandler() {
 			public void fireOption() {
-				world.getSelf();
 				byte team = world.getSelf().getTeam();
 				clientInputListener.talk("/team " + (6-team));
 			}
@@ -510,119 +490,77 @@ public class JXPilotFrame extends Frame
 		userPreferences.put(KeyEvent.VK_F5, UserOption.SWITCH_TEAMS);
 		userPreferences.put(KeyEvent.VK_M, UserOption.TALK);
 	}
-	
-	//graphics stuff
-	private final int NUM_BUFFERS = 2;
-	private GraphicsDevice gd;
-	private BufferStrategy bufferStrategy;
-	
-	private void initFullScreen()
-	{
-		//gd = Accelerator.gfxDevice;
-		gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		
-		this.setUndecorated(true);
-		this.setIgnoreRepaint(true);
-		this.setResizable(false);
-		
-		if (!gd.isFullScreenSupported())
-		{
-			System.out.println("FSEM not supported.");
-			System.exit(0);
-		}
-		gd.setFullScreenWindow(this);
-		
-		setBufferStrategy();
-	}
-	
-	private void setBufferStrategy()
-	{
-		try
-		{
-			EventQueue.invokeAndWait(new Runnable(){
-				public void run()
-				{
-					JXPilotFrame.this.createBufferStrategy(NUM_BUFFERS);
-				}
-			});
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			System.out.println("Error while creating buffer strategy.");
-			System.exit(0);
-		}
-		
-		try
-		{
-			Thread.sleep(500);
-		}
-		catch(InterruptedException e){}
-		
-		bufferStrategy = this.getBufferStrategy();
-	}
-	
-	private void restoreScreen()
-	{
-		Window w = gd.getFullScreenWindow();
-		if(w!=null)
-		{
-			w.dispose();
-		}
-		gd.setFullScreenWindow(null);
-	}
-	
-	/**
-	 * Restores screen and disposes of this frame.
-	 */
-	public void finish()
-	{
-		if (displayMode==DisplayMode.FSEM)
-		{
-			restoreScreen();
-		}
-		
-		//clientInputListener.quit();
-		this.dispose();
-	}
 
-	public void activeRender()
-	{
-			try
-			{
-				Graphics2D screenG2D = (Graphics2D)bufferStrategy.getDrawGraphics();
-				renderGame(screenG2D);
-				screenG2D.dispose();
-				if (!bufferStrategy.contentsLost())
-				{
-					bufferStrategy.show();
-				}
-				else
-				{
-					System.out.println("BufferStrategy contents lost");
-				}
-				//for linux
-				toolkit.sync();
-			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+	//graphics stuff
+	public static final Color SPACE_COLOR = Color.BLACK;
+	
+	private final XPilotRenderer xpilotRenderer = new XPilotRenderer();
+	private class XPilotRenderer extends AbstractRenderer {
+
+		private final Vector2D centerScale = new Vector2D(0.5, 0.5);
+		@Override
+		protected Vector2D getCenterScale() {return centerScale;}
+
+		@Override
+		protected int getHeight() {return JXPilotFrame.this.getHeight();}
+
+		private final Vector2D scaleFactor = new Vector2D();
+		@Override
+		protected Vector2D getScaleFactor() {
+			double scale = (double)getHeight()/world.getExtViewHeight();
+			return scaleFactor.setCartesian(scale, scale);
+		}
+
+		private final Vector2D viewCenter = new Vector2D();
+		@Override
+		protected Point2D getViewCenter() {return viewCenter.setCartesian(world.getSelfX(), world.getSelfY());}
+
+		@Override
+		protected int getWidth() {return JXPilotFrame.this.getWidth();}
 	}
 	
-	private void renderGame(Graphics2D screenG2D)
-	{
-		
-		renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
-				(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);
+	private final boolean USE_XPILOT_RENDERER = true;
 	
+	
+	
+	@Override
+	protected void render(Graphics2D screenG2D) {
+		if(USE_XPILOT_RENDERER) {
+			xpilotRenderer.setDrawTransform(screenG2D);
+			
+			int centerX = world.getSelfX()/BLOCK_SIZE,
+			centerY = world.getSelfY()/BLOCK_SIZE,
+			xRadius = (1+world.getExtViewWidth()/2)/BLOCK_SIZE,
+			yRadius = (1+world.getExtViewHeight()/2)/BLOCK_SIZE;
+			
+			screenG2D.setColor(SPACE_COLOR);
+			GfxUtil.fillRect(world.getSelfX()-world.getExtViewWidth()/2, world.getSelfY()-world.getExtViewHeight()/2,
+					world.getExtViewWidth(), world.getExtViewHeight(), screenG2D);
+			world.getMap().render(centerX, centerY, xRadius, yRadius, screenG2D);
+			for(Ship s : world.getShipHandler()) {
+				s.render(screenG2D);
+			}
+			for(FastShot f : world.getShotHandler()) {
+				f.render(screenG2D);
+			}
+			for(Spark s : world.getSparkHandler()) {
+				s.render(screenG2D);
+			}
+			for(Ball b : world.getBallHandler()) {
+				b.render(screenG2D);
+			}
+		} else {
+			renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
+					(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);
+			//screenG2D.setTransform(currentTransform);
+			//screenG2D.drawImage(mapBuffer, 0, 0, this);
+		}
+		
 		screenG2D.setTransform(identity);
 		messagePool.render(screenG2D);
-		
+
 		playerTable.setY(super.getHeight()/2);
 		playerTable.paintDrawable(screenG2D);
-		//screenG2D.setTransform(currentTransform);
-		//screenG2D.drawImage(mapBuffer, 0, 0, this);
 	}
 
 	/**
@@ -632,7 +570,7 @@ public class JXPilotFrame extends Frame
      * @return <code>True</code>, if supported.
      */
     public boolean isFSEMSupported() {
-        return displayMode == DisplayMode.FSEM;
+        return super.getFrameMode() == FrameMode.FSEM;
     }
 
     /**

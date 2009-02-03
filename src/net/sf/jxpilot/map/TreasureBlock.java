@@ -31,7 +31,7 @@ public class TreasureBlock extends Block {
 	}
 	
 	public TreasureBlock(int team, int num, int x, int y) {
-		this(BlockType.getBlock((byte)(BlockType.TREASURE_0.ordinal() + team)), team, num, x, y);
+		this(BlockType.getBlockType((byte)(BlockType.TREASURE_0.ordinal() + team)), team, num, x, y);
 	}
 	
 	public int getTeam() {return team;}

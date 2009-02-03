@@ -14,6 +14,7 @@ public class FilledBlock extends Block {
 
 	@Override
 	public void render(int x, int y, Graphics2D g2d) {
+		g2d.setColor(FILLED_COLOR);
 		GfxUtil.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE, g2d);
 	}
 }

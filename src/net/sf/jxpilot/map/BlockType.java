@@ -2,15 +2,20 @@ package net.sf.jxpilot.map;
 
 import static net.sf.jxpilot.util.Utilities.getUnsignedByte;
 
+/**
+ * Represents a type of block. There is a 1 to 1 correspondence between
+ * block types in the map data and {@code BlockType} constants.
+ * @author Vlad Firoiu
+ */
 public enum BlockType {
 
 	SPACE {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new SpaceBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new SpaceBlock(num, x, y);}
 	},
 	FILLED {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new FilledBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new FilledBlock(num, x, y);}
 	},
 	FILLED_NO_DRAW,
 	FUEL {
@@ -19,19 +24,19 @@ public enum BlockType {
 	},
 	REC_RU {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new RecRUBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new RecRUBlock(num, x, y);}
 	},
 	REC_RD {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new RecRDBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new RecRDBlock(num, x, y);}
 	},
 	REC_LU {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new RecLUBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new RecLUBlock(num, x, y);}
 	},
 	REC_LD {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new RecLDBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new RecLDBlock(num, x, y);}
 	},
 	ACWISE_GRAV,
 	CWISE_GRAV,
@@ -39,15 +44,15 @@ public enum BlockType {
 	NEG_GRAV,
 	WORM_NORMAL {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new WormNormalBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new WormNormalBlock(num, x, y);}
 	},
 	WORM_IN {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new WormInBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new WormInBlock(num, x, y);}
 	},
 	WORM_OUT {
 		@Override
-		public Block createBlock(int num, int x, int y) {return new WormOutBlock(num, x, y);}
+		public AbstractBlock createBlock(int num, int x, int y) {return new WormOutBlock(num, x, y);}
 	},
 	CANNON_UP {
 		@Override
@@ -106,46 +111,166 @@ public enum BlockType {
 		@Override
 		public AbstractBlock createBlock(int num, int x, int y) {return new TreasureBlock(this, 9, num, x, y);}
 	},
-	BASE_UP_0,
-	BASE_UP_1,
-	BASE_UP_2,
-	BASE_UP_3,
-	BASE_UP_4,
-	BASE_UP_5,
-	BASE_UP_6,
-	BASE_UP_7,
-	BASE_UP_8,
-	BASE_UP_9,
-	BASE_RIGHT_0,
-	BASE_RIGHT_1,
-	BASE_RIGHT_2,
-	BASE_RIGHT_3,
-	BASE_RIGHT_4,
-	BASE_RIGHT_5,
-	BASE_RIGHT_6,
-	BASE_RIGHT_7,
-	BASE_RIGHT_8,
-	BASE_RIGHT_9,
-	BASE_DOWN_0,
-	BASE_DOWN_1,
-	BASE_DOWN_2,
-	BASE_DOWN_3,
-	BASE_DOWN_4,
-	BASE_DOWN_5,
-	BASE_DOWN_6,
-	BASE_DOWN_7,
-	BASE_DOWN_8,
-	BASE_DOWN_9,
-	BASE_LEFT_0,
-	BASE_LEFT_1,
-	BASE_LEFT_2,
-	BASE_LEFT_3,
-	BASE_LEFT_4,
-	BASE_LEFT_5,
-	BASE_LEFT_6,
-	BASE_LEFT_7,
-	BASE_LEFT_8,
-	BASE_LEFT_9,
+	BASE_UP_0 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 0, num, x, y);}
+	},
+	BASE_UP_1 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 1, num, x, y);}
+	},
+	BASE_UP_2 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 2, num, x, y);}
+	},
+	BASE_UP_3 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 3, num, x, y);}
+	},
+	BASE_UP_4 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 4, num, x, y);}
+	},
+	BASE_UP_5 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 5, num, x, y);}
+	},
+	BASE_UP_6 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 6, num, x, y);}
+	},
+	BASE_UP_7 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 7, num, x, y);}
+	},
+	BASE_UP_8 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 8, num, x, y);}
+	},
+	BASE_UP_9 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseUpBlock(this, 9, num, x, y);}
+	},
+	BASE_RIGHT_0 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 0, num, x, y);}
+	},
+	BASE_RIGHT_1 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 1, num, x, y);}
+	},
+	BASE_RIGHT_2 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 2, num, x, y);}
+	},
+	BASE_RIGHT_3 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 3, num, x, y);}
+	},
+	BASE_RIGHT_4 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 4, num, x, y);}
+	},
+	BASE_RIGHT_5 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 5, num, x, y);}
+	},
+	BASE_RIGHT_6 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 6, num, x, y);}
+	},
+	BASE_RIGHT_7 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 7, num, x, y);}
+	},
+	BASE_RIGHT_8 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 8, num, x, y);}
+	},
+	BASE_RIGHT_9 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseRightBlock(this, 9, num, x, y);}
+	},
+	BASE_DOWN_0 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 0, num, x, y);}
+	},
+	BASE_DOWN_1 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 1, num, x, y);}
+	},
+	BASE_DOWN_2 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 2, num, x, y);}
+	},
+	BASE_DOWN_3 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 3, num, x, y);}
+	},
+	BASE_DOWN_4 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 4, num, x, y);}
+	},
+	BASE_DOWN_5 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 5, num, x, y);}
+	},
+	BASE_DOWN_6 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 6, num, x, y);}
+	},
+	BASE_DOWN_7 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 7, num, x, y);}
+	},
+	BASE_DOWN_8 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 8, num, x, y);}
+	},
+	BASE_DOWN_9 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseDownBlock(this, 9, num, x, y);}
+	},
+	BASE_LEFT_0 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 0, num, x, y);}
+	},
+	BASE_LEFT_1 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 1, num, x, y);}
+	},
+	BASE_LEFT_2 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 2, num, x, y);}
+	},
+	BASE_LEFT_3 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 3, num, x, y);}
+	},
+	BASE_LEFT_4 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 4, num, x, y);}
+	},
+	BASE_LEFT_5 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 5, num, x, y);}
+	},
+	BASE_LEFT_6 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 6, num, x, y);}
+	},
+	BASE_LEFT_7 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 7, num, x, y);}
+	},
+	BASE_LEFT_8 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 8, num, x, y);}
+	},
+	BASE_LEFT_9 {
+		@Override
+		public AbstractBlock createBlock(int num, int x, int y) {return new BaseLeftBlock(this, 9, num, x, y);}
+	},
 	TARGET_0,
 	TARGET_1,
 	TARGET_2,
@@ -255,8 +380,16 @@ public enum BlockType {
 	
 	private static final BlockType[] VALUES = values();
 	
-	public static BlockType getBlock(byte setup_type) {
+	public static BlockType getBlockType(byte setup_type) {
 		return VALUES[getUnsignedByte(setup_type)];
+	}
+	
+	public static AbstractBlock createBlock(BlockMapSetup setup, int num) {
+		return getBlockType(setup.getBlockType(num)).createBlock(num, setup.getX(num), setup.getY(num));
+	}
+	
+	public static AbstractBlock createBlock(BlockMapSetup setup, int x, int y) {
+		return getBlockType(setup.getBlockType(x, y)).createBlock(setup.getNum(x, y), x, y);
 	}
 	
 	/**
@@ -273,11 +406,11 @@ public enum BlockType {
 	}
 	
 	/**
-	 * Creates a block with the specified 
-	 * @param num
-	 * @param x
-	 * @param y
-	 * @return
+	 * Creates a block with the specified position.
+	 * @param num The block's index in the map data.
+	 * @param x The block's x-coordinate, in blocks.
+	 * @param y The block's y-coordinate, in blocks.
+	 * @return The correct block, or null.
 	 */
 	public AbstractBlock createBlock(int num, int x, int y) {
 		return null;

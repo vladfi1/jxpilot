@@ -242,7 +242,7 @@ public class GameRenderer {
 	}
 
 	/**
-	 * 
+	 * Paints the map.
 	 * @param g2 Graphics on which to paint the blocks
 	 * @param centerX center of view area
 	 * @param centerY center of view area
