@@ -50,7 +50,9 @@ public class FuelBlock extends FuelHolder implements AbstractBlock {
 
 	@Override
 	public void render(int x, int y, Graphics2D g) {
+		g.setColor(FUEL_COLOR);
 		GfxUtil.fillRect(x, y, BLOCK_SIZE, (BLOCK_SIZE * super.fuel)/MAX_STATION_FUEL, g);
+		//GfxUtil.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE, g);
 	}
 	
 }

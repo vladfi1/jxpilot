@@ -19,6 +19,7 @@ import net.sf.jxpilot.user.*;
 import net.sf.jxpilot.*;
 import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.game.GameWorld.Ball;
+import net.sf.jxpilot.game.GameWorld.Connector;
 import net.sf.jxpilot.game.GameWorld.FastShot;
 import net.sf.jxpilot.game.GameWorld.Ship;
 import net.sf.jxpilot.game.GameWorld.Spark;
@@ -528,14 +529,17 @@ public class JXPilotFrame extends BufferedFrame {
 		if(USE_XPILOT_RENDERER) {
 			xpilotRenderer.setDrawTransform(screenG2D);
 			
+			int viewHeight = world.getExtViewHeight(),
+			viewWidth = super.getWidth() * viewHeight / super.getHeight();
+			
 			int centerX = world.getSelfX()/BLOCK_SIZE,
 			centerY = world.getSelfY()/BLOCK_SIZE,
-			xRadius = (1+world.getExtViewWidth()/2)/BLOCK_SIZE,
-			yRadius = (1+world.getExtViewHeight()/2)/BLOCK_SIZE;
+			xRadius = (1+viewWidth/2)/BLOCK_SIZE,
+			yRadius = (1+viewHeight/2)/BLOCK_SIZE;
 			
 			screenG2D.setColor(SPACE_COLOR);
-			GfxUtil.fillRect(world.getSelfX()-world.getExtViewWidth()/2, world.getSelfY()-world.getExtViewHeight()/2,
-					world.getExtViewWidth(), world.getExtViewHeight(), screenG2D);
+			GfxUtil.fillRect(world.getSelfX()-viewWidth/2, world.getSelfY()-viewHeight/2,
+					viewWidth, viewHeight, screenG2D);
 			world.getMap().render(centerX, centerY, xRadius, yRadius, screenG2D);
 			for(Ship s : world.getShipHandler()) {
 				s.render(screenG2D);
@@ -549,6 +553,10 @@ public class JXPilotFrame extends BufferedFrame {
 			for(Ball b : world.getBallHandler()) {
 				b.render(screenG2D);
 			}
+			for(Connector c : world.getConnectorHandler()) {
+				c.render(screenG2D);
+			}
+			world.getHud().render(screenG2D);
 		} else {
 			renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
 					(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);

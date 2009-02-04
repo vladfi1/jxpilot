@@ -266,6 +266,7 @@ public class GameWorld implements Drawable {
 	
 	public void handleCannon(CannonHolder c) {
 		c.set(cannons.get(c.getNum()));
+		map.getCannon(c.getNum()).setFrom(c);
 	}
 	
 	public void handleBase(BaseHolder b) {
@@ -277,10 +278,12 @@ public class GameWorld implements Drawable {
 		//b.set(bases.get(b.getNum()));
 		
 		bases.get(b.getNum()).setFrom(b);
+		map.getBase(b.getNum()).setFrom(b);
 	}
 	
 	public void handleFuel(FuelHolder f) {
 		f.set(fuelStations.get(f.getNum()));
+		map.getFuel(f.getNum()).setFrom(f);
 	}
 	
 	public void handleRadar(RadarHolder r) {

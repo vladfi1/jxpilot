@@ -1,5 +1,7 @@
 package net.sf.jxpilot.game;
 
+import net.sf.jgamelibrary.graphics.GfxUtil;
+import net.sf.jgamelibrary.graphics.Renderable;
 import net.sf.jxpilot.map.*;
 import net.sf.jxpilot.graphics.Drawable;
 import net.sf.jxpilot.util.*;
@@ -10,10 +12,10 @@ import java.awt.geom.*;
 
 /**
  * Class that holds/draws the Heads Up Display.
- * @author Vlad
+ * @author Vlad Firoiu
  *
  */
-public class HUD implements Drawable{
+public class HUD implements Drawable, Renderable {
 	
 	private GameWorld world;
 	private BlockMap map;
@@ -124,6 +126,17 @@ public class HUD implements Drawable{
 		
 		paintLockedPlayer(g2d);
 	}
+
+	@Override
+	public void render(Graphics2D g2d) {
+		renderScoreObjects(g2d);
+		
+		for(int i = 0;i<radarHandler.size();i++) {
+			radarHandler.get(i).render(g2d);
+		}
+		
+		renderLockedPlayer(g2d);
+	}
 	
 	private void paintLockedPlayer(Graphics2D g2d)
 	{
@@ -131,6 +144,13 @@ public class HUD implements Drawable{
 		{
 			g2d.setColor(Color.WHITE);
 			Utilities.drawAdjustedStringUp(g2d,lockPlayer.getName(),world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2);
+		}
+	}
+	
+	private void renderLockedPlayer(Graphics2D g2d) {
+		if(lockPlayer!=null) {
+			g2d.setColor(Color.WHITE);
+			GfxUtil.drawCenteredStringUp(lockPlayer.getName(), world.getSelfX(), world.getSelfY()+HUD_RADAR_HEIGHT/2, g2d);
 		}
 	}
 	
@@ -151,6 +171,20 @@ public class HUD implements Drawable{
 		
 	}
 	
+	private void renderScoreObjects(Graphics2D g2d) {
+		final int height = g2d.getFontMetrics().getHeight();
+		final int baseY = world.getSelfY() - 2*height;
+		
+		int i =0;
+		
+		for(ScoreObject o : scoreObjectHandler) {
+			o.render(g2d);
+			GfxUtil.drawCenteredStringDown(o.getMessage() + " " + o.getScore(), world.getSelfX(), baseY-i*height, g2d);
+			i++;
+		}
+		
+	}
+	
 	//"static" radar data
 	private final int RADAR_WIDTH, RADAR_HEIGHT;
     
@@ -159,8 +193,7 @@ public class HUD implements Drawable{
 	
 	private final float X_FACTOR, Y_FACTOR;
 	
-	public class Radar extends RadarHolder implements Drawable
-	{
+	public class Radar extends RadarHolder implements Drawable, Renderable {
 		
 		/*
 	    int		i;
@@ -209,8 +242,7 @@ public class HUD implements Drawable{
 		public final Color RADAR_COLOR = Color.RED;
 		private final Ellipse2D radarShape = new Ellipse2D.Float();
 		
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			//skips allies
 			if((super.size & 0x80) != 0) return;
 			
@@ -254,26 +286,61 @@ public class HUD implements Drawable{
 								"\nsize = " + size);
 			*/
 		}
+
+		@Override
+		public void render(Graphics2D g2d) {
+			if((super.size & 0x80) != 0) return;
+			
+			int radarX = super.x * HUD_RADAR_SCALE - (int)((world.getSelfX()) * X_FACTOR);
+			int radarY = super.y * HUD_RADAR_SCALE - (int)((world.getSelfY()) * Y_FACTOR);
+			
+			if(setup.wrapPlay()) {
+				if (radarX < 0) {
+                    if (-radarX > HUD_RADAR_WIDTH/2) radarX += HUD_RADAR_WIDTH;
+                } else {
+                    if (radarX > HUD_RADAR_WIDTH/2) radarX -= HUD_RADAR_WIDTH;
+                }
+
+                if (radarY < 0) {
+                    if (-radarY > HUD_RADAR_HEIGHT/2) radarY += HUD_RADAR_HEIGHT;
+                } else {
+                    if (radarY > HUD_RADAR_HEIGHT/2) radarY -= HUD_RADAR_HEIGHT;
+                }
+			}
+			
+            int size = (super.size > 0) ? super.size * HUD_RADAR_SCALE : HUD_RADAR_SCALE;
+			
+			//skips if radar would be painted on ship
+			if(Math.abs(radarX) < GameWorld.Ship.SHIP_RADIUS && Math.abs(radarY) < GameWorld.Ship.SHIP_RADIUS) return;
+			
+			g2d.setColor(RADAR_COLOR);
+			
+			/*
+			radarShape.setFrame((radarX+world.getSelfX()-size),
+								(radarY+world.getSelfY()-size),
+					2*size, 2*size);
+			
+			g2d.fill(radarShape);
+			*/
+			
+			GfxUtil.fillCenteredOval(radarX+world.getSelfX(), radarY+world.getSelfY(), size<<1, size<<1, g2d);
+		}
 	}
-	public final Factory<Radar> radarFactory = new Factory<Radar>()
-	{
+	public final Factory<Radar> radarFactory = new Factory<Radar>() {
 		public Radar newInstance(){return new Radar();}
 	};
 	
-	public class ScoreObject extends ScoreObjectHolder implements Drawable
-	{
+	public class ScoreObject extends ScoreObjectHolder implements Drawable, Renderable {
 		private final Color SCORE_OBJECT_COLOR = Color.WHITE;
 		
 		public ScoreObject(){}
 		
-		public ScoreObject(ScoreObjectHolder holder)
-		{
+		public ScoreObject(ScoreObjectHolder holder) {
 			holder.set(this);
 		}
 		
 		@Override
-		public void paintDrawable(Graphics2D g2d)
-		{
+		public void paintDrawable(Graphics2D g2d) {
 			//AffineTransform saved = g2d.getTransform();
 			
 			g2d.setColor(SCORE_OBJECT_COLOR);
@@ -291,6 +358,23 @@ public class HUD implements Drawable{
 			
 			//g2d.setTransform(saved);
 		}
+
+		@Override
+		public void render(Graphics2D g2d) {
+			g2d.setColor(SCORE_OBJECT_COLOR);
+			//g2d.translate(x, y);
+			
+			
+			int x = super.x * MapBlock.BLOCK_SIZE;
+			int y = super.y * MapBlock.BLOCK_SIZE;
+			if(setup.wrapPlay()) {
+				x = Utilities.wrap(map.getWidth(), worldX, x);
+				y = Utilities.wrap(map.getHeight(), worldY, y);
+			}
+			
+			GfxUtil.drawString(String.valueOf(score), x, y, g2d);
+			Rectangle2D bounds = g2d.getFontMetrics().getStringBounds(message, g2d);
+			GfxUtil.drawString(message, (int)(x-bounds.getWidth()/2), (int)(y-bounds.getHeight()), g2d);
+		}
 	}
-	
 }
