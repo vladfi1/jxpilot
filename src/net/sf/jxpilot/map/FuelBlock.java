@@ -40,6 +40,7 @@ public class FuelBlock extends FuelHolder implements AbstractBlock {
 		this.num = num;
 		this.x = x;
 		this.y = y;
+		super.fuel = MAX_STATION_FUEL;
 	}
 	
 	@Override
@@ -54,5 +55,4 @@ public class FuelBlock extends FuelHolder implements AbstractBlock {
 		GfxUtil.fillRect(x, y, BLOCK_SIZE, (BLOCK_SIZE * super.fuel)/MAX_STATION_FUEL, g);
 		//GfxUtil.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE, g);
 	}
-	
 }

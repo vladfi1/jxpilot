@@ -21,6 +21,7 @@ public class CannonLeftBlock extends NewCannon implements AbstractBlock {
 		CANNON_LEFT_IMAGE = Accelerator.createCompatibleImage(BLOCK_SIZE, BLOCK_SIZE);
 		Graphics2D g2d = CANNON_LEFT_IMAGE.createGraphics();
 		g2d.setTransform(BLOCK_TRANSFORM);
+		g2d.setColor(CANNON_LEFT_COLOR);
 		getCannonLeftPolygon2D().draw(g2d);
 		g2d.dispose();
 	}

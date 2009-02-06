@@ -274,16 +274,20 @@ public class GameWorld implements Drawable {
 			if(base.getId()==b.getId())
 				base.leave();
 		}
-		
+		for(int i = 0; i<map.numBases();i++) {
+			if(map.getBase(i).getId() == b.getId())
+				map.getBase(i).leave();
+		}
 		//b.set(bases.get(b.getNum()));
 		
 		bases.get(b.getNum()).setFrom(b);
-		map.getBase(b.getNum()).setFrom(b);
+		map.getBase(b.getNum()).setPlayer(getPlayer(b.getId()));
 	}
 	
 	public void handleFuel(FuelHolder f) {
 		f.set(fuelStations.get(f.getNum()));
 		map.getFuel(f.getNum()).setFrom(f);
+		//System.out.println(map.getFuel(f.getNum()).getFuel());
 	}
 	
 	public void handleRadar(RadarHolder r) {

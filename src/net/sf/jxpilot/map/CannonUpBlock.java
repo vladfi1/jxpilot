@@ -21,6 +21,7 @@ public class CannonUpBlock extends NewCannon implements AbstractBlock {
 		CANNON_UP_IMAGE = Accelerator.createCompatibleImage(BLOCK_SIZE, BLOCK_SIZE);
 		Graphics2D g2d = CANNON_UP_IMAGE.createGraphics();
 		g2d.setTransform(BLOCK_TRANSFORM);
+		g2d.setColor(CANNON_UP_COLOR);
 		getCannonUpPolygon2D().draw(g2d);
 		g2d.dispose();
 	}

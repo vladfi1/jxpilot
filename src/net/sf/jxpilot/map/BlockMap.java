@@ -122,8 +122,8 @@ public class BlockMap implements java.io.Serializable {
 		}
 		
 		num_cannons = num_bases = num_fuels = 0;
-		for(short y = 0;y<setup.getY();y++) {
-			for(short x = 0;x<setup.getX(); x++) {
+		for(short x = 0;x<setup.getY();x++) {
+			for(short y = 0;y<setup.getY(); y++) {
 				if(blocks[x][y] != null) {
 					if(blocks[x][y] instanceof NewCannon) cannonBlocks[num_cannons++] = (NewCannon) blocks[x][y];
 					else if(blocks[x][y] instanceof NewBase) baseBlocks[num_bases++] = (NewBase) blocks[x][y];

@@ -522,11 +522,9 @@ public class JXPilotFrame extends BufferedFrame {
 	
 	private final boolean USE_XPILOT_RENDERER = true;
 	
-	
-	
 	@Override
 	protected void render(Graphics2D screenG2D) {
-		if(USE_XPILOT_RENDERER) {
+		if(USE_XPILOT_RENDERER) {			
 			xpilotRenderer.setDrawTransform(screenG2D);
 			
 			int viewHeight = world.getExtViewHeight(),
