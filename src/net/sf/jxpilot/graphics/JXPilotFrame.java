@@ -72,6 +72,8 @@ public class JXPilotFrame extends BufferedFrame {
 	 */
 	private boolean typing = false;
 	
+	private DefaultTextBox textBox = new DefaultTextBox();
+	
 	/**
 	 * Messages to draw.
 	 */
@@ -126,78 +128,55 @@ public class JXPilotFrame extends BufferedFrame {
 		playerTable = new PlayerTable(20, super.getHeight()/2, world.getPlayers());
 		//pack();
 		
-		this.addKeyListener(new KeyAdapter()
-		{
-			
-			public void keyPressed(KeyEvent e)
-			{
-				/*
-				switch (e.getKeyCode())
-				{
-				
-				case KeyEvent.VK_RIGHT:
-					moveView(1, 0);
-					break;
-				case KeyEvent.VK_LEFT:
-					moveView(-1, 0);
-					break;
-				case KeyEvent.VK_UP:
-					moveView(0,1);
-					break;
-				case KeyEvent.VK_DOWN:
-					moveView(0,-1);
-					break;
-				case KeyEvent.VK_COMMA:
-					viewSize += 1;
-					break;
-				case KeyEvent.VK_PERIOD:
-					viewSize -= 1;
-					break;
-				case KeyEvent.VK_ESCAPE:
-					clientInputListener.quit();
-					break;
-				}
-				*/
-				
-				if(typing) return;
-				
-				int key = e.getKeyCode();
-				
-				if (userPreferences.containsKey(key))
-				{
-					//optionHandlers.get(userPreferences.get(key)).fireOption();
-					
-					//prevents user options from toggling XPilot commands
-					return;
-				}
-				
-				if (keyPreferences.containsKey(key))
-				{
-					for (byte b : keyPreferences.get(key))
-					clientInputListener.setKey(b, true);
+		this.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(typing) {
+					textBox.keyPressed(e);
+				} else {
+					int key = e.getKeyCode();
+
+					if (userPreferences.containsKey(key)) {
+						//optionHandlers.get(userPreferences.get(key)).fireOption();
+
+						//prevents user options from toggling XPilot commands
+						return;
+					}
+
+					if (keyPreferences.containsKey(key)) {
+						for (byte b : keyPreferences.get(key))
+							clientInputListener.setKey(b, true);
+					}
 				}
 			}
 
-			public void keyReleased(KeyEvent e)
-			{
-				if(typing) return;
-				
-				int key = e.getKeyCode();
-				
-				if (userPreferences.containsKey(key))
-				{
-					optionHandlers.get(userPreferences.get(key)).fireOption();
-					
-					//prevents user options from toggling XPilot commands
-					return;
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if(typing) {
+					textBox.keyReleased(e);
+				} else {
+					int key = e.getKeyCode();
+
+					if (userPreferences.containsKey(key)) {
+						optionHandlers.get(userPreferences.get(key)).fireOption();
+
+						//prevents user options from toggling XPilot commands
+						return;
+					}
+
+					if (keyPreferences.containsKey(key)) {
+						for (byte b : keyPreferences.get(key))
+							clientInputListener.setKey(b, false);
+					}
 				}
-				
-				if (keyPreferences.containsKey(key))
-				{
-					for (byte b : keyPreferences.get(key))
-					clientInputListener.setKey(b, false);
+			}
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(typing) {
+					textBox.keyTyped(e);
 				}
-			}		
+			}
 		});
 
 		this.addMouseListener(new MouseAdapter()
@@ -555,6 +534,8 @@ public class JXPilotFrame extends BufferedFrame {
 				c.render(screenG2D);
 			}
 			world.getHud().render(screenG2D);
+			if(typing)
+				textBox.render(screenG2D, super.getWidth()/2 - 40, super.getHeight()/2-20, 80);
 		} else {
 			renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
 					(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);
