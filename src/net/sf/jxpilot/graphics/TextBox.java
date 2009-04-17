@@ -37,18 +37,20 @@ public class TextBox {
 	public void render(Graphics g, int x, int y, int width) {
 		g.setColor(BACKGROUND_COLOR);
 		int text_width = g.getFontMetrics().charsWidth(text, 0, length);
-		g.drawRect(x, y, width < text_width ? text_width : width, g.getFontMetrics().getHeight());
+		int height = g.getFontMetrics().getHeight();
+		g.fillRect(x, y, width < text_width ? text_width : width, height);
 		
 		g.setColor(TEXT_COLOR);
-		g.drawChars(text, 0, length, x, y);
+		g.drawChars(text, 0, length, x, y+height);
 	}
 	
 	public void render(Graphics g, int x, int y) {
 		g.setColor(BACKGROUND_COLOR);
-		g.drawRect(x, y, g.getFontMetrics().charsWidth(text, 0, length), g.getFontMetrics().getHeight());
+		int height = g.getFontMetrics().getHeight();
+		g.drawRect(x, y, g.getFontMetrics().charsWidth(text, 0, length), height);
 		
 		g.setColor(TEXT_COLOR);
-		g.drawChars(text, 0, length, x, y);
+		g.drawChars(text, 0, length, x, y+height);
 	}
 	
 	public void clear() {length = 0;}

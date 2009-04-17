@@ -72,7 +72,21 @@ public class JXPilotFrame extends BufferedFrame {
 	 */
 	private boolean typing = false;
 	
-	private DefaultTextBox textBox = new DefaultTextBox();
+	/**
+	 * TextBox used to input messages.
+	 */
+	private DefaultTextBox textBox = new DefaultTextBox() {
+		@Override
+		protected void done() {
+			String message = super.getText();
+			if(!message.isEmpty()) clientInputListener.talk(message);
+			typing = false;
+		}
+		@Override
+		protected void cancel() {
+			typing = false;
+		}
+	};
 	
 	/**
 	 * Messages to draw.
@@ -126,24 +140,19 @@ public class JXPilotFrame extends BufferedFrame {
 		
 		messagePool = new MessagePool();
 		playerTable = new PlayerTable(20, super.getHeight()/2, world.getPlayers());
-		//pack();
 		
 		this.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if(typing) {
 					textBox.keyPressed(e);
+					e.consume();
 				} else {
 					int key = e.getKeyCode();
 
 					if (userPreferences.containsKey(key)) {
-						//optionHandlers.get(userPreferences.get(key)).fireOption();
 
-						//prevents user options from toggling XPilot commands
-						return;
-					}
-
-					if (keyPreferences.containsKey(key)) {
+					} else if(keyPreferences.containsKey(key)) {
 						for (byte b : keyPreferences.get(key))
 							clientInputListener.setKey(b, true);
 					}
@@ -154,17 +163,13 @@ public class JXPilotFrame extends BufferedFrame {
 			public void keyReleased(KeyEvent e) {
 				if(typing) {
 					textBox.keyReleased(e);
+					e.consume();
 				} else {
 					int key = e.getKeyCode();
 
 					if (userPreferences.containsKey(key)) {
 						optionHandlers.get(userPreferences.get(key)).fireOption();
-
-						//prevents user options from toggling XPilot commands
-						return;
-					}
-
-					if (keyPreferences.containsKey(key)) {
+					} else if(keyPreferences.containsKey(key)) {
 						for (byte b : keyPreferences.get(key))
 							clientInputListener.setKey(b, false);
 					}
@@ -175,6 +180,7 @@ public class JXPilotFrame extends BufferedFrame {
 			public void keyTyped(KeyEvent e) {
 				if(typing) {
 					textBox.keyTyped(e);
+					e.consume();
 				}
 			}
 		});
@@ -414,6 +420,7 @@ public class JXPilotFrame extends BufferedFrame {
 		
 		optionHandlers.put(UserOption.TALK, new OptionHandler() {
 			public void fireOption() {
+				/*
 				if(displayMode != DisplayMode.FSEM) {
 					typing = true;
 					String message = JOptionPane.showInputDialog(JXPilotFrame.this, "Enter a message: ");
@@ -421,6 +428,9 @@ public class JXPilotFrame extends BufferedFrame {
 						clientInputListener.talk(message);
 					typing = false;
 				}
+				 */
+				typing = true;
+				textBox.clear();
 			}
 		});
 		
@@ -534,8 +544,7 @@ public class JXPilotFrame extends BufferedFrame {
 				c.render(screenG2D);
 			}
 			world.getHud().render(screenG2D);
-			if(typing)
-				textBox.render(screenG2D, super.getWidth()/2 - 40, super.getHeight()/2-20, 80);
+
 		} else {
 			renderer.renderGame(screenG2D, super.getWidth()/2.0, super.getHeight()/2.0,
 					(viewSize*super.getWidth())/super.getHeight(), viewSize, super.getHeight()/viewSize);
@@ -548,6 +557,9 @@ public class JXPilotFrame extends BufferedFrame {
 
 		playerTable.setY(super.getHeight()/2);
 		playerTable.paintDrawable(screenG2D);
+		
+		if(typing)
+			textBox.render(screenG2D, super.getWidth()/2 - 40, super.getHeight()/2-20, 80);
 	}
 
 	/**
