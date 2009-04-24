@@ -818,7 +818,7 @@ public class NetClient {
 			}
 		}
 
-		if(reliableBuf.length() > 0) System.out.println("reliable buffer length: " + reliableBuf.length());
+		//if(reliableBuf.length() > 0) System.out.println("reliable buffer length: " + reliableBuf.length());
 		
 		while (reliableBuf.length()>0)
 		{
@@ -982,9 +982,10 @@ public class NetClient {
 			ReliableDataError error = reliable.readReliableData(in, NetClient.this, reliableBuf);
 			if(PRINT_PACKETS) System.out.println(error);
 			reliable_count++;
-			System.out.println("count: " + reliable_count + ", size: " + reliable.getLen());
+			//System.out.println("count: " + reliable_count + ", size: " + reliable.getLen());
 		}
 	}
+	
 	/**
 	 * Note that subclasses should override this method if a separate reliable
 	 * processor is to be used.
