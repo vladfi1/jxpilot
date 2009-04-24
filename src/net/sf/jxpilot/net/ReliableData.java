@@ -1,9 +1,11 @@
 package net.sf.jxpilot.net;
 
-import static net.sf.jxpilot.net.Ack.*;
 import static net.sf.jxpilot.net.ReliableDataError.*;
-import static net.sf.jxpilot.net.packet.Packet.*;
-import net.sf.jxpilot.JXPilot;
+import static net.sf.jxpilot.net.packet.Packet.PKT_RELIABLE;
+import net.sf.jgamelibrary.util.ByteBuffer;
+import net.sf.jxpilot.net.packet.PacketReadException;
+import net.sf.jxpilot.net.packet.XPilotPacketAdaptor;
+import static net.sf.jxpilot.JXPilot.PRINT_RELIABLE;
 
 /**
  * Class to hold reliable data packets.
@@ -12,51 +14,130 @@ import net.sf.jxpilot.JXPilot;
  * 
  * @author Vlad Firoiu
  */
-class ReliableData
-{
+public class ReliableData extends XPilotPacketAdaptor {
 	public static final int LENGTH = 1+2+4+4;
+
+	private int offset = 0;
+
+	private short len;
+	private int rel;
+	private int rel_loops;
+
+	private Ack ack = new Ack();
 	
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, NetClient client)
+	/*
+	int Receive_reliable(void)
 	{
-		//buf.rewind();
+	    int			n;
+	    short		len;
+	    u_byte		ch;
+	    long		rel,
+				rel_loops;
+
+	    if ((n = Packet_scanf(&rbuf, "%c%hd%ld%ld",
+				  &ch, &len, &rel, &rel_loops)) == -1)
+		return -1;
+	    if (n == 0) {
+		warn("Incomplete reliable data packet");
+		return 0;
+	    }
+	#ifdef DEBUG
+	    if (reliable_offset >= rel + len)
+		printf("Reliable my=%ld pkt=%ld len=%d loops=%ld\n",
+		       reliable_offset, rel, len, rel_loops);
+	#endif
+	    if (len <= 0) {
+		warn("Bad reliable data length (%d)", len);
+		return -1;
+	    }
+	    if (rbuf.ptr + len > rbuf.buf + rbuf.len) {
+		warn("Not all reliable data in packet (%d,%d,%d)",
+		     rbuf.ptr - rbuf.buf, len, rbuf.len);
+		rbuf.ptr += len;
+		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+		return -1;
+	    }
+	    if (rel > reliable_offset) {
 		
-		in.setReading();
+		// We miss one or more packets.
+		// For now we drop this packet.
+		// We could have kept it until the missing packet(s) arrived.
 		
-		if (in.remaining()<LENGTH) return BAD_PACKET;
-		data.setData(in.getByte(), in.getShort(),in.getInt() , in.getInt());
+		rbuf.ptr += len;
+		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+		if (Send_ack(rel_loops) == -1)
+		    return -1;
+		return 1;
+	    }
+	    if (rel + len <= reliable_offset) {
 		
-		if (data.getPktType()!=PKT_RELIABLE)
-		{
-			in.position(in.position()-1);
+		// Duplicate data.  Probably an ack got lost.
+		// Send an ack for our current stream position.
+		
+		rbuf.ptr += len;
+		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+		if (Send_ack(rel_loops) == -1)
+		    return -1;
+		return 1;
+	    }
+	    if (rel < reliable_offset) {
+		len -= (short)(reliable_offset - rel);
+		rbuf.ptr += reliable_offset - rel;
+		rel = reliable_offset;
+	    }
+	    if (cbuf.ptr > cbuf.buf)
+		Sockbuf_advance(&cbuf, cbuf.ptr - cbuf.buf);
+	    if (Sockbuf_write(&cbuf, rbuf.ptr, len) != len) {
+		warn("Can't copy reliable data to buffer");
+		rbuf.ptr += len;
+		Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+		return -1;
+	    }
+	    reliable_offset += len;
+	    rbuf.ptr += len;
+	    Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.buf);
+	    if (Send_ack(rel_loops) == -1)
+		return -1;
+	    return 1;
+	}
+	 */
+	
+	public ReliableDataError readReliableData(ByteBuffer in, NetClient client) throws PacketReadException {
+		if (in.length()<LENGTH) return BAD_PACKET;
+		
+		readPacket(in);
+		
+		if (pkt_type != PKT_RELIABLE) {
+			//in.position(in.position()-1);
 			return NOT_RELIABLE_DATA;
 		}
-		if (data.len > in.remaining()) {
+		if (len > in.length()) {
 			
 			in.clear();
 			System.out.println("Not all reliable data in packet");
 			//Sockbuf_advance(&rbuf, rbuf.ptr - rbuf.in);
 			return BAD_PACKET;
 		}
-		if (data.getRel() > data.getOffset()) {
+		if (rel > offset) {
 			/*
 			 * We miss one or more packets.
 			 * For now we drop this packet.
 			 * We could have kept it until the missing packet(s) arrived.
 			 */
-			
-			in.position(in.position()+data.len);
+			in.advanceReader(len);
 			//System.out.println("Packet out of order");
+			client.sendAck(ack.setAck(this));
 			return OUT_OF_ORDER;
 		}
-		if (data.getRel() + data.getLen() <= data.getOffset()) {
+		if (rel + len <= offset) {
 			/*
 			 * Duplicate data.  Probably an ack got lost.
 			 * Send an ack for our current stream position.
 			 */
 			
-			in.position(in.position()+data.len);
-			client.sendAck(Ack.ack.setAck(data));
-			//System.out.println("Duplicate Data");
+			in.advanceReader(len);
+			client.sendAck(ack.setAck(this));
+			if(PRINT_RELIABLE) System.out.println("Duplicate Data");
 			return DUPLICATE_DATA;
 		}
 		
@@ -64,70 +145,32 @@ class ReliableData
 		 * I am not sure what this does, but the C client has this code
 		 * and without it errors sometimes occur.
 		 */
-		if (data.rel < data.offset) {
-			data.len -= (short)(data.offset - data.rel);
-			in.position(in.position()+data.offset-data.rel);
-			data.rel = data.offset;
+		if (rel < offset) {
+			len -= (short)(offset - rel);
+			in.advanceReader(offset - rel);
+			rel = offset;
 		}
 		
+		if (PRINT_RELIABLE) System.out.println(this);
 		
-		if (JXPilot.PRINT_RELIABLE)
-			System.out.println(data);
-		
-		data.incrementOffset();
-		client.sendAck(ack.setAck(data));
+		offset += len;
+		client.sendAck(ack.setAck(this));
 		
 		return NO_ERROR;
 	}
-	/**
-	 * 
-	 * @param data The data to read into.
-	 * @param in The ByteBufferWrap to read from.
-	 * @param client The client to send ack to.
-	 * @param reliableBuf The ByteBufferWrap to copy the reliable data into.
-	 * @return An appropriate ReliableDataError.
-	 */
-	public static ReliableDataError readReliableData(ReliableData data, ByteBufferWrap in, NetClient client, ByteBufferWrap reliableBuf)
-	{
-		ReliableDataError error = readReliableData(data, in, client);
-		
-		if (error == NO_ERROR)
-		{
-			//reliableBuf.put(in.array(), in.position(), data.getLen());
-			//in.position(in.position() + data.getLen());
-			
-			/*
-			for(int i =0;i<data.getLen();i++)
-			{
-				reliableBuf.putByte(in.getByte());
-			}
-			*/
-			
-			reliableBuf.putBytes(in);
+	
+	public ReliableDataError readReliableData(ByteBuffer in, NetClient client, ByteBuffer reliableBuf) throws PacketReadException {
+		ReliableDataError error = readReliableData(in, client);
+
+		if (error == NO_ERROR) {
+			reliableBuf.putBytes(in, len);
+			in.advanceReader(len);
 		}
-		
+
 		return error;
 	}
-	
-	public ReliableDataError readReliableData(ByteBufferWrap in, NetClient client)
-	{
-		return readReliableData(this, in, client);
-	}
-	
-	public ReliableDataError readReliableData(ByteBufferWrap in, NetClient client, ByteBufferWrap reliableBuf)
-	{
-		return readReliableData(this, in, client, reliableBuf);
-	}
-	
-	private int offset=0;
 
-	private byte pkt_type;
-	private short len;
-	private int rel;
-	private int rel_loops;
-
-	public ReliableData setData(byte pkt_type, short len, int rel, int rel_loops)
-	{
+	public ReliableData setData(byte pkt_type, short len, int rel, int rel_loops) {
 		this.pkt_type = pkt_type;
 		this.len = len;
 		this.rel = rel;
@@ -135,27 +178,27 @@ class ReliableData
 		return this;
 	}
 
-	public byte getPktType(){return pkt_type;}
-	public short getLen(){return len;}
-	public int getRel(){return rel;}
-	public int getRelLoops(){return rel_loops;}
+	public byte getPktType() {return pkt_type;}
+	public short getLen() {return len;}
+	public int getRel() {return rel;}
+	public int getRelLoops() {return rel_loops;}
 
-	private void incrementOffset()
-	{
-		offset += len;
+	public int getOffset() {return offset;}
+
+	@Override
+	public String toString() {
+		return "\nReliable Data" +
+		"\npacket type = " + pkt_type +
+		"\nlen = " + len +
+		"\nrel = " + rel +
+		"\nrel loops = " + rel_loops;
 	}
 
-	public int getOffset()
-	{
-		return offset;
-	}
-
-	public String toString()
-	{
-		return "\nReliable Data:\n"
-		+"pkt_type = " + String.format("%x", pkt_type)
-		+"\nlen = " + len
-		+"\nrel = " + rel
-		+"\nrel_loops = " + rel_loops;
+	@Override
+	public void readPacket(ByteBuffer in) throws PacketReadException {
+		pkt_type = in.getByte();
+		len = in.getShort();
+		rel = in.getInt();
+		rel_loops = in.getInt();
 	}
 }

@@ -179,8 +179,7 @@ public class Client implements AbstractClient, ClientInputListener
 	@Override
 	public void handleEnd(int loops) {
 		//setFrameView();
-		if(!quit)
-		frame.activeRender();
+		if(!quit) frame.activeRender();
 	}
 	
 	@Override

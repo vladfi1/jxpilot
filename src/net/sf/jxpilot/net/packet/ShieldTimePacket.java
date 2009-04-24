@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data form a Shield Time packet.
@@ -13,7 +13,7 @@ public final class ShieldTimePacket extends XPilotPacketAdaptor {
 	public short getMax(){return max;}
 
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		count = in.getShort();
 		max = in.getShort();

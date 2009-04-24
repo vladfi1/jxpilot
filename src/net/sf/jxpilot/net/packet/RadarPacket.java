@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.RadarHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Radar packet.
@@ -15,7 +15,7 @@ public final class RadarPacket extends RadarHolder implements XPilotPacket {
 	 * Reads the packet type, x, y, and size.
 	 * @param in The buffer to read from.
 	 */
-	public void readPacket(ByteBufferWrap in) {
+	public void readPacket(ByteBuffer in) {
 		pkt_type = in.getByte();
 		x = in.getShort();
 		y = in.getShort();

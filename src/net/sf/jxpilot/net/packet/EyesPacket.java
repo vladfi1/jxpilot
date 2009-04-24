@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from an Eyes packet.
@@ -11,7 +11,7 @@ public class EyesPacket extends XPilotPacketAdaptor {
 	public short getId(){return id;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		id = in.getShort();
 	}

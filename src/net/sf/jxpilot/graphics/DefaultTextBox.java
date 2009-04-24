@@ -9,7 +9,9 @@ import java.awt.event.KeyEvent;
  */
 public abstract class DefaultTextBox extends TextBox implements KeyListener {
 	public static final int DEFAULT_LENGTH = 80;
-
+	
+	private static final byte BACK_SPACE = 8, DELETE = 127;
+	
 	public DefaultTextBox(int max_length) throws IllegalArgumentException {super(max_length);}
 	public DefaultTextBox() {this(DEFAULT_LENGTH);}
 
@@ -19,27 +21,23 @@ public abstract class DefaultTextBox extends TextBox implements KeyListener {
 		case KeyEvent.VK_DELETE:
 		case KeyEvent.VK_BACK_SPACE:
 			super.delete();
-			e.consume();
 			break;
 		case KeyEvent.VK_ENTER:
 			done();
-			e.consume();
 			break;
 		case KeyEvent.VK_ESCAPE:
 			cancel();
-			e.consume();
 			break;
 		}
 	}
 
 	@Override
-	public void keyReleased(KeyEvent e) {
-
-	}
+	public void keyReleased(KeyEvent e) {}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		if(!e.isConsumed()) super.add(e.getKeyChar());
+		char c = e.getKeyChar();
+		if(c != BACK_SPACE && c != DELETE) super.add(e.getKeyChar());
 	}
 
 	/**

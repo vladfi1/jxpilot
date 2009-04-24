@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Team Score packet.
@@ -18,7 +18,7 @@ public final class TeamScorePacket extends XPilotPacketAdaptor {
 	 * @param in The buffer from which to read the data.
 	 */
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		team = in.getShort();
 		score = (double)in.getInt()/100.0;

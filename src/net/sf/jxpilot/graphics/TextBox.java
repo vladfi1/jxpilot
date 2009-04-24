@@ -38,7 +38,7 @@ public class TextBox {
 		g.setColor(BACKGROUND_COLOR);
 		int text_width = g.getFontMetrics().charsWidth(text, 0, length);
 		int height = g.getFontMetrics().getHeight();
-		g.fillRect(x, y, width < text_width ? text_width : width, height);
+		g.fillRect(x, y, width < text_width ? (text_width + 5) : width, height+5);
 		
 		g.setColor(TEXT_COLOR);
 		g.drawChars(text, 0, length, x, y+height);
@@ -47,7 +47,7 @@ public class TextBox {
 	public void render(Graphics g, int x, int y) {
 		g.setColor(BACKGROUND_COLOR);
 		int height = g.getFontMetrics().getHeight();
-		g.drawRect(x, y, g.getFontMetrics().charsWidth(text, 0, length), height);
+		g.drawRect(x, y, g.getFontMetrics().charsWidth(text, 0, length)+5, height+5);
 		
 		g.setColor(TEXT_COLOR);
 		g.drawChars(text, 0, length, x, y+height);

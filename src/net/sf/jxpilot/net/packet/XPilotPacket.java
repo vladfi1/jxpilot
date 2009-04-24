@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data for an XPilot packet.
@@ -13,10 +13,11 @@ public interface XPilotPacket {
 	 * @return The unique byte representing this packet type.
 	 */
 	public byte getPacketType();
+	
 	/**
 	 * Reads an XPilot packet from the input buffer.
 	 * @param in The input buffer.
 	 * @throws PacketReadException If a problem occurs while reading.
 	 */
-	public abstract void readPacket(ByteBufferWrap in) throws PacketReadException;
+	public void readPacket(ByteBuffer in) throws PacketReadException;
 }

@@ -146,13 +146,15 @@ public class JXPilotFrame extends BufferedFrame {
 			public void keyPressed(KeyEvent e) {
 				if(typing) {
 					textBox.keyPressed(e);
-					e.consume();
 				} else {
 					int key = e.getKeyCode();
 
-					if (userPreferences.containsKey(key)) {
-
-					} else if(keyPreferences.containsKey(key)) {
+					if(userPreferences.containsKey(key)) {
+						UserOption option = userPreferences.get(key);
+						if(option != UserOption.TALK) optionHandlers.get(option).fireOption();
+					}
+					
+					if(keyPreferences.containsKey(key)) {
 						for (byte b : keyPreferences.get(key))
 							clientInputListener.setKey(b, true);
 					}
@@ -163,13 +165,15 @@ public class JXPilotFrame extends BufferedFrame {
 			public void keyReleased(KeyEvent e) {
 				if(typing) {
 					textBox.keyReleased(e);
-					e.consume();
 				} else {
 					int key = e.getKeyCode();
 
 					if (userPreferences.containsKey(key)) {
-						optionHandlers.get(userPreferences.get(key)).fireOption();
-					} else if(keyPreferences.containsKey(key)) {
+						UserOption option = userPreferences.get(key);
+						if(option == UserOption.TALK) optionHandlers.get(option).fireOption();
+					}
+					
+					if(keyPreferences.containsKey(key)) {
 						for (byte b : keyPreferences.get(key))
 							clientInputListener.setKey(b, false);
 					}
@@ -180,7 +184,6 @@ public class JXPilotFrame extends BufferedFrame {
 			public void keyTyped(KeyEvent e) {
 				if(typing) {
 					textBox.keyTyped(e);
-					e.consume();
 				}
 			}
 		});

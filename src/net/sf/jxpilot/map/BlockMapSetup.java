@@ -1,7 +1,7 @@
 package net.sf.jxpilot.map;
 
 import static net.sf.jxpilot.map.MapError.*;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.net.StringReadException;
 import net.sf.jxpilot.util.Utilities;
 
@@ -214,16 +214,15 @@ public class BlockMapSetup implements java.io.Serializable {
 	 * Because we uncompress the map backwards to save on
 	 * memory usage there is some complexity involved.
 	 */
-	private static MapError uncompressMap(ByteBufferWrap map, BlockMapSetup setup) {
+	private static MapError uncompressMap(ByteBuffer map, BlockMapSetup setup) {
 		//map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
 		
-		//System.out.println("Compressed size = " + map.remaining());
+		//System.out.println("Compressed size = " + map.length());
 		//System.out.println("Map data length = " + setup.map_data_len);
 		//System.out.println("Uncompressed size shoud be "+ map_bytes.length);
 		
-		map.setReading();
-		int remaining = map.remaining();
+		int remaining = map.length();
 		
 		for (int i =0;i<remaining;i++) {
 			map_bytes[i] = map.getByte();
@@ -243,7 +242,7 @@ public class BlockMapSetup implements java.io.Serializable {
 		//cmp = Setup->map_data + Setup->map_data_len - 1;
 		cmp = setup.getMapDataLen()-1;
 		//System.out.println("Cmp = "+ cmp);	
-		//cmp = map.remaining()-1;
+		//cmp = map.length()-1;
 		
 		/* Point to last uncompressed map byte */
 		//ump = Setup->map_data + Setup->x * Setup->y - 1;
@@ -306,7 +305,7 @@ public class BlockMapSetup implements java.io.Serializable {
 	}
 	
 	/*
-	private static MapError uncompressMap2(ByteBufferWrap map, MapSetup setup)
+	private static MapError uncompressMap2(ByteBuffer map, MapSetup setup)
 	{
 		map.rewind();
 		byte[] map_bytes = new byte[setup.getX()*setup.getY()];
@@ -374,21 +373,16 @@ public class BlockMapSetup implements java.io.Serializable {
 	}
 	*/
 	
-	public MapError uncompressMap(ByteBufferWrap map) {
+	public MapError uncompressMap(ByteBuffer map) {
 		return uncompressMap(map, this);
 	}
 
-	private static BlockMapSetup readMapSetup(ByteBufferWrap in, BlockMapSetup setup) {
-		try {
-			return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
+	private static BlockMapSetup readMapSetup(ByteBuffer in, BlockMapSetup setup) {
+		return setup.setMapSetup(in.getInt(), in.getInt(), in.getShort(), in.getShort(), in.getShort(),
 				in.getShort(), in.getShort(), in.getString(), in.getString());
-		} catch (StringReadException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 	
-	public BlockMapSetup readMapSetup(ByteBufferWrap in) {
+	public BlockMapSetup readMapSetup(ByteBuffer in) {
 		return readMapSetup(in, this);
 	}
 	

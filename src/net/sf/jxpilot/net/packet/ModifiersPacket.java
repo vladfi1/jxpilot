@@ -1,7 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
-import net.sf.jxpilot.net.StringReadException;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a modifiers packet.
@@ -14,13 +13,9 @@ public final class ModifiersPacket extends XPilotPacketAdaptor {
 	public String getModifiers(){return modifiers;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
-		try {
-			modifiers = in.getString();
-		} catch(StringReadException e) {
-			throw MODIFIERS_READ_EXCEPTION;
-		}
+		if((modifiers = in.getString()) == null) throw MODIFIERS_READ_EXCEPTION;
 	}
 
 	@Override

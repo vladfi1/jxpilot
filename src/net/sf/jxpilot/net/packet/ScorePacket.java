@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Score packet.
@@ -23,8 +23,8 @@ public final class ScorePacket extends XPilotPacketAdaptor{
 	public byte getMyChar(){return my_char;}
 
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<LENGTH) throw SCORE_READ_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<LENGTH) throw SCORE_READ_EXCEPTION;
 		pkt_type = in.getByte();
 		id = in.getShort();
 		score = in.getShort();

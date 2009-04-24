@@ -1,5 +1,6 @@
 package net.sf.jxpilot.net;
 
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.net.packet.Status;
 
 public class ReplyMessage {
@@ -37,8 +38,8 @@ public class ReplyMessage {
 				"\nvalue = " + String.format("%x", value);
 	}
 	
-	public static ReplyMessage readReplyMessage(ByteBufferWrap buf, ReplyMessage message) {
-		message.setMessage(buf.getInt(), buf.getByte(), buf.getByte(), buf.remaining()>=2 ? buf.getShort(): 0);
+	public static ReplyMessage readReplyMessage(ByteBuffer buf, ReplyMessage message) {
+		message.setMessage(buf.getInt(), buf.getByte(), buf.getByte(), buf.length()>=2 ? buf.getShort(): 0);
 		return message;
 	}
 

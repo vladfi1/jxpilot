@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.net.StringReadException;
 
 /**
@@ -25,18 +25,13 @@ public final class MOTDPacket extends XPilotPacketAdaptor {
 	public String getMOTD(){return motd;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<=LENGTH) throw this.MOTD_READ_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<=LENGTH) throw this.MOTD_READ_EXCEPTION;
 		pkt_type = in.getByte();
 		offset = in.getInt();
 		length = in.getShort();
 		size = in.getInt();
-		
-		try {
-			motd = in.getString();
-		} catch(StringReadException e) {
-			throw this.MOTD_READ_EXCEPTION;
-		}
+		if((motd = in.getString()) == null) throw this.MOTD_READ_EXCEPTION;
 	}
 
 	@Override

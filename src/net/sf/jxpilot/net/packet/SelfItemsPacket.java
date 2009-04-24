@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.data.Items;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from Self Items packet.
@@ -16,7 +16,7 @@ public final class SelfItemsPacket extends XPilotPacketAdaptor {
 	public byte[] getItems() {return items;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		mask = in.getInt();
 		for (int i = 0; mask != 0; i++) {

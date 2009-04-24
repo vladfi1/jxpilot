@@ -1,8 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.ScoreObjectHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
-import net.sf.jxpilot.net.StringReadException;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Score Object packet.
@@ -21,19 +20,15 @@ public class ScoreObjectPacket extends ScoreObjectHolder implements XPilotPacket
 	public byte getPacketType() {return pkt_type;}
 
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if (in.remaining()<LENGTH) throw SCORE_OBJECT_READ_EXCEPTION;
-
-		try {
-			pkt_type = in.getByte();
-			//float score = (float)(in.getInt()/100.0);
-			score = in.getShort();
-			x  = in.getUnsignedShort();
-			y = in.getUnsignedShort();
-			message = in.getString();
-		} catch (StringReadException e) {
-			throw SCORE_OBJECT_READ_EXCEPTION;
-		}
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if (in.length()<LENGTH) throw SCORE_OBJECT_READ_EXCEPTION;
+		
+		pkt_type = in.getByte();
+		//float score = (float)(in.getInt()/100.0);
+		score = in.getShort();
+		x  = in.getUnsignedShort();
+		y = in.getUnsignedShort();
+		if((message = in.getString()) == null) throw SCORE_OBJECT_READ_EXCEPTION;
 	}
 
 	@Override

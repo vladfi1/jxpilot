@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.RadarHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.util.Factory;
 import net.sf.jxpilot.util.HolderList;
 
@@ -33,7 +33,7 @@ public final class FastRadarPacket extends XPilotPacketAdaptor {
 	}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		num = in.getUnsignedByte();
 		short x, y, size;

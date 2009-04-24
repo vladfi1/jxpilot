@@ -9,8 +9,7 @@ import java.awt.geom.*;
  */
 public class Utilities {
 	
-	public static double trueMod(double x, double m)
-	{
+	public static double trueMod(double x, double m) {
 		//return ((x%m)+m)%m;
 		
 		double doubleMod = x%m;
@@ -34,7 +33,7 @@ public class Utilities {
 		return (int)((char)val);
 	}
 	public static short getUnsignedByte(byte val) {
-		return (short)(0xFF & val);
+		return (short)(0xff & val);
 	}
 	
 	/**
@@ -46,21 +45,19 @@ public class Utilities {
 	}
 	
 	public static double pow(double base, int exponent) {
-		double product=1;
-		
+		double product=1.0;
 		if(exponent<0) {
-			for(int i = 0;i>exponent;i--) {product *= base;}
+			for(;exponent != 0;exponent++) product *= base;
 			return 1.0/product;
 		} else {
-			for(int i = 0;i<exponent;i++) {product *= base;}
+			for(;exponent != 0;exponent--) product *= base;
 			return product;
 		}
 	}
 	
 	public static long pow(int base, int exponent) {
 		long product = 1;
-		for(int i = 0;i<exponent;i++) {product *= base;}
-		
+		for(;exponent != 0;exponent--) product *= base;
 		return product;
 	}
 	
@@ -170,25 +167,14 @@ public class Utilities {
 	 * @param end The end value.
 	 * @return A value for end that is the closest possible to start without changing end mod size.
 	 */
-	public static double wrap(double size, double start, double end)
-	{
+	public static double wrap(double size, double start, double end) {
 		double dif = end-start;
-		
-		if (dif > size/2)
-		{
-			return end-size;
-		}
-		
-		if (dif < -size/2)
-		{
-			return end+size;
-		}
-		
+		if (dif > size/2) return end-size;
+		if (dif < -size/2) return end+size;
 		return end;
 	}
 	
-	public static Point2D wrapPoint(double width, double height, double startX, double startY, Point2D point)
-	{
+	public static Point2D wrapPoint(double width, double height, double startX, double startY, Point2D point) {
 		point.setLocation(wrap(width, startX, point.getX()),wrap(height, startY, point.getY()));
 		return point;
 	}
@@ -200,14 +186,12 @@ public class Utilities {
 	 * @param line The current line dimensions.
 	 * @return The given line.
 	 */
-	public static Line2D wrapLine(int width, int height, Line2D line)
-	{
+	public static Line2D wrapLine(int width, int height, Line2D line) {
 		line.setLine(line.getX1(), line.getY1(), wrap(width, line.getX1(), line.getX2()), wrap(height, line.getY1(), line.getY2()));
 		return line;
 	}
 	
-	public static Line2D wrapLine(double width, double height, double startX, double startY, Line2D line)
-	{
+	public static Line2D wrapLine(double width, double height, double startX, double startY, Line2D line) {
 		line.setLine(wrap(width, startX, line.getX1()), wrap(height, startY, line.getY1()),
 					wrap(width, startX, line.getX2()), wrap(height, startY, line.getY2()));
 		return line;

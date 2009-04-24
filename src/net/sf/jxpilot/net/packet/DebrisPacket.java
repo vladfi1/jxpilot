@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Debris packet.
@@ -18,7 +18,7 @@ public final class DebrisPacket implements XPilotPacket {
 	public short getNum(){return num;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getUnsignedByte();
 		num = in.getUnsignedByte();
 	}

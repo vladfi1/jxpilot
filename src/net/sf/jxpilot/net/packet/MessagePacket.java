@@ -1,8 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import static net.sf.jxpilot.util.Utilities.removeNullCharacter;
-import net.sf.jxpilot.net.ByteBufferWrap;
-import net.sf.jxpilot.net.StringReadException;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Message packet.
@@ -12,23 +10,14 @@ public final class MessagePacket extends XPilotPacketAdaptor {
 	private final ReliableReadException MESSAGE_READ_EXCEPTION = new ReliableReadException("Message");
 	
 	private String message;
-	public String getMessage(){return message;}
+	public String getMessage() {return message;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
 		//int pos = in.position();
-        try {
-            pkt_type = in.getByte();
-            message = in.getString();
-        } catch (StringReadException e) {
-            // e.printStackTrace();
-            //in.position(pos);
-            throw MESSAGE_READ_EXCEPTION;
-        }
-
-        if (message != null) {
-            message = removeNullCharacter(message);
-        }
+		pkt_type = in.getByte();
+		message = in.getString();
+		if(message == null) throw MESSAGE_READ_EXCEPTION;
 	}
 	
 	@Override

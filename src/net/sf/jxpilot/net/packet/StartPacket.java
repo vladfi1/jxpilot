@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Start packet.
@@ -20,8 +20,8 @@ public final class StartPacket extends XPilotPacketAdaptor {
 	public int getKeyAck(){return key_ack;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining() < LENGTH) throw START_READ_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length() < LENGTH) throw START_READ_EXCEPTION;
 		pkt_type = in.getByte();
 		loops = in.getInt();
 		key_ack = in.getInt();

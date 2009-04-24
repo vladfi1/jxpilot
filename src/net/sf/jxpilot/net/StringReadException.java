@@ -3,7 +3,7 @@ package net.sf.jxpilot.net;
 import java.io.IOException;
 
 /**
- * Thrown by ByteBufferWrap class when a problem occurs
+ * Thrown by ByteBuffer class when a problem occurs
  * while attempting to read a string.
  * @author Vlad Firoiu
  */

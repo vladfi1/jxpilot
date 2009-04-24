@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.net.StringReadException;
 
 /**
@@ -14,13 +14,9 @@ public final class QuitPacket extends XPilotPacketAdaptor {
 	public String getReason(){return reason;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
 		pkt_type = in.getByte();
-		try {
-			reason = in.getString();
-		} catch (StringReadException e) {
-			throw QUIT_READ_EXCEPTION;
-		}
+		if((reason = in.getString()) == null) throw QUIT_READ_EXCEPTION;
 	}
 	
 	@Override

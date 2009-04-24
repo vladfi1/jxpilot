@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.ShipHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Ship packet.
@@ -24,7 +24,7 @@ public final class ShipPacket extends ShipHolder implements XPilotPacket {
 	public byte getFlags(){return flags;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		x = in.getShort();
 		y = in.getShort();

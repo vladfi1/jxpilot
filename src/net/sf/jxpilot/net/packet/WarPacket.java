@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data for a War packet.
@@ -20,8 +20,8 @@ public final class WarPacket extends XPilotPacketAdaptor {
 	public short getKillerId(){return killer_id;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<LENGTH) throw WAR_READ_EXCEPTION; 
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<LENGTH) throw WAR_READ_EXCEPTION; 
 		pkt_type = in.getByte();
 		robot_id = in.getShort();
 		killer_id = in.getShort();

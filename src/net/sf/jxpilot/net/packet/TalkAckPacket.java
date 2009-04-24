@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Talk Ack packet.
@@ -19,8 +19,8 @@ public final class TalkAckPacket extends XPilotPacketAdaptor {
 	public int getTalkAck() {return talk_ack;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<LENGTH) throw TALK_ACK_READ_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<LENGTH) throw TALK_ACK_READ_EXCEPTION;
 		pkt_type = in.getByte();
 		talk_ack = in.getInt();
 	}

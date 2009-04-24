@@ -1,13 +1,13 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 public class ReplyData extends XPilotPacketAdaptor {
 	public static final int LENGTH = 1 + 1 + 1;//3
 	
 	protected final ReliableReadException REPLY_DATA_EXCEPTION = new ReliableReadException();
 	
-	public static ReplyData readReplyData(ByteBufferWrap in, ReplyData data) throws ReliableReadException {	
+	public static ReplyData readReplyData(ByteBuffer in, ReplyData data) throws ReliableReadException {	
 		data.readPacket(in);
 		return data;
 	}
@@ -32,8 +32,8 @@ public class ReplyData extends XPilotPacketAdaptor {
 	}
 
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<LENGTH) throw REPLY_DATA_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<LENGTH) throw REPLY_DATA_EXCEPTION;
 		setData(in.getByte(), in.getByte(), in.getByte());
 	}
 	

@@ -1,6 +1,7 @@
 package net.sf.jxpilot.net;
 
 import static net.sf.jxpilot.net.packet.Packet.PKT_ACK;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data for an Acknowledgement.
@@ -22,14 +23,14 @@ public class Ack {
 		return setAck(data.getOffset(), data.getRelLoops());
 	}
 	
-	public static void putAck(ByteBufferWrap buf, Ack ack) {
+	public static void putAck(ByteBuffer buf, Ack ack) {
 		//buf.clear();
 		buf.putByte(ack.getPacketType());
 		buf.putInt(ack.getOffset());
 		buf.putInt(ack.getLoops());
 	}
 	
-	public void putPacket(ByteBufferWrap out) {
+	public void putPacket(ByteBuffer out) {
 		out.putByte(pkt_type).putInt(reliable_offset).putInt(reliable_loops);
 	}
 	

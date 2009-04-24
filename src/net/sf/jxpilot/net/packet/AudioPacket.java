@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from an Audio packet.
@@ -13,7 +13,7 @@ public final class AudioPacket extends XPilotPacketAdaptor {
 	public byte getVolume(){return volume;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		type = in.getByte();
 		volume = in.getByte();

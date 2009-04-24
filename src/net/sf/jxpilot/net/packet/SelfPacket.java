@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.SelfHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Self packet.
@@ -22,8 +22,8 @@ public final class SelfPacket extends SelfHolder implements XPilotPacket {
 	public byte getPacketType() {return pkt_type;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
-		if(in.remaining()<LENGTH) throw SELF_READ_EXCEPTION;//should not happen
+	public void readPacket(ByteBuffer in) throws PacketReadException {
+		if(in.length()<LENGTH) throw SELF_READ_EXCEPTION;//should not happen
 		
 		pkt_type = in.getByte();
 		x = in.getShort();

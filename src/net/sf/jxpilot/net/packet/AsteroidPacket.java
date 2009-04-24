@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
+import net.sf.jgamelibrary.util.ByteBuffer;
 import net.sf.jxpilot.game.AsteroidHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
 
 /**
  * Holds data from an Asteroid packet.
@@ -13,9 +13,9 @@ public final class AsteroidPacket extends AsteroidHolder implements XPilotPacket
 	private byte pkt_type;
 	@Override
 	public byte getPacketType() {return pkt_type;}
-
+	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		x = in.getShort();
 		y = in.getShort();

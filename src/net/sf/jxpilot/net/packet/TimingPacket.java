@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Timing packet.
@@ -24,8 +24,8 @@ public final class TimingPacket extends XPilotPacketAdaptor {
 	public short getTiming(){return timing;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) throws ReliableReadException {
-		if(in.remaining()<LENGTH) throw TIMING_READ_EXCEPTION;
+	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length()<LENGTH) throw TIMING_READ_EXCEPTION;
 		pkt_type = in.getByte();
 		id = in.getShort();
 		timing = in.getShort();

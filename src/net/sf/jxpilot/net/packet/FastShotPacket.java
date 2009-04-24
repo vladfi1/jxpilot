@@ -1,6 +1,6 @@
 package net.sf.jxpilot.net.packet;
 
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a FastShot packet.
@@ -15,7 +15,7 @@ public class FastShotPacket extends XPilotPacketAdaptor {
 	public short getNum(){return num;}
 	
 	@Override
-	public void readPacket(ByteBufferWrap in) {
+	public void readPacket(ByteBuffer in) {
 		pkt_type = in.getByte();
 		type = in.getByte();
 		num = in.getUnsignedByte();

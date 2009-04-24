@@ -1,7 +1,7 @@
 package net.sf.jxpilot.net.packet;
 
 import net.sf.jxpilot.game.RefuelHolder;
-import net.sf.jxpilot.net.ByteBufferWrap;
+import net.sf.jgamelibrary.util.ByteBuffer;
 
 /**
  * Holds data from a Refuel packet.
@@ -13,7 +13,7 @@ public final class RefuelPacket extends RefuelHolder implements XPilotPacket {
 	public byte getPacketType() {return pkt_type;}
 
 	@Override
-	public void readPacket(ByteBufferWrap in) throws PacketReadException {
+	public void readPacket(ByteBuffer in) throws PacketReadException {
 		pkt_type = in.getByte();
 		x0 = in.getShort();
 		y0 = in.getShort();
