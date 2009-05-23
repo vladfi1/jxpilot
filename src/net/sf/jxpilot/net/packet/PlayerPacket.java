@@ -9,6 +9,9 @@ import net.sf.jgamelibrary.util.ByteBuffer;
  * @author Vlad Firoiu
  */
 public class PlayerPacket extends PlayerHolder implements XPilotPacket {
+	
+	public static final int LENGTH = 1 + 2 + 1 + 1;
+	
 	/**
 	 * Default packet read exception to throw.
 	 */
@@ -20,6 +23,8 @@ public class PlayerPacket extends PlayerHolder implements XPilotPacket {
 
 	@Override
 	public void readPacket(ByteBuffer in) throws ReliableReadException {
+		if(in.length() < LENGTH) throw PLAYER_READ_EXCEPTION;
+		
 		pkt_type = in.getByte();
 		id = in.getShort();
 		my_team = in.getByte();

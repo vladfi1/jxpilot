@@ -37,9 +37,11 @@ public class JXPilot {
     private static Image icon = null;
 		
 	public static void main(String[] args) {
-		XPilotPanelRun(new DefaultClientRunner());
+		//XPilotPanelRun(new DefaultClientRunner());
 
         //runClient(SERVER_IP_ADDRESS, SERVER_MAIN_PORT, null);
+		
+		runClient(BURKEN_ADDRESS, SERVER_MAIN_PORT + 1, null);
 	}
 
 	public static void XPilotPanelRun(ClientRunner runner)

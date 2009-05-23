@@ -6,7 +6,6 @@ import net.sf.jxpilot.game.*;
 import net.sf.jxpilot.graphics.*;
 import net.sf.jxpilot.map.BlockMap;
 import net.sf.jxpilot.net.NetClient;
-import net.sf.jxpilot.net.packet.PlayerPacket;
 import net.sf.jxpilot.net.packet.QuitPacket;
 import net.sf.jxpilot.net.packet.ShutdownPacket;
 import net.sf.jgamelibrary.preferences.Preferences;
@@ -138,7 +137,7 @@ public class Client implements AbstractClient, ClientInputListener
 	@Override
 	public void handlePlayer(PlayerHolder p) {
 		Player player = new Player(p);
-		//System.out.println(player);
+		System.out.println(player);
 		//System.out.println("Our nick is: " + netClient.getNick());
 		
 		if(player.getName().equalsIgnoreCase(netClient.getNick())) {
