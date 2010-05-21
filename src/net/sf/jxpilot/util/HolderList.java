@@ -91,8 +91,8 @@ public class HolderList<E extends Holder<? super E>> extends AbstractList<E> imp
 			//System.out.println("Increased HolderList size to " + (size+1));
 		}
 		E temp = list.get(size++);
-		//holder.set(temp);
-		temp.setFrom(holder);
+		holder.set(temp);
+		//temp.setFrom(holder);
 		return temp;
 	}
 	
@@ -118,7 +118,7 @@ public class HolderList<E extends Holder<? super E>> extends AbstractList<E> imp
 		}
 		
 		for(int i = 0;i<l.size();i++) {
-			list.get(size++).setFrom(l.get(i));
+			l.get(i).set(list.get(size++));
 		}
 		
 		return true;
@@ -135,7 +135,7 @@ public class HolderList<E extends Holder<? super E>> extends AbstractList<E> imp
 			}
 		}
 		for(E e : c) {
-			list.get(size++).setFrom(e);
+			e.set(list.get(size++));
 		}
 		return true;
 	}
@@ -148,7 +148,7 @@ public class HolderList<E extends Holder<? super E>> extends AbstractList<E> imp
 	@Override
 	public E set(int index, E element) {
 		E temp = list.get(index);
-		temp.setFrom(element);
+		element.set(temp);
 		return temp;
 	}
 }
